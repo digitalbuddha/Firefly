@@ -5,13 +5,11 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -23,36 +21,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
 
 
 @ExperimentalComposeUiApi
 @Composable
-@OptIn(ExperimentalAnimationApi::class)
 fun Search() {
-    var showSearch by remember { mutableStateOf(false) }
     IconButton(
-        onClick = { showSearch = true }) {
-        Icon(
-            Icons.Outlined.Search,
-            contentDescription = "Localized description"
+        onClick = {  }) {
+        Image(
+            painter = painterResource(R.drawable.notifications),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(Color.White),
         )
-        DropdownMenu(
-            offset = DpOffset(0.dp, 10.dp),
-            expanded = showSearch,
-            onDismissRequest = { showSearch = false },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = .5f)
-                )
-        ) {
-            var searchText by remember { mutableStateOf("Search") }
-            SearchBar(searchText, "Placeholder",
-                { searchText = it }, { searchText = "" })
-        }
     }
 }
 
@@ -156,7 +138,7 @@ fun SearchBar(
                 onClick = onBoostedOnly
             ) {
                 Image(
-                    painter = painterResource(R.drawable.rocket2),
+                    painter = painterResource(R.drawable.rocket3),
                     contentDescription = "",
                     colorFilter = ColorFilter.tint(Color.White),
                 )
