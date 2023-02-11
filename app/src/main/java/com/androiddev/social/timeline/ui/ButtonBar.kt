@@ -2,11 +2,7 @@ package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -31,10 +27,10 @@ fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(R.drawable.reply_o),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
             )
             replyCount?.let {
-                Text(color = MaterialTheme.colorScheme.secondary,text= " $it")
+                Text(color = MaterialTheme.colorScheme.tertiary,text= " $it")
             }
         }
 
@@ -47,10 +43,10 @@ fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(R.drawable.rocket3),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
             )
             boostCount?.let {
-                Text(color = MaterialTheme.colorScheme.secondary, text = " $it")
+                Text(color = MaterialTheme.colorScheme.tertiary, text = " $it")
             }
         }
         OutlinedButton(
@@ -62,7 +58,7 @@ fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(R.drawable.bookmark_48px),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
             )
         }
         OutlinedButton(
@@ -74,7 +70,7 @@ fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(R.drawable.share),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
             )
         }
     }

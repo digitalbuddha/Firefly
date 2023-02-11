@@ -1,4 +1,4 @@
-package com.androiddev.social.ui
+package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -15,48 +15,49 @@ import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
 
 @Composable
-fun BottomBar(replyCount:Int? = null, boostCount:Int? = null, ){
-    val size = 30
-    Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
+    val size = 36
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier
+            .fillMaxWidth()
+
+    ) {
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
+            contentPadding = PaddingValues(0.dp, 8.dp),
             border = BorderStroke(1.dp, Color.Transparent),
-            onClick = {  }
+            onClick = { }
         ) {
             Image(
                 modifier = Modifier.size(size.dp),
                 painter = painterResource(R.drawable.house),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
             )
             replyCount?.let {
-                Text(color = MaterialTheme.colorScheme.secondary,text= " $it")
+                Text(color = MaterialTheme.colorScheme.secondary, text = " $it")
             }
+        }
+
+        //placeholder for spacing
+        OutlinedButton(
+            border = BorderStroke(1.dp, Color.Transparent),
+            onClick = { }
+        ) {
+
         }
 
 
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
+            contentPadding = PaddingValues(0.dp, 8.dp),
             border = BorderStroke(1.dp, Color.Transparent),
-            onClick = {  }
+            onClick = { }
         ) {
             Image(
                 modifier = Modifier.size(size.dp),
                 painter = painterResource(R.drawable.search),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White),
-            )
-        }
-        OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
-            onClick = {  }
-        ) {
-            Image(
-                modifier = Modifier.size(size.dp),
-                painter = painterResource(R.drawable.profile),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
             )
         }
     }

@@ -35,13 +35,15 @@ fun List<Status>.mapStatus(): List<UI> {
             displayName = status.account?.displayName ?: "FriendlyMike",
             userName = status.account?.username ?: "FriendlyMike",
             content = status.content,
-            self = status,
             replyCount = status.repliesCount ?: 0,
             boostCount = status.reblogsCount ?: 0,
             favoriteCount = status.favouritesCount ?: 0,
             timePosted = TimeUtils.getRelativeTime(timestamp).toString(),
             boostedBy = if (item.reblog != null) item.account?.displayName else null,
-            directMessage = status.visibility == Privacy.direct
+            directMessage = status.visibility == Privacy.direct,
+            avatar = status.account?.avatar,
+            mentions = status.mentions ?: emptyList(),
+            tags = status.tags ?: emptyList()
         )
     }
 }

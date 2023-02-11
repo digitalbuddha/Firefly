@@ -19,7 +19,7 @@ import com.androiddev.social.timeline.ui.theme.Pink40
 fun Avatar(
     size: Dp = 36.dp,
     url: String = "https://placekitten.com/300/300",
-    showIcon: Boolean = true
+    showIcon: Boolean = false
 ) {
     Box() {
         AsyncImage(

@@ -8,10 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.FabPosition
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -32,7 +32,6 @@ import com.androiddev.social.timeline.data.TimelineApi
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.theme.EbonyTheme
-import com.androiddev.social.ui.BottomBar
 import com.squareup.anvil.annotations.ContributesBinding
 import com.squareup.anvil.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
@@ -61,14 +60,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         (noAuthComponent as MainActivityInjector).inject(this)
 //        homePresenter.events.tryEmit(HomePresenter.LoadSomething)
+
         setContent {
             EbonyTheme {
-                Scaffold(
-                    bottomBar = { BottomBar() },
+                androidx.compose.material.Scaffold(
+                    bottomBar = {
+                        androidx.compose.material.BottomAppBar(
+                            modifier = Modifier.height(60.dp),
+                            contentPadding = PaddingValues(0.dp, 0.dp),
+                            elevation = 0.dp,
+//                            cutoutShape = CutCornerShape(50),
+                            backgroundColor = colorScheme.surface.copy(alpha = .9f),
+                        ) {
+                            BottomBar()
+                        }
+                    },
                     topBar = {
                         SmallTopAppBar(
-                            modifier = Modifier.background(Color.Red),
 
+                            colors = TopAppBarDefaults.smallTopAppBarColors(
+                                containerColor = colorScheme.surface.copy(
+                                    alpha = .9f
+                                )
+                            ),
                             title = {
                                 Row(
                                     Modifier.fillMaxWidth(),
@@ -82,20 +96,26 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     },
-                    floatingActionButtonPosition = FabPosition.End,
+                    floatingActionButtonPosition = FabPosition.Center,
+                    isFloatingActionButtonDocked = true,
                     floatingActionButton = {
-                        SmallFloatingActionButton(
-                            containerColor = MaterialTheme.colorScheme.tertiary,
+                        val shape = CircleShape
+                        LargeFloatingActionButton(
+                            shape = shape,
+                            containerColor = colorScheme.tertiary.copy(alpha = .9f),
                             modifier = Modifier
-                                .size(70.dp)
-                                .clip(CircleShape),
+                                .offset(y = 36.dp)
+                                .clip(shape),
                             content = {
                                 Image(
-                                    modifier = Modifier.size(40.dp),
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .offset(y = -12.dp),
                                     painter = painterResource(R.drawable.elephant),
                                     contentDescription = "",
-                                    colorFilter = ColorFilter.tint(Color.White),
+                                    colorFilter = ColorFilter.tint(colorScheme.background),
                                 )
+
                             },
                             onClick = { /* fab click handler */ }
                         )
@@ -103,7 +123,14 @@ class MainActivity : ComponentActivity() {
                     content = { it ->
                         Column(Modifier.padding(paddingValues = it)) {
 //                            homePresenter.events.tryEmit(HomePresenter.LoadSomething)
-                            Timeline(homePresenter.model.statuses?.mapStatus() ?: listOf(UI()))
+                            Timeline(
+                                homePresenter.model.statuses?.mapStatus() ?: listOf(
+                                    UI(
+                                        mentions = emptyList(),
+                                        tags = emptyList()
+                                    )
+                                )
+                            )
                         }
                     },
                 )
@@ -124,7 +151,8 @@ class RealHomePresenter @Inject constructor(
 ) : HomePresenter() {
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            val list = timelineApi.getTimeline(" Bearer o4i6i5EmNEqmN8PiecyY5EGHHKEQTT7fIZrPovH8S1s")
+            val list =
+                timelineApi.getTimeline(" Bearer o4i6i5EmNEqmN8PiecyY5EGHHKEQTT7fIZrPovH8S1s")
             model = model.copy(loading = false, statuses = list)
         }
     }

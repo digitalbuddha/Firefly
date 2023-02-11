@@ -10,7 +10,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.core.text.parseAsHtml
+import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
+import com.androiddev.social.timeline.data.Tag
 
 data class UI(
     val imageUrl: String? = null,
@@ -23,7 +25,10 @@ data class UI(
     val timePosted: String = "3m",
     val boostedBy: String? = null,
     val directMessage: Boolean = false,
-    val self: Status? = null
+    val self: Status? = null,
+    val avatar:String? = null,
+    val mentions:List<Mention>,
+    val tags:List<Tag>
 )
 
 
