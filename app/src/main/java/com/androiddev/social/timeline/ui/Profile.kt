@@ -1,4 +1,4 @@
-package com.androiddev.social.ui
+package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +22,7 @@ fun Profile(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
-        Avatar()
+        Avatar(showIcon = false)
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -38,7 +38,7 @@ fun Profile(
                 onProfileClick()
             }, text = {
                 Row {
-                    Avatar()
+                    Avatar(showIcon = false)
                     Text(
                         userName,
                         modifier = Modifier
@@ -58,7 +58,7 @@ fun Profile(
                 text = {
                     Row {
                         Icon(
-                            Icons.Outlined.Search,
+                            Icons.Outlined.Settings,
                             contentDescription = "Localized description"
                         )
                         Text(

@@ -1,4 +1,4 @@
-package com.androiddev.social.ui.model
+package com.androiddev.social.timeline.ui.model
 
 import android.graphics.Typeface
 import android.text.Spanned
@@ -10,17 +10,20 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.core.text.parseAsHtml
+import com.androiddev.social.timeline.data.Status
 
 data class UI(
-    val imageUrl: String = "https://placekitten.com/300/300",
+    val imageUrl: String? = null,
     val displayName: String = "FriendlyMike",
     val userName: String = "FriendlyMike@androiddev.social",
-    val content: AnnotatedString = "<p><span class=\"h-card\"><a href=\"https://mastodon.online/@UnfriendlyMike\" class=\"u-url mention\">@<span>UnfriendlyMike</span></a></span> I don't see any reason why there cannot be a high quality Mastodon Android App</p><p><a href=\"https://www.youtube.com/watch?v=WjuIcvQy8i4\" target=\"_blank\" rel=\"nofollow noopener noreferrer\"><span class=\"invisible\">https://www.</span><span class=\"ellipsis\">youtube.com/watch?v=WjuIcvQy8i</span><span class=\"invisible\">4</span></a></p>".parseAsMastodonHtml()
-        .toAnnotatedString(Color.Blue),
+    val content: String = "",
     val replyCount: Int = 1,
     val boostCount: Int = 2,
     val favoriteCount: Int = 3,
-    val timePosted: Long? = null
+    val timePosted: String = "3m",
+    val boostedBy: String? = null,
+    val directMessage: Boolean = false,
+    val self: Status? = null
 )
 
 
@@ -33,6 +36,7 @@ fun String.parseAsMastodonHtml(): Spanned {
         /* Html.fromHtml returns trailing whitespace if the html ends in a </p> tag, which
          * most status contents do, so it should be trimmed. */
         .trimTrailingWhitespace()
+
 }
 
 fun Spanned.trimTrailingWhitespace(): Spanned {
@@ -47,7 +51,8 @@ fun Spanned.toAnnotatedString(primaryColor: Color): AnnotatedString {
     val builder = AnnotatedString.Builder(this.toString())
     val copierContext = CopierContext(primaryColor)
     SpanCopier.values().forEach { copier ->
-        getSpans(0, length, copier.spanClass).forEach { span ->
+        val spans = getSpans(0, length, copier.spanClass)
+        spans.forEach { span ->
             copier.copySpan(span, getSpanStart(span), getSpanEnd(span), builder, copierContext)
         }
     }
@@ -83,6 +88,7 @@ private enum class SpanCopier {
                 start = start,
                 end = end,
             )
+
         }
     },
     FOREGROUND_COLOR {
@@ -137,6 +143,7 @@ private enum class SpanCopier {
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Italic
                     )
+
                     else -> SpanStyle()
                 },
                 start = start,

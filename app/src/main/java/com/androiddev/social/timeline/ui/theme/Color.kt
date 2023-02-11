@@ -1,4 +1,4 @@
-package com.androiddev.social.ui.theme
+package com.androiddev.social.timeline.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

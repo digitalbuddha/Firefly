@@ -1,4 +1,4 @@
-package com.androiddev.social.ui
+package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,8 +6,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,7 +25,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TabSelector() {
     var expanded by remember { mutableStateOf(false) }
-    val items = listOf("Home", "Local", "Federated")
+    val items = listOf("Home", "Local", "Federated", "Favorites")
     var selectedIndex by remember { mutableStateOf(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
         Text(

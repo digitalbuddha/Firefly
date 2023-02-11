@@ -1,4 +1,4 @@
-package com.androiddev.social.ui
+package com.androiddev.social.timeline.ui
 
 import android.os.Build
 import android.text.SpannableString
@@ -6,7 +6,6 @@ import android.text.style.URLSpan
 import android.text.util.Linkify
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -23,12 +22,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import com.androiddev.social.timeline.ui.theme.Pink80
 
 @Composable
 fun LinkifyText2(
     text: String,
     modifier: Modifier = Modifier,
-    linkColor: Color = MaterialTheme.colorScheme.tertiary,
+    linkColor: Color = Pink80,
     linkEntire: Boolean = false,
     color: Color = Color.Unspecified,
     fontSize: TextUnit = TextUnit.Unspecified,
@@ -48,7 +48,9 @@ fun LinkifyText2(
     onClickLink: ((linkText: String) -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
-    val linkInfos = if (linkEntire) listOf(LinkInfo(text, 0, text.length)) else SpannableStr.getLinkInfos(text)
+    val linkInfos = if (linkEntire) listOf(LinkInfo(text, 0, text.length)) else SpannableStr.getLinkInfos(
+        text
+    )
     val annotatedString = buildAnnotatedString {
         append(text)
         linkInfos.forEach {

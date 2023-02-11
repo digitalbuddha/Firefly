@@ -1,4 +1,4 @@
-package com.androiddev.social.ui.theme
+package com.androiddev.social.timeline.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +20,8 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = Color.White,
     secondary = Color.Black,
-    tertiary = Purple40
+    tertiary = Purple40,
+
 
 
     /* Other default colors to override
