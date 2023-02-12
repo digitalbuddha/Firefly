@@ -79,6 +79,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
+
     kapt 'com.google.dagger:dagger-compiler:2.44.2'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
     testImplementation 'junit:junit:4.13.2'
@@ -87,6 +89,4 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation("org.assertj:assertj-core:3.24.2")
-
-
 }

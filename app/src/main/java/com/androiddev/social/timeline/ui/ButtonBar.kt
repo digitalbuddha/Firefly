@@ -25,7 +25,7 @@ fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
         ) {
             Image(
                 modifier = Modifier.size(iconSize),
-                painter = painterResource(R.drawable.reply_o),
+                painter = painterResource(R.drawable.reply),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
             )

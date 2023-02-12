@@ -46,7 +46,7 @@ fun TabSelector() {
             modifier = Modifier
                 .wrapContentSize()
                 .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = .1f)
+                    MaterialTheme.colorScheme.surface.copy(alpha = .9f)
                 )
         ) {
             items.forEachIndexed { index, s ->

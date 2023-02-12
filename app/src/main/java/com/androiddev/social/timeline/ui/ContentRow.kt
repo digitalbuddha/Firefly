@@ -1,18 +1,22 @@
 package com.androiddev.social.timeline.ui
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.Divider
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.setClickableText
 import com.androiddev.social.timeline.ui.model.UI
@@ -23,7 +27,7 @@ import com.androiddev.social.timeline.ui.theme.Pink80
 @Composable
 fun ContentRow(ui: UI) {
     Row(Modifier) {
-        Column {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val parseAsMastodonHtml = ui.content.parseAsMastodonHtml()
             println(parseAsMastodonHtml)
             val prettyText = setClickableText(
@@ -45,9 +49,17 @@ fun ContentRow(ui: UI) {
                 })
             val uriHandler = LocalUriHandler.current
             val text = prettyText.toAnnotatedString(Pink80)
-            ClickableText(style = TextStyle.Default.copy(color = colorScheme.secondary),
-                modifier = Modifier.padding(horizontal = 8.dp), text = text,
+            var clicked by remember { mutableStateOf(false) }
+
+            ClickableText(style = TextStyle.Default.copy(
+                color = colorScheme.secondary,
+                fontSize = 16.sp,
+                lineHeight = 22.sp
+            ),
+                modifier = Modifier
+                    .fillMaxWidth(), text = text,
                 onClick = {
+                    clicked = !clicked
                     text.getStringAnnotations(
                         tag = "URL", start = it,
                         end = it
@@ -59,9 +71,11 @@ fun ContentRow(ui: UI) {
                         }
                 }
             )
-            ui.imageUrl?.let { ContentImage(it) }
-            ButtonBar(1, 2)
-            Divider(Modifier.padding(12.dp), color = Color.Gray.copy(alpha = .5f))
+            ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
+            AnimatedVisibility(visible = clicked) {
+                ButtonBar(ui.replyCount, ui.boostCount)
+            }
+            Divider(Modifier.padding(0.dp), color = Color.Gray.copy(alpha = .5f))
         }
     }
 }

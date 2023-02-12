@@ -29,7 +29,7 @@ fun Profile(
             modifier = Modifier
                 .wrapContentSize()
                 .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = .5f)
+                    MaterialTheme.colorScheme.surface.copy(alpha = .9f)
                 )
         ) {
 

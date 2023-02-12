@@ -7,9 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.FabPosition
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -19,14 +17,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.EbonyApp
-import com.androiddev.social.R
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.TimelineApi
 import com.androiddev.social.timeline.data.mapStatus
@@ -99,26 +93,7 @@ class MainActivity : ComponentActivity() {
                     floatingActionButtonPosition = FabPosition.Center,
                     isFloatingActionButtonDocked = true,
                     floatingActionButton = {
-                        val shape = CircleShape
-                        LargeFloatingActionButton(
-                            shape = shape,
-                            containerColor = colorScheme.tertiary.copy(alpha = .9f),
-                            modifier = Modifier
-                                .offset(y = 36.dp)
-                                .clip(shape),
-                            content = {
-                                Image(
-                                    modifier = Modifier
-                                        .size(50.dp)
-                                        .offset(y = -12.dp),
-                                    painter = painterResource(R.drawable.elephant),
-                                    contentDescription = "",
-                                    colorFilter = ColorFilter.tint(colorScheme.background),
-                                )
-
-                            },
-                            onClick = { /* fab click handler */ }
-                        )
+                        FAB(colorScheme)
                     },
                     content = { it ->
                         Column(Modifier.padding(paddingValues = it)) {
@@ -137,6 +112,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
 
     private val noAuthComponent by lazy {

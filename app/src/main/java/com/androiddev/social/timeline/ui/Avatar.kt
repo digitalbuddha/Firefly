@@ -2,6 +2,7 @@ package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -51,12 +52,16 @@ fun Avatar(
 }
 
 @Composable
-fun ContentImage(url: String = "https://placekitten.com/302/302") {
+fun ContentImage(url: String = "https://placekitten.com/302/302", clicked: Boolean, onClick: () -> Unit) {
+
     AsyncImage(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(.99f)
             .aspectRatio(1f)
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+                      onClick
+            },
         alignment = Alignment.Center,
         model = url,
         contentScale = ContentScale.FillHeight,
