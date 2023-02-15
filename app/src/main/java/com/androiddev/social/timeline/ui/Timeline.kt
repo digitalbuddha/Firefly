@@ -26,7 +26,6 @@ fun Timeline(ui: List<UI>) {
     LazyColumn {
         ui.forEach {
             item { TimelineCard(it) }
-//            item { TimelineCard(it.copy(directMessage = true)) }
         }
     }
 }

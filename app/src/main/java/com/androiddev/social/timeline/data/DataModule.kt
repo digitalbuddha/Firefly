@@ -3,6 +3,7 @@ package com.androiddev.social.timeline.data
 import com.androiddev.social.AppScope
 import com.androiddev.social.BuildConfig
 import com.androiddev.social.SingleIn
+import com.androiddev.social.shared.Api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
@@ -42,7 +43,7 @@ class DataModule {
     @SingleIn(AppScope::class)
     fun providesRetrofit(
         httpClient: OkHttpClient
-    ): TimelineApi {
+    ): Api {
         val json = Json { ignoreUnknownKeys = true }
         val contentType = "application/json".toMediaType()
         return Retrofit
@@ -50,6 +51,6 @@ class DataModule {
             .baseUrl("https://androiddev.social")
             .client(httpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
-            .build().create(TimelineApi::class.java)
+            .build().create(Api::class.java)
     }
 }

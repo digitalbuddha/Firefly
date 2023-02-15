@@ -102,7 +102,6 @@ fun FAB(colorScheme: ColorScheme) {
             .size((90*size).dp)
         ,
         content = {
-
             Image(
                 modifier = Modifier
                     .size(60.dp)

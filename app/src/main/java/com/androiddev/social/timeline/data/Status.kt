@@ -167,6 +167,7 @@ data class NewOauthApplication(
     // client attributes
     @SerialName("client_id") val clientId: String,
     @SerialName("client_secret") val clientSecret: String,
+    @SerialName("redirect_uri") val redirectUri: String,
 
     // optional attributes
     val website: String? = null,
