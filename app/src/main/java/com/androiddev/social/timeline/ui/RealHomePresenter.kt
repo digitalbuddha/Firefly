@@ -1,33 +1,33 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.paging.*
 import com.androiddev.social.AppScope
+import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.AppTokenRepository
 import com.androiddev.social.shared.Api
-import com.androiddev.social.timeline.data.Status
+import com.androiddev.social.timeline.data.mapStatus
+import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 @ContributesBinding(AppScope::class, boundType = HomePresenter::class)
 class RealHomePresenter @Inject constructor(
-    private val timelineApi: Api,
-    private val appTokenRepository: AppTokenRepository
+    val timelineSource: TimelineSource
 ) : HomePresenter() {
-    init {
-
-    }
 
     override suspend fun eventHandler(event: HomeEvent) {
         when (event) {
             is LoadSomething -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val token = " Bearer ${appTokenRepository.appToken}"
-                    val list = timelineApi.getTimeline(token)
-                    model = model.copy(loading = false, statuses = list)
-                }
+                val scope = CoroutineScope(Dispatchers.IO)
+                model = model.copy(statuses = Pager(PagingConfig(pageSize = 6)) {
+                    timelineSource
+                }.flow.cachedIn(scope))
             }
         }
     }
@@ -43,8 +43,38 @@ abstract class HomePresenter :
 
     data class HomeModel(
         val loading: Boolean,
-        val statuses: List<Status>? = listOf()
+        val statuses: Flow<PagingData<UI>>? = null
     )
 
     sealed interface HomeEffect
+}
+
+@SingleIn(AppScope::class)
+class TimelineSource @Inject constructor(
+    val api: Api,
+    private val appTokenRepository: AppTokenRepository
+
+) : PagingSource<String, UI>() {
+
+    override fun getRefreshKey(state: PagingState<String, UI>): String? {
+        return null
+    }
+
+    override suspend fun load(params: LoadParams<String>): LoadResult<String, UI> {
+        return try {
+            val token = "${appTokenRepository.appToken}"
+            val since = params.key
+            val timeline = api.getTimeline(token, since = since)
+            val list = timeline.mapStatus()
+            LoadResult.Page(
+                data = list,
+                prevKey = null,
+                nextKey = if (list.isEmpty()) null else timeline.last().id
+            )
+        } catch (exception: IOException) {
+            return LoadResult.Error(exception)
+        } catch (exception: HttpException) {
+            return LoadResult.Error(exception)
+        }
+    }
 }

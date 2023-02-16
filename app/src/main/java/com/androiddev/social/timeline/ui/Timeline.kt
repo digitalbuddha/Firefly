@@ -15,6 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.items
 import com.androiddev.social.R
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.theme.Purple50
@@ -22,13 +24,14 @@ import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
 @Composable
-fun Timeline(ui: List<UI>) {
+fun Timeline(ui: LazyPagingItems<UI>) {
     LazyColumn {
-        ui.forEach {
-            item { TimelineCard(it) }
+        items(ui) {
+            it?.let { TimelineCard(ui = it) }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable

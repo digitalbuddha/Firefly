@@ -62,7 +62,7 @@ data class Source(
     // optional attributes
     @SerialName("privacy") val privacy: Privacy,
     @SerialName("sensitive") val sensitive: Boolean,
-    @SerialName("language") val language: String,
+    @SerialName("language") val language: String?,
     @SerialName("follow_requests_count") val followRequestsCount: Int,
 )
 

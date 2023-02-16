@@ -52,7 +52,7 @@ class RealAppTokenRepository @Inject constructor(
             code = accessTokenRequest.code,
             scope = accessTokenRequest.scope
         ).also {
-            appToken = it.accessToken
+            appToken = " Bearer ${it.accessToken}"
         }
     }
 

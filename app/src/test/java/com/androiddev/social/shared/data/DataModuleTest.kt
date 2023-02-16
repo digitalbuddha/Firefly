@@ -16,30 +16,37 @@ class DataModuleTest {
 
     @Test
     fun timeLineTest() = runTest {
-        val result = api.getTimeline(bearer)
+        val result = api.getTimeline(bearer, since = null)
+        assertThat(result).isNotNull()
+    }
+
+    @Test
+    fun accountInfoTest() = runTest {
+        val result =
+            api.accountVerifyCredentials(" Bearer o4i6i5EmNEqmN8PiecyY5EGHHKEQTT7fIZrPovH8S1s")
         assertThat(result).isNotNull()
     }
 
     @Test
     fun appAuthTest() = runTest {
-       val body= ApplicationBody()
+        val body = ApplicationBody()
         val result = api.createApplication(
             url = "https://androiddev.social/api/v1/apps",
             scopes = body.scopes,
             client_name = body.clientName,
-            redirect_uris = body.redirectScheme+body.baseUrl
+            redirect_uris = body.redirectScheme + body.baseUrl
         )
         assertThat(result).isNotNull()
     }
 
     @Test
     fun accessTokenTest() = runTest {
-        val body= ApplicationBody()
+        val body = ApplicationBody()
         val result = api.createApplication(
             url = "https://androiddev.social/api/v1/apps",
             scopes = body.scopes,
             client_name = body.clientName,
-            redirect_uris = body.redirectScheme+body.baseUrl
+            redirect_uris = body.redirectScheme + body.baseUrl
         )
 //        api.createAccessToken(
 //            domain = "https://androiddev.social/api/v1/apps/oauth/token",
@@ -54,7 +61,7 @@ class DataModuleTest {
 
     @Test
     fun testMappingJVM() = runTest {
-        val mapped = api.getTimeline(bearer).mapStatus().map { it.imageUrl }
+        val mapped = api.getTimeline(bearer, since = null).mapStatus().map { it.imageUrl }
         assertThat(mapped).isNotEmpty
     }
 }

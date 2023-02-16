@@ -18,13 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInContent
 import com.androiddev.social.auth.ui.SignInPresenter
-import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.theme.EbonyTheme
 import com.squareup.anvil.annotations.ContributesTo
 import javax.inject.Inject
@@ -45,6 +44,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var signInPresenter: SignInPresenter
+
+    @Inject
+    lateinit var avatarPresenter: AvatarPresenter
     override fun onStop() {
         super.onStop()
     }
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity() {
 //        homePresenter.events.tryEmit(HomePresenter.LoadSomething)
 
         setContent {
+            val signedIn = signInPresenter.model.signedIn
             LaunchedEffect(key1 = Unit) {
                 signInPresenter.start()
             }
@@ -92,7 +95,18 @@ class MainActivity : ComponentActivity() {
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Box() { Profile("FriendlyMike") }
+                                    LaunchedEffect(key1 = "avatar") {
+                                        avatarPresenter.start()
+                                    }
+                                    if (signedIn && homePresenter.model.statuses!=null) {
+                                        avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+                                    }
+                                    Box {
+                                        Profile(
+                                            "FriendlyMike",
+                                            account = avatarPresenter.model.account
+                                        )
+                                    }
                                     Box(Modifier.align(Alignment.CenterVertically)) { TabSelector() }
                                     NotifIcon()
                                 }
@@ -106,7 +120,6 @@ class MainActivity : ComponentActivity() {
                     },
                     content = { it ->
                         val scope = rememberCoroutineScope()
-                        val signedIn = signInPresenter.model.signedIn
                         if (signedIn) {
                             LaunchedEffect(key1 = "start") {
                                 homePresenter.start()
@@ -115,14 +128,12 @@ class MainActivity : ComponentActivity() {
                                 homePresenter.events.tryEmit(HomePresenter.LoadSomething)
                             }
                             Column(Modifier.padding(paddingValues = it)) {
-                                Timeline(
-                                    homePresenter.model.statuses?.mapStatus() ?: listOf(
-                                        UI(
-                                            mentions = emptyList(),
-                                            tags = emptyList()
-                                        )
+                                homePresenter.model.statuses?.let {
+                                    Timeline(
+                                        it.collectAsLazyPagingItems()
                                     )
-                                )
+                                }
+
                             }
                         } else {
                             SignInContent(
@@ -140,7 +151,6 @@ class MainActivity : ComponentActivity() {
 
                             )
                         }
-
                     },
                 )
             }
@@ -156,3 +166,4 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
     }
 }
+

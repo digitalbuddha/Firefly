@@ -13,16 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.androiddev.social.timeline.data.Account
 
 @Composable
 fun Profile(
     userName: String,
     onProfileClick: () -> Unit = {},
-    onSettingsClicked: () -> Unit = {}
+    onSettingsClicked: () -> Unit = {},
+    account: Account?
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
-        Avatar(showIcon = false)
+        account?.let { Avatar(showIcon = false, url = it.avatar) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -38,7 +40,7 @@ fun Profile(
                 onProfileClick()
             }, text = {
                 Row {
-                    Avatar(showIcon = false)
+                    account?.let {Avatar(showIcon = false, url = it.avatar)}
                     Text(
                         userName,
                         modifier = Modifier

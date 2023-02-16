@@ -1,5 +1,6 @@
 package com.androiddev.social.shared
 
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.androiddev.social.timeline.data.Status
 import kotlinx.serialization.SerialName
@@ -12,6 +13,7 @@ interface Api {
     suspend fun getTimeline(
         @Header("Authorization") authHeader: String?,
         @Query("limit") limit: String = "40",
+        @Query("max_id") since:String?
     ): List<Status>
 
     @POST
@@ -34,7 +36,15 @@ interface Api {
         @Field("code") code: String,
         @Field("scope") scope: String
     ): Token
+
+
+    @GET("api/v1/accounts/verify_credentials")
+    suspend fun accountVerifyCredentials(
+        @Header("Authorization") authHeader: String?,
+    ): Account
+
 }
+
 
 @Serializable
 data class Token(
