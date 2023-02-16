@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
 
 @Composable
-fun ButtonBar(replyCount:Int? = null, boostCount:Int? = null, ){
+fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> Unit, ){
     val iconSize = 24.dp
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             contentPadding =  PaddingValues(8.dp, 8.dp),
             border = BorderStroke(1.dp, Color.Transparent),
-            onClick = {  }
+            onClick = onReply
         ) {
             Image(
                 modifier = Modifier.size(iconSize),

@@ -103,7 +103,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                     Box {
                                         Profile(
-                                            "FriendlyMike",
                                             account = avatarPresenter.model.account
                                         )
                                     }

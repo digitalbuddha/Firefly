@@ -43,7 +43,8 @@ fun List<Status>.mapStatus(): List<UI> {
             directMessage = status.visibility == Privacy.direct,
             avatar = status.account?.avatar,
             mentions = status.mentions ?: emptyList(),
-            tags = status.tags ?: emptyList()
+            tags = status.tags ?: emptyList(),
+            emojis = status.emojis
         )
     }
 }

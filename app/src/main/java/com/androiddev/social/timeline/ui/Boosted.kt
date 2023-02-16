@@ -1,10 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.AssistChip
@@ -29,6 +26,7 @@ fun Boosted(boostedBy: String?) {
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(top = 4.dp, bottom = 8.dp)
         ) {
             AssistChip(
                 border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
@@ -42,7 +40,7 @@ fun Boosted(boostedBy: String?) {
                 onClick = { /* Do something! */ },
                 label = { Text(boostedBy) },
                 leadingIcon = {
-                    Avatar(size = 24.dp, showIcon = false)
+                    Image(size = 24.dp, showIcon = false)
                 },
                 trailingIcon = {
                     Image(

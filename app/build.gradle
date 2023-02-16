@@ -83,6 +83,7 @@ dependencies {
     implementation("androidx.browser:browser:1.5.0")
 //    implementation "org.mobilenativefoundation.store:store5:5.0.0-alpha03"
     implementation 'org.mobilenativefoundation.store:cache5-jvm:5.0.0-alpha03'
+    implementation 'org.mobilenativefoundation.store:store5-jvm:5.0.0-alpha03'
     implementation 'androidx.paging:paging-compose:1.0.0-alpha18'
 
     api "org.jetbrains.kotlinx:atomicfu:0.18.5"

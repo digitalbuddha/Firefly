@@ -17,14 +17,11 @@ import com.androiddev.social.timeline.data.Account
 
 @Composable
 fun Profile(
-    userName: String,
-    onProfileClick: () -> Unit = {},
-    onSettingsClicked: () -> Unit = {},
-    account: Account?
+    onProfileClick: () -> Unit = {}, onSettingsClicked: () -> Unit = {}, account: Account?
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
-        account?.let { Avatar(showIcon = false, url = it.avatar) }
+        account?.let { Image(showIcon = false, url = it.avatar) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -40,38 +37,49 @@ fun Profile(
                 onProfileClick()
             }, text = {
                 Row {
-                    account?.let {Avatar(showIcon = false, url = it.avatar)}
-                    Text(
-                        userName,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .align(Alignment.CenterVertically)
-                    )
+                    account?.let { it ->
+                        Image(showIcon = false, url = it.avatar)
+                        val emojis = account.emojis
+
+
+                        val unformatted = account.displayName
+                        val (inlineContentMap, text) = inlineEmojis(
+                            unformatted,
+                            emojis
+                        )
+
+                        Text(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .align(Alignment.CenterVertically),
+                            text = text,
+                            inlineContent = inlineContentMap
+                        )
+                    }
+
                 }
-            }
-            )
+
+            })
 
             Divider(thickness = 1.dp, color = Color.Gray)
 
             DropdownMenuItem(onClick = {
                 expanded = false
                 onSettingsClicked()
-            },
-                text = {
-                    Row {
-                        Icon(
-                            Icons.Outlined.Settings,
-                            contentDescription = "Localized description"
-                        )
-                        Text(
-                            "Settings",
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    }
+            }, text = {
+                Row {
+                    Icon(
+                        Icons.Outlined.Settings, contentDescription = "Localized description"
+                    )
+                    Text(
+                        "Settings",
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .align(Alignment.CenterVertically)
+                    )
                 }
-            )
+            })
         }
     }
 }
+

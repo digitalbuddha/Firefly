@@ -53,12 +53,12 @@ fun SignInContent(
                     .wrapContentHeight()
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
-                    .background(color = MaterialTheme.colorScheme.error.copy(alpha = 0.5F))
+                    .background(color = MaterialTheme.colorScheme.tertiary.copy(alpha = .5f))
                     .border(
                         border = BorderStroke(
                             width = 2.dp,
                             color =
-                            MaterialTheme.colorScheme.error
+                            MaterialTheme.colorScheme.tertiary
                         ),
                         shape = MaterialTheme.shapes.small
                     )

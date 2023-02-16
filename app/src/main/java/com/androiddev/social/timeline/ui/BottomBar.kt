@@ -23,7 +23,7 @@ import com.androiddev.social.R
 
 @Composable
 fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
-    val size = 36
+    val size = 24
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier

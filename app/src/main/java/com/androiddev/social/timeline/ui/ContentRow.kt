@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.text.Spanned
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,11 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -26,9 +31,9 @@ import com.androiddev.social.timeline.ui.theme.Pink80
 
 @Composable
 fun ContentRow(ui: UI) {
-    Row(Modifier) {
+    Row(Modifier.padding(bottom = 0.dp)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val parseAsMastodonHtml = ui.content.parseAsMastodonHtml()
+            val parseAsMastodonHtml: Spanned = ui.content.parseAsMastodonHtml()
             println(parseAsMastodonHtml)
             val prettyText = setClickableText(
                 parseAsMastodonHtml,
@@ -72,10 +77,45 @@ fun ContentRow(ui: UI) {
                 }
             )
             ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
-            AnimatedVisibility(visible = clicked) {
-                ButtonBar(ui.replyCount, ui.boostCount)
+            var showReply by remember { mutableStateOf(false) }
+            val toolbarHeight = 48.dp
+            val toolbarHeightPx =
+                with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
+            val toolbarOffsetHeightPx =
+
+                remember { mutableStateOf(0f) }
+            val nestedScrollConnection = remember {
+                object : NestedScrollConnection {
+                    override fun onPreScroll(
+                        available: Offset,
+                        source: NestedScrollSource
+                    ): Offset {
+                        val delta = available.y
+                        val newOffset = toolbarOffsetHeightPx.value + delta
+                        toolbarOffsetHeightPx.value =
+                            newOffset.coerceIn(-toolbarHeightPx, 0f)
+                        return Offset.Zero
+                    }
+                }
             }
-            Divider(Modifier.padding(0.dp), color = Color.Gray.copy(alpha = .5f))
+
+            AnimatedVisibility(visible = clicked) {
+                Column {
+                    ButtonBar(ui.replyCount, ui.boostCount) {
+                        showReply = !showReply
+                    }
+
+                }
+            }
+            AnimatedVisibility(visible = showReply) {
+                UserInput(connection = nestedScrollConnection,
+                    {
+                        it.length
+                    }
+                )
+            }
+
+            Divider(Modifier.padding(top = 16.dp), color = Color.Gray.copy(alpha = .5f))
         }
     }
 }

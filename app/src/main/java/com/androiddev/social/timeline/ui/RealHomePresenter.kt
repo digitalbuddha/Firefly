@@ -62,9 +62,9 @@ class TimelineSource @Inject constructor(
 
     override suspend fun load(params: LoadParams<String>): LoadResult<String, UI> {
         return try {
-            val token = "${appTokenRepository.appToken}"
+            val token = appTokenRepository.getUserToken().accessToken
             val since = params.key
-            val timeline = api.getTimeline(token, since = since)
+            val timeline = api.getTimeline(" Bearer $token", since = since)
             val list = timeline.mapStatus()
             LoadResult.Page(
                 data = list,

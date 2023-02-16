@@ -131,7 +131,7 @@ class RealSignInPresenter @Inject constructor(
             query.contains("code=") -> {
                 val code = query.replace("code=", "")
                 scope.launch {
-                    val token: Token = appTokenRepository.createAccessToken(
+                    val token: Token = appTokenRepository.getUserToken(
                         AccessTokenRequest(
                             code = code,
                             domain = model.server,

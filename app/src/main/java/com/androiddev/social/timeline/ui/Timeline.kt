@@ -82,7 +82,7 @@ fun TimelineCard(ui: UI) {
         Column(
             Modifier
                 .background(colorScheme.primary.copy(alpha = .7f))
-                .padding(4.dp)
+                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
         ) {
             DirectMessage(ui.directMessage)
             Boosted(ui.boostedBy)
@@ -100,22 +100,33 @@ private fun UserInfo(ui: UI) {
             .padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.Start
     ) {
-        ui.avatar?.let { Avatar(52.dp, it) }
-        Column(Modifier.padding(start = 8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    color = colorScheme.secondary,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    text = ui.displayName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Text(color = colorScheme.secondary, text = ui.timePosted, fontSize = 18.sp)
+        ui.avatar?.let { Image(52.dp, it) }
+        ui.emojis?.let {
+            val (inlineContentMap, text) = inlineEmojis(
+                ui.displayName,
+                it
+            )
+
+            Column(Modifier.padding(start = 8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        color = colorScheme.secondary,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        text = text,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        inlineContent = inlineContentMap
+                    )
+                    Text(color = colorScheme.secondary, text = ui.timePosted, fontSize = 18.sp)
+                }
+                Text(color = colorScheme.secondary, text = ui.userName, fontSize = 14.sp)
             }
-            Text(color = colorScheme.secondary, text = ui.userName, fontSize = 14.sp)
+
         }
+
+
     }
 }

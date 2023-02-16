@@ -32,7 +32,7 @@ fun NotifIcon() {
         onClick = {  }) {
         Image(
             modifier = Modifier
-                .size(36.dp),
+                .size(24.dp),
             painter = painterResource(R.drawable.notification),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),

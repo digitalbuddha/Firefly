@@ -1,7 +1,6 @@
 package com.androiddev.social.auth.ui
 
 import android.app.Activity
-
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -36,8 +34,8 @@ fun SignInWebView(
 ) {
     val webIntent = webBrowserIntent(
         url = url,
-        primaryColor = MaterialTheme.colors.primary,
-        secondaryColor = MaterialTheme.colors.secondary
+        primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.tertiary,
+        secondaryColor =  androidx.compose.material3.MaterialTheme.colorScheme.tertiary.copy(alpha = .5f)
     )
 
     val handler = Handler(Looper.getMainLooper())

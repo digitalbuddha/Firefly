@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.core.text.parseAsHtml
+import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
@@ -28,7 +29,8 @@ data class UI(
     val self: Status? = null,
     val avatar:String? = null,
     val mentions:List<Mention>,
-    val tags:List<Tag>
+    val tags:List<Tag>,
+    val emojis: List<Emoji>?
 )
 
 
