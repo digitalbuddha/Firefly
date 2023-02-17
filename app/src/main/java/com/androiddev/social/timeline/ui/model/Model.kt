@@ -3,17 +3,24 @@ package com.androiddev.social.timeline.ui.model
 import android.graphics.Typeface
 import android.text.Spanned
 import android.text.style.*
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
+import com.androiddev.social.timeline.ui.Image
 
 data class UI(
     val imageUrl: String? = null,
@@ -27,9 +34,9 @@ data class UI(
     val boostedBy: String? = null,
     val directMessage: Boolean = false,
     val self: Status? = null,
-    val avatar:String? = null,
-    val mentions:List<Mention>,
-    val tags:List<Tag>,
+    val avatar: String? = null,
+    val mentions: List<Mention>,
+    val tags: List<Tag>,
     val emojis: List<Emoji>?
 )
 
@@ -54,8 +61,30 @@ fun Spanned.trimTrailingWhitespace(): Spanned {
     return subSequence(0, i + 1) as Spanned
 }
 
-fun Spanned.toAnnotatedString(primaryColor: Color): AnnotatedString {
-    val builder = AnnotatedString.Builder(this.toString())
+fun Spanned.toAnnotatedString(
+    primaryColor: Color,
+    emojis: List<Emoji>? = listOf(),
+    mutableMapOf: MutableMap<String, InlineTextContent>
+): AnnotatedString {
+    val builder = AnnotatedString.Builder()
+    val split = split(":").filter { group -> group != "" }
+    split.forEach { token ->
+        val emoji = emojis?.firstOrNull { it.shortcode == token }
+        if (emoji != null) {
+            builder.appendInlineContent(
+                emoji.shortcode,
+                token
+            )
+            mutableMapOf[token] = InlineTextContent(
+                Placeholder(
+                    20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
+                ), children = {
+                    Image(20.dp, url = emoji.url)
+                })
+        } else {
+            builder.append(token)
+        }
+    }
     val copierContext = CopierContext(primaryColor)
     SpanCopier.values().forEach { copier ->
         val spans = getSpans(0, length, copier.spanClass)
@@ -63,6 +92,7 @@ fun Spanned.toAnnotatedString(primaryColor: Color): AnnotatedString {
             copier.copySpan(span, getSpanStart(span), getSpanEnd(span), builder, copierContext)
         }
     }
+
     return builder.toAnnotatedString()
 }
 

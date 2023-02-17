@@ -64,7 +64,7 @@ fun setClickableText(
 ): SpannableStringBuilder {
 //    waitForDebugger()
 
-    val spannableContent = markupHiddenUrls(content)
+    val spannableContent: SpannableStringBuilder = SpannableStringBuilder(content)
 
     return spannableContent.apply {
         getSpans(0, content.length, URLSpan::class.java).forEach {
@@ -73,37 +73,6 @@ fun setClickableText(
             )
         }
     }
-}
-
-@VisibleForTesting
-fun markupHiddenUrls(content: CharSequence): SpannableStringBuilder {
-    val spannableContent = SpannableStringBuilder(content)
-    val originalSpans = spannableContent.getSpans(0, content.length, URLSpan::class.java)
-    val obscuredLinkSpans = originalSpans.filter {
-        val start = spannableContent.getSpanStart(it)
-        val firstCharacter = content[start]
-        return@filter if (firstCharacter == '#' || firstCharacter == '@') {
-            false
-        } else {
-            val text =
-                spannableContent.subSequence(start, spannableContent.getSpanEnd(it)).toString()
-                    .split(' ').lastOrNull() ?: ""
-            var textDomain = getDomain(text)
-            if (textDomain.isBlank()) {
-                textDomain = getDomain("https://$text")
-            }
-            getDomain(it.url) != textDomain
-        }
-    }
-//    for (span in obscuredLinkSpans) {
-//        val start = spannableContent.getSpanStart(span)
-//        val end = spannableContent.getSpanEnd(span)
-//        val originalText = spannableContent.subSequence(start, end)
-//        val replacementText = context.getString(R.string.url_domain_notifier, originalText, getDomain(span.url))
-//        spannableContent.replace(start, end, replacementText) // this also updates the span locations
-//    }
-
-    return spannableContent
 }
 
 open class NoUnderlineURLSpan(

@@ -4,8 +4,10 @@ import android.text.Spanned
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Divider
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
@@ -17,11 +19,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.androiddev.social.R
@@ -57,29 +63,29 @@ fun TimelineCard(ui: UI) {
                         parseAsMastodonHtml,
                         ui.mentions,
                         ui.tags,
-                        object : LinkListener {
-                            override fun onViewTag(tag: String) {
-                                TODO("Not yet implemented")
-                            }
-
-                            override fun onViewAccount(id: String) {
-                                TODO("Not yet implemented")
-                            }
-
-                            override fun onViewUrl(url: String) {
-                                TODO("Not yet implemented")
-                            }
-                        })
+                        empty
+                    )
                     val uriHandler = LocalUriHandler.current
-                    val text = prettyText.toAnnotatedString(Pink80)
+
+                    val mapping by remember { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
+                    val text by remember {
+                        mutableStateOf(
+                            prettyText.toAnnotatedString(
+                                Pink80,
+                                ui.emojis,
+                                mapping
+                            )
+                        )
+                    }
                     var clicked by remember { mutableStateOf(false) }
                     var showReply by remember { mutableStateOf(false) }
 
-                    ClickableText(style = TextStyle.Default.copy(
-                        color = colorScheme.secondary,
-                        fontSize = 16.sp,
-                        lineHeight = 22.sp
-                    ),
+                    ClickableText(
+                        style = TextStyle.Default.copy(
+                            color = colorScheme.secondary,
+                            fontSize = 16.sp,
+                            lineHeight = 22.sp
+                        ),
                         modifier = Modifier
                             .fillMaxWidth(), text = text,
                         onClick = {
@@ -94,7 +100,8 @@ fun TimelineCard(ui: UI) {
                                     uriHandler.openUri(annotation.item)
                                     Log.d("Clicked URL", annotation.item)
                                 }
-                        }
+                        },
+                        inlineContent = mapping
                     )
                     ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
                     val toolbarHeight = 48.dp
@@ -223,3 +230,53 @@ val replyAll = SwipeAction(
     isUndo = true,
     onSwipe = { },
 )
+
+val empty = object : LinkListener {
+    override fun onViewTag(tag: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onViewAccount(id: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onViewUrl(url: String) {
+        TODO("Not yet implemented")
+    }
+}
+
+@Composable
+fun ClickableText(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    style: TextStyle = TextStyle.Default,
+    softWrap: Boolean = true,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {},
+    onClick: (Int) -> Unit,
+    inlineContent: Map<String, InlineTextContent> = mapOf(),
+) {
+    val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val pressIndicator = Modifier.pointerInput(onClick) {
+        detectTapGestures { pos ->
+            layoutResult.value?.let { layoutResult ->
+                onClick(layoutResult.getOffsetForPosition(pos))
+            }
+        }
+    }
+
+    BasicText(
+        text = text,
+        modifier = modifier.then(pressIndicator),
+        style = style,
+        softWrap = softWrap,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = {
+            layoutResult.value = it
+            onTextLayout(it)
+        },
+        inlineContent = inlineContent
+    )
+}
