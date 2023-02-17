@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize3
 
 
 @ExperimentalComposeUiApi
@@ -32,7 +34,7 @@ fun NotifIcon() {
         onClick = {  }) {
         Image(
             modifier = Modifier
-                .size(24.dp),
+                .size(PaddingSize3),
             painter = painterResource(R.drawable.notification),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
@@ -60,7 +62,7 @@ fun SearchBar(
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 2.dp)
+                    .padding(vertical = PaddingSize0_5)
                     .onFocusChanged { focusState ->
                         showClearButton = (focusState.isFocused)
                     }
@@ -105,7 +107,7 @@ fun SearchBar(
         }
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             IconButton(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(PaddingSize1),
 
                 onClick = onImageOnly
             ) {
@@ -116,7 +118,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(PaddingSize1),
                 onClick = onLinksOnly
             ) {
                 Image(
@@ -126,7 +128,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(PaddingSize1),
                 onClick = onBoostedOnly
             ) {
                 Image(
@@ -136,7 +138,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(PaddingSize1),
                 onClick = onBoostedOnly
             ) {
                 Image(

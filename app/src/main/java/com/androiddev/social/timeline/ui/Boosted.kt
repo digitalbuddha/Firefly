@@ -14,8 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize3
+import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.timeline.ui.theme.Pink40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -26,7 +29,7 @@ fun Boosted(boostedBy: String?) {
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp, bottom = 8.dp)
+                .padding(top = PaddingSize0_5, bottom = PaddingSize1)
         ) {
             AssistChip(
                 border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
@@ -40,11 +43,11 @@ fun Boosted(boostedBy: String?) {
                 onClick = { /* Do something! */ },
                 label = { Text(boostedBy) },
                 leadingIcon = {
-                    Image(size = 24.dp, showIcon = false)
+                    Image(size = PaddingSize3, showIcon = false)
                 },
                 trailingIcon = {
                     Image(
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(PaddingSize3),
                         painter = painterResource(R.drawable.rocket3),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(Color.White.copy(alpha = .5f)),

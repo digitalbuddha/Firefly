@@ -9,12 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize4
 
 @Composable
 fun Image(
-    size: Dp = 36.dp,
+    size: Dp = PaddingSize4,
     url: String = "https://placekitten.com/300/300",
     showIcon: Boolean = false
 ) {
@@ -42,7 +43,7 @@ fun ContentImage(url: String = "https://placekitten.com/302/302", clicked: Boole
         modifier = Modifier
             .fillMaxWidth(.99f)
             .aspectRatio(1f)
-            .padding(8.dp)
+            .padding(PaddingSize1)
             .clickable {
                       onClick
             },

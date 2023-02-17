@@ -34,8 +34,20 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.androiddev.social.theme.PaddingSizePanelHeight
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSize4
+import com.androiddev.social.theme.PaddingSize5
+import com.androiddev.social.theme.PaddingSize8
+import com.androiddev.social.theme.PaddingSize9
+import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.theme.ThickSm
+import com.androiddev.social.theme.TonalSurfaceElevation
+import com.androiddev.social.theme.Touchpoint
+import com.androiddev.social.theme.TouchpointMd
 
 enum class InputSelector {
     NONE,
@@ -78,11 +90,11 @@ fun UserInput(
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
 
-    Surface(tonalElevation = 2.dp, modifier = Modifier.background(Color.Transparent)) {
+    Surface(tonalElevation = TonalSurfaceElevation, modifier = Modifier.background(Color.Transparent)) {
         Column(
             modifier = modifier
-                .padding(0.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .padding(PaddingSizeNone)
+                .clip(RoundedCornerShape(PaddingSize1))
                 .background(
                     MaterialTheme.colorScheme.secondary.copy(alpha = .1f)
                 )
@@ -157,7 +169,7 @@ private fun SelectorExpanded(
         }
     }
 
-    Surface(tonalElevation = 8.dp) {
+    Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.DM -> NotAvailablePopup(onCloseRequested)
@@ -181,7 +193,7 @@ fun FunctionalityNotAvailablePanel() {
     ) {
         Column(
             modifier = Modifier
-                .height(320.dp)
+                .height(PaddingSizePanelHeight)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -192,7 +204,7 @@ fun FunctionalityNotAvailablePanel() {
             )
             Text(
                 text = "Not Available",
-                modifier = Modifier.paddingFrom(FirstBaseline, before = 32.dp),
+                modifier = Modifier.paddingFrom(FirstBaseline, before = PaddingSize4),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -210,9 +222,9 @@ private fun UserInputSelector(
 ) {
     Row(
         modifier = modifier
-            .height(72.dp)
+            .height(PaddingSize9)
             .wrapContentHeight()
-            .padding(start = 0.dp, end = 8.dp, bottom = 16.dp),
+            .padding(start = PaddingSizeNone, end = PaddingSize1, bottom = PaddingSize2),
         verticalAlignment = Alignment.CenterVertically
     ) {
         InputSelectorButton(
@@ -248,7 +260,7 @@ private fun UserInputSelector(
 
         val border = if (!sendMessageEnabled) {
             BorderStroke(
-                width = 1.dp,
+                width = ThickSm,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
         } else {
@@ -266,16 +278,16 @@ private fun UserInputSelector(
 
         // Send button
         Button(
-            modifier = Modifier.height(36.dp),
+            modifier = Modifier.height(PaddingSize4),
             enabled = sendMessageEnabled,
             onClick = onMessageSent,
             colors = buttonColors,
             border = border,
-            contentPadding = PaddingValues(4.dp)
+            contentPadding = PaddingValues(PaddingSize0_5)
         ) {
             Text(
                 "Send",
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = PaddingSize2)
             )
         }
     }
@@ -291,7 +303,7 @@ private fun InputSelectorButton(
     val backgroundModifier = if (selected) {
         Modifier.background(
             color = MaterialTheme.colorScheme.tertiary,
-            shape = RoundedCornerShape(50.dp)
+            shape = RoundedCornerShape(Touchpoint)
         )
     } else {
         Modifier
@@ -299,7 +311,7 @@ private fun InputSelectorButton(
     IconButton(
         onClick = onClick,
         modifier = Modifier
-            .size(56.dp)
+            .size(TouchpointMd)
             .then(backgroundModifier)
     ) {
         val tint = if (selected) {
@@ -310,7 +322,7 @@ private fun InputSelectorButton(
         Icon(
             icon,
             tint = tint,
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(PaddingSize2),
             contentDescription = description
         )
     }
@@ -338,7 +350,7 @@ private fun UserInputText(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(PaddingSize8)
             .semantics {
                 contentDescription = a11ylabel
                 keyboardShownProperty = keyboardShown
@@ -348,7 +360,7 @@ private fun UserInputText(
         Surface {
             Box(
                 modifier = Modifier
-                    .height(64.dp)
+                    .height(PaddingSize8)
                     .weight(1f)
                     .align(Alignment.Bottom)
                     .background(MaterialTheme.colorScheme.secondary.copy(alpha = .1f))
@@ -359,7 +371,7 @@ private fun UserInputText(
                     onValueChange = { onTextChanged(it) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 32.dp)
+                        .padding(start = PaddingSize4)
                         .align(Alignment.CenterStart)
                         .onFocusChanged { state ->
                             if (lastFocusState != state.isFocused) {
@@ -382,7 +394,7 @@ private fun UserInputText(
                     Text(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
-                            .padding(start = 32.dp),
+                            .padding(start = PaddingSize4),
                         text = "Reply",
                         style = MaterialTheme.typography.bodyLarge.copy(color = disableContentColor)
                     )
@@ -411,7 +423,7 @@ fun EmojiSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = PaddingSize1)
         ) {
             ExtendedSelectorInnerButton(
                 text = "Emoji",
@@ -427,7 +439,7 @@ fun EmojiSelector(
             )
         }
         Row(modifier = Modifier.nestedScroll(connection)) {
-            EmojiTable(onTextAdded, modifier = Modifier.padding(8.dp))
+            EmojiTable(onTextAdded, modifier = Modifier.padding(PaddingSize1))
         }
     }
     if (selected == EmojiStickerSelector.STICKER) {
@@ -452,10 +464,10 @@ fun ExtendedSelectorInnerButton(
     TextButton(
         onClick = onClick,
         modifier = modifier
-            .padding(8.dp)
-            .height(36.dp),
+            .padding(PaddingSize1)
+            .height(PaddingSize4),
         colors = colors,
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = PaddingValues(PaddingSizeNone)
     ) {
         Text(
             text = text,
@@ -480,8 +492,8 @@ fun EmojiTable(
                     Text(
                         modifier = Modifier
                             .clickable(onClick = { onTextAdded(emoji) })
-                            .sizeIn(minWidth = 42.dp, minHeight = 42.dp)
-                            .padding(8.dp),
+                            .sizeIn(minWidth = PaddingSize5, minHeight = PaddingSize5)
+                            .padding(PaddingSize1),
                         text = emoji,
                         style = LocalTextStyle.current.copy(
                             fontSize = 18.sp,

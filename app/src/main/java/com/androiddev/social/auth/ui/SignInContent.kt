@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.ThickMd
 
 @Composable
 fun SignInContent(
@@ -52,17 +54,17 @@ fun SignInContent(
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
+                    .padding(PaddingSize2)
                     .background(color = MaterialTheme.colorScheme.tertiary.copy(alpha = .5f))
                     .border(
                         border = BorderStroke(
-                            width = 2.dp,
+                            width = ThickMd,
                             color =
                             MaterialTheme.colorScheme.tertiary
                         ),
                         shape = MaterialTheme.shapes.small
                     )
-                    .padding(16.dp),
+                    .padding(PaddingSize2),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

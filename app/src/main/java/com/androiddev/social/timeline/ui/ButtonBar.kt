@@ -11,16 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize3
+import com.androiddev.social.theme.ThickSm
 
 @Composable
 fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> Unit, ){
-    val iconSize = 24.dp
+    val iconSize = PaddingSize3
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding =  PaddingValues(PaddingSize1, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = onReply
         ) {
             Image(
@@ -35,8 +37,8 @@ fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> U
         }
 
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding =  PaddingValues(PaddingSize1, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = {  }
         ) {
             Image(
@@ -50,8 +52,8 @@ fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> U
             }
         }
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding =  PaddingValues(PaddingSize1, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = {  }
         ) {
             Image(
@@ -62,8 +64,8 @@ fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> U
             )
         }
         OutlinedButton(
-            contentPadding =  PaddingValues(8.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding =  PaddingValues(PaddingSize1, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = {  }
         ) {
             Image(

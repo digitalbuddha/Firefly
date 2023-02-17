@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.timeline.ui.theme.Pink40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -44,7 +44,7 @@ fun DirectMessage(directMessage: Boolean) {
                 label = { Text("Private Message") },
                 leadingIcon = {
                     Image(
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(PaddingSize3),
                         painter = painterResource(R.drawable.mail),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(Color.White.copy(alpha = .8f)),

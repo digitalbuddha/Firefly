@@ -12,7 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
 
 @Composable
@@ -50,7 +51,7 @@ fun Profile(
 
                         Text(
                             modifier = Modifier
-                                .padding(4.dp)
+                                .padding(PaddingSize0_5)
                                 .align(Alignment.CenterVertically),
                             text = text,
                             inlineContent = inlineContentMap
@@ -61,7 +62,7 @@ fun Profile(
 
             })
 
-            Divider(thickness = 1.dp, color = Color.Gray)
+            Divider(thickness = ThickSm, color = Color.Gray)
 
             DropdownMenuItem(onClick = {
                 expanded = false
@@ -74,7 +75,7 @@ fun Profile(
                     Text(
                         "Settings",
                         modifier = Modifier
-                            .padding(4.dp)
+                            .padding(PaddingSize0_5)
                             .align(Alignment.CenterVertically)
                     )
                 }

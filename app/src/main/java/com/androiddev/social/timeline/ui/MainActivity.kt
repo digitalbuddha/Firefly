@@ -17,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,6 +28,9 @@ import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInContent
 import com.androiddev.social.auth.ui.SignInPresenter
+import com.androiddev.social.theme.BottomBarElevation
+import com.androiddev.social.theme.PaddingSize8
+import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.theme.EbonyTheme
 import com.squareup.anvil.annotations.ContributesTo
@@ -95,9 +97,9 @@ class MainActivity : ComponentActivity() {
         androidx.compose.material.Scaffold(
             bottomBar = {
                 androidx.compose.material.BottomAppBar(
-                    modifier = Modifier.height(60.dp),
-                    contentPadding = PaddingValues(0.dp, 0.dp),
-                    elevation = 0.dp,
+                    modifier = Modifier.height(PaddingSize8),
+                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                    elevation = BottomBarElevation,
                     //                            cutoutShape = CutCornerShape(50),
                     backgroundColor = colorScheme.surface.copy(alpha = .9f),
                 ) {
