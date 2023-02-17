@@ -88,7 +88,7 @@ dependencies {
 
     implementation(libs.androidx.nav.compose)
 
-    api(libs.atmoicfu)
+    api(libs.atomicfu)
 
     kapt(libs.dagger.compiler)
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"

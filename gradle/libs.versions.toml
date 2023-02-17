@@ -37,7 +37,7 @@ androidx-core-core-ktx = { module = "androidx.core:core-ktx", version.ref = "and
 androidx-lifecycle-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
 androidx-nav-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-nav-compose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging-compose" }
-atmoicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "io-coil-kt" }
 com-google-dagger = { module = "com.google.dagger:dagger", version.ref = "com-google-dagger" }
 com-jakewharton-retrofit = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "jw-converter" }
