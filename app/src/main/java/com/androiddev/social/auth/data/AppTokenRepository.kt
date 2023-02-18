@@ -1,11 +1,17 @@
 package com.androiddev.social.auth.data
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.androiddev.social.AppScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.shared.Api
 import com.androiddev.social.shared.Token
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.squareup.anvil.annotations.ContributesBinding
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.get
@@ -13,17 +19,20 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 interface AppTokenRepository {
-    suspend fun getAppToken(appTokenRequest: AppTokenRequest? = null): NewOauthApplication
-    suspend fun getUserToken(accessTokenRequest: AccessTokenRequest?=null): Token
+    suspend fun getAppToken(appTokenRequest: AppTokenRequest): NewOauthApplication
+    suspend fun getUserToken(accessTokenRequest: AccessTokenRequest? = null): String?
 }
 
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
 class RealAppTokenRepository @Inject constructor(
-    val api: Api
+    val api: Api,
+    val dataStore: DataStore<Preferences>
 ) : AppTokenRepository {
 
-    private val lastRequest = AtomicReference<AppTokenRequest>()
+    val userToken = stringPreferencesKey("USER_TOKEN")
+
+
     private val lastUserRequest = AtomicReference<AccessTokenRequest>()
 
     private val appTokenStore = StoreBuilder.from(fetcher = Fetcher.of { key: AppTokenRequest ->
@@ -34,13 +43,17 @@ class RealAppTokenRepository @Inject constructor(
         fetchUserToken(key)
     }).build()
 
-    override suspend fun getAppToken(appTokenRequest: AppTokenRequest?): NewOauthApplication {
-        return appTokenStore.get(appTokenRequest ?: lastRequest.get())
+    override suspend fun getAppToken(appTokenRequest: AppTokenRequest): NewOauthApplication {
+        return appTokenStore.get(appTokenRequest)
     }
 
-    override suspend fun getUserToken(accessTokenRequest: AccessTokenRequest?): Token {
-        val userToken = userTokenStore.get(accessTokenRequest ?: lastUserRequest.get())
-        return userToken
+    override suspend fun getUserToken(accessTokenRequest: AccessTokenRequest?): String? {
+         return accessTokenRequest?.let {
+            userTokenStore.get(accessTokenRequest).accessToken
+        }?: dataStore.data.map { preferences->
+            preferences[userToken]
+        }.firstOrNull()
+
     }
 
     suspend fun fetchAppToken(appTokenRequest: AppTokenRequest): NewOauthApplication {
@@ -49,9 +62,7 @@ class RealAppTokenRepository @Inject constructor(
             appTokenRequest.scopes,
             appTokenRequest.client_name,
             appTokenRequest.redirect_uris
-        ).also {
-            lastRequest.set(appTokenRequest)
-        }
+        )
     }
 
     suspend fun fetchUserToken(accessTokenRequest: AccessTokenRequest): Token {
@@ -63,7 +74,10 @@ class RealAppTokenRepository @Inject constructor(
             grantType = accessTokenRequest.grantType,
             code = accessTokenRequest.code,
             scope = accessTokenRequest.scope
-        ).also {
+        ).also { token ->
+            dataStore.edit {
+                it[userToken] = token.accessToken
+            }
             lastUserRequest.set(accessTokenRequest)
         }
     }

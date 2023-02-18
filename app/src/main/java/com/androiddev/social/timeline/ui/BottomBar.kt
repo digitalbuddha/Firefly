@@ -66,7 +66,9 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
             onClick = { }
         ) {
             Image(
-                modifier = Modifier.size(size.dp).rotate(-30f),
+                modifier = Modifier
+                    .size(size.dp)
+                    .rotate(-30f),
                 painter = painterResource(R.drawable.search),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
@@ -77,44 +79,49 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun FAB(colorScheme: ColorScheme) {
+fun FAB(colorScheme: ColorScheme, onClick: () -> Unit) {
     var clicked by remember { mutableStateOf(false) }
 
     val size: Float by animateFloatAsState(
-        if (clicked) 1.2f else 1f,
+        if (clicked) 0f else 1f,
         animationSpec = TweenSpec(durationMillis = 150)
     )
     val imageSize: Float by animateFloatAsState(
-        if (clicked) 1.4f else 1f,
+        if (clicked) 1.2f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioHighBouncy,
             stiffness = Spring.StiffnessMedium // with medium speed
         )
     )
-    if (size == 1.2f) clicked = false
+
     val shape = CircleShape
+
     LargeFloatingActionButton(
         shape = shape,
         containerColor = colorScheme.tertiary,
         modifier = Modifier
             .offset(y = 30.dp)
             .clip(shape)
-            .size((90*size).dp)
-        ,
+            .size((90 * size).dp),
         content = {
-            Image(
-                modifier = Modifier
-                    .size(60.dp)
-                    .scale(1*imageSize)
-                    .rotate(imageSize*-45f)
-                    .offset(y = (-4*imageSize).dp, x = (10f/imageSize).dp)
-                    .rotate(60f),
-                painter = painterResource(R.drawable.horn),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(colorScheme.background),
-            )
-
+            if (!clicked) {
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .scale(1 * imageSize)
+                        .rotate(imageSize * -45f)
+                        .offset(y = (-4 * imageSize).dp, x = (10f / imageSize).dp)
+                        .rotate(60f),
+                    painter = painterResource(R.drawable.horn),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(colorScheme.background),
+                )
+            }
         },
-        onClick = { clicked = !clicked }
+        onClick = {
+            clicked = !clicked
+            onClick()
+        }
     )
 }
+

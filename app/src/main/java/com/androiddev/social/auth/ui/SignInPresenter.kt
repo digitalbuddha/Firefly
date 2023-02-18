@@ -18,7 +18,6 @@ import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.AppTokenRepository
 import com.androiddev.social.auth.data.AppTokenRequest
 import com.androiddev.social.auth.data.ApplicationBody
-import com.androiddev.social.shared.Token
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
@@ -58,11 +57,15 @@ abstract class SignInPresenter :
 class RealSignInPresenter @Inject constructor(
     val appTokenRepository: AppTokenRepository,
 ) : SignInPresenter() {
-    var loadedOnce = false;
 
     init {
-        if(!loadedOnce) {
-            CoroutineScope(Dispatchers.IO).launch {
+
+
+    }
+
+    override suspend fun eventHandler(event: SignInEvent) {
+        when(event){
+            LoadSomething->{
                 val params = ApplicationBody()
                 val result: Result<NewOauthApplication> = kotlin.runCatching {
                     appTokenRepository.getAppToken(
@@ -87,13 +90,7 @@ class RealSignInPresenter @Inject constructor(
                     result.exceptionOrNull()
                 }
             }
-            loadedOnce = true
         }
-
-    }
-
-    override suspend fun eventHandler(event: SignInEvent) {
-
     }
 
     private fun createOAuthAuthorizeUrl(token: NewOauthApplication, server: String): String {
@@ -131,7 +128,7 @@ class RealSignInPresenter @Inject constructor(
             query.contains("code=") -> {
                 val code = query.replace("code=", "")
                 scope.launch {
-                    val token: Token = appTokenRepository.getUserToken(
+                    val token = appTokenRepository.getUserToken(
                         AccessTokenRequest(
                             code = code,
                             domain = model.server,
@@ -141,7 +138,7 @@ class RealSignInPresenter @Inject constructor(
                         )
 
                     )
-                    if (token.accessToken!=null) {
+                    if (token!=null) {
                         model = model.copy(signedIn = true)
                     } else {
                         displayErrorWithDuration("An error occurred.")

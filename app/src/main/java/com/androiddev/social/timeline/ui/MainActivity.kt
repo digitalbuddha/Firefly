@@ -8,12 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.FabPosition
-import androidx.compose.material3.*
+import androidx.compose.material.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,6 +27,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.EbonyApp
+import com.androiddev.social.auth.data.AppTokenRepository
 import com.androiddev.social.auth.ui.SignInContent
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.timeline.ui.model.UI
@@ -36,6 +37,7 @@ import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +46,7 @@ interface Injector {
     fun signInPresenter(): SignInPresenter
     fun avatarPresenter(): AvatarPresenter
     fun homePresenter(): HomePresenter
+    fun repository(): AppTokenRepository
 }
 
 @ExperimentalAnimationApi
@@ -81,6 +84,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     private fun TimelineScreen() {
         val component: Injector = retain { noAuthComponent() } as Injector
@@ -92,6 +96,10 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(key1 = "start") {
             avatarPresenter.start()
         }
+        var skipHalfExpanded by remember { mutableStateOf(true) }
+        val state = rememberModalBottomSheetState(
+            initialValue = ModalBottomSheetValue.Hidden,
+        )
         androidx.compose.material.Scaffold(
             bottomBar = {
                 androidx.compose.material.BottomAppBar(
@@ -138,12 +146,27 @@ class MainActivity : ComponentActivity() {
             floatingActionButtonPosition = FabPosition.Center,
             isFloatingActionButtonDocked = true,
             floatingActionButton = {
-                FAB(colorScheme)
-            },
-            content = { padding ->
-                timelineScreen(padding, homePresenter.events, homePresenter.model.statuses)
+                val scope = rememberCoroutineScope()
+                if (!state.isVisible) {
+                    FAB(colorScheme) {
+                        scope.launch {
+                            state.show()
+                        }
+                    }
+                }
             }
-        )
+        ) { padding ->
+
+            ModalBottomSheetLayout(
+                sheetElevation = 12.dp,
+                sheetState = state,
+                sheetContent = {
+                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 60.dp))
+                }) {
+                timelineScreen(padding, homePresenter.events, homePresenter.model.statuses)
+
+            }
+        }
     }
 
     @Composable
@@ -160,6 +183,19 @@ class MainActivity : ComponentActivity() {
                     popUpTo(0)
                 }
             }
+        LaunchedEffect("signIn") {
+            signInPresenter.start()
+        }
+        LaunchedEffect("signIn") {
+            val userToken = component.repository().getUserToken()
+            if (userToken != null) {
+                navController.navigate("timeline") {
+                    popUpTo(0)
+                }
+            } else {
+                signInPresenter.handle(SignInPresenter.LoadSomething)
+            }
+        }
         SignInContent(
             oauthAuthorizeUrl = signInPresenter.model.oauthAuthorizeUrl,
             error = signInPresenter.model.error,
@@ -190,7 +226,7 @@ class MainActivity : ComponentActivity() {
                 .padding(paddingValues = padding)
                 .fillMaxSize()
         ) {
-           statuses?.let {
+            statuses?.let {
                 TimelineScreen(
                     it.collectAsLazyPagingItems()
                 )
@@ -201,7 +237,3 @@ class MainActivity : ComponentActivity() {
     fun noAuthComponent() =
         ((applicationContext as EbonyApp).component as ParentComponent).createAuthOptionalComponent()
 }
-
-
-
-

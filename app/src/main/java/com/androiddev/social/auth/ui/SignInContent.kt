@@ -4,13 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,18 +27,21 @@ fun SignInContent(
         modifier = modifier
     ) {
         TopAppBar(
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(
+                alpha = .9f
+            ),
             modifier = Modifier.fillMaxWidth(),
             title = {
-                Text("Login")
+                Text("")
             },
             navigationIcon = {
-                Icon(
-                    modifier = Modifier.clickable {
-                        TODO("")
-                    },
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                )
+//                Icon(
+//                    modifier = Modifier.clickable {
+//                        TODO("")
+//                    },
+//                    imageVector = Icons.Default.Close,
+//                    contentDescription = "Close",
+//                )
             }
         )
 
