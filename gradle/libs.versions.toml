@@ -7,6 +7,7 @@ androidx-compose-runtime = "1.2.1"
 androidx-core = "1.8.0"
 androidx-nav-compose = "2.5.3"
 androidx-paging-compose = "1.0.0-alpha18"
+androidx-datastore = "1.0.0"
 androidx-savedstate = "1.2.0"
 androidx-vectordrawable = "1.1.0"
 atomicfu = "0.18.5"
@@ -37,6 +38,7 @@ androidx-core-core-ktx = { module = "androidx.core:core-ktx", version.ref = "and
 androidx-lifecycle-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
 androidx-nav-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-nav-compose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging-compose" }
+androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "io-coil-kt" }
 com-google-dagger = { module = "com.google.dagger:dagger", version.ref = "com-google-dagger" }

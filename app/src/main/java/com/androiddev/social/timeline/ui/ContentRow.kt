@@ -37,13 +37,13 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.theme.Pink80
+import com.androiddev.social.theme.Purple50
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.setClickableText
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.model.parseAsMastodonHtml
 import com.androiddev.social.timeline.ui.model.toAnnotatedString
-import com.androiddev.social.timeline.ui.theme.Pink80
-import com.androiddev.social.timeline.ui.theme.Purple50
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -140,7 +140,7 @@ fun TimelineCard(ui: UI) {
                     }
                     AnimatedVisibility(visible = showReply) {
                         UserInput(connection = nestedScrollConnection,
-                            {
+                          onMessageSent =   {
                                 it.length
                             }
                         )

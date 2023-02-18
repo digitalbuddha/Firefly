@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
-import com.androiddev.social.timeline.ui.theme.Pink80
+import com.androiddev.social.theme.Pink80
 
 @Composable
 fun LinkifyText2(

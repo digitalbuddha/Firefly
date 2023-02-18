@@ -62,7 +62,7 @@ class TimelineSource @Inject constructor(
 
     override suspend fun load(params: LoadParams<String>): LoadResult<String, UI> {
         return try {
-            val token = appTokenRepository.getUserToken().accessToken
+            val token = appTokenRepository.getUserToken()
             val since = params.key
             val timeline = api.getTimeline(" Bearer $token", since = since)
             val list = timeline.mapStatus()
@@ -75,6 +75,9 @@ class TimelineSource @Inject constructor(
             return LoadResult.Error(exception)
         } catch (exception: HttpException) {
             return LoadResult.Error(exception)
+        }
+        catch (exception:Exception){
+            return  LoadResult.Error(exception)
         }
     }
 }

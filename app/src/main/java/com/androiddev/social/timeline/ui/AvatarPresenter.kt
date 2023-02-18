@@ -32,7 +32,7 @@ class RealAvatarPresenter @Inject constructor(val api: Api, val repository: AppT
     override suspend fun eventHandler(event: AvatarEvent) {
         when (event) {
             Load -> {
-                val token = " Bearer ${repository.getUserToken().accessToken}"
+                val token = " Bearer ${repository.getUserToken()}"
                 val account = api.accountVerifyCredentials(token)
                 model = model.copy(account = account)
             }

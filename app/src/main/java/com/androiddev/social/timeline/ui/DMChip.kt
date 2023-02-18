@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.timeline.ui.theme.Pink40
+import com.androiddev.social.theme.Pink40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable

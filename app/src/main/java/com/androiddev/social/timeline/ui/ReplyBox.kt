@@ -1,30 +1,36 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.contentDescription
@@ -48,6 +54,7 @@ import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.theme.TonalSurfaceElevation
 import com.androiddev.social.theme.Touchpoint
 import com.androiddev.social.theme.TouchpointMd
+import com.androiddev.social.R
 
 enum class InputSelector {
     NONE,
@@ -72,9 +79,10 @@ enum class EmojiStickerSelector {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserInput(
-    connection: NestedScrollConnection,
-    onMessageSent: (String) -> Unit,
+    connection: NestedScrollConnection? = null,
+
     modifier: Modifier = Modifier,
+    onMessageSent: (String) -> Unit,
     resetScroll: () -> Unit = {},
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
@@ -120,7 +128,7 @@ fun UserInput(
                 onMessageSent = {
                     onMessageSent(textState.text)
                     // Reset text field and close keyboard
-                    textState = TextFieldValue()
+//                    textState = TextFieldValue()
                     // Move scroll to bottom
                     resetScroll()
                     dismissKeyboard()
@@ -156,7 +164,7 @@ private fun SelectorExpanded(
     currentSelector: InputSelector,
     onCloseRequested: () -> Unit,
     onTextAdded: (String) -> Unit,
-    connection: NestedScrollConnection
+    connection: NestedScrollConnection?
 ) {
     if (currentSelector == InputSelector.NONE) return
 
@@ -222,7 +230,7 @@ private fun UserInputSelector(
 ) {
     Row(
         modifier = modifier
-            .height(PaddingSize9)
+            .height(162.dp)
             .wrapContentHeight()
             .padding(start = PaddingSizeNone, end = PaddingSize1, bottom = PaddingSize2),
         verticalAlignment = Alignment.CenterVertically
@@ -268,28 +276,66 @@ private fun UserInputSelector(
         }
         Spacer(modifier = Modifier.weight(1f))
 
-        val disabledContentColor = MaterialTheme.colorScheme.primary
+        val disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = .4f)
 
         val buttonColors = ButtonDefaults.buttonColors(
-            contentColor = MaterialTheme.colorScheme.tertiary,
+            contentColor = MaterialTheme.colorScheme.primary,
             disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .4f),
-            disabledContentColor = disabledContentColor
+            disabledContentColor = disabledContentColor,
+            containerColor = MaterialTheme.colorScheme.tertiary
         )
+        var clicked by remember { mutableStateOf(false) }
 
-        // Send button
+        val imageSize: Float by animateFloatAsState(
+            if (clicked) 1.1f else 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioHighBouncy,
+                stiffness = Spring.StiffnessMedium // with medium speed
+            )
+        )
+        if (imageSize == 1.1f) clicked = false
+
         Button(
-            modifier = Modifier.height(PaddingSize4),
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .wrapContentSize(),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 24.dp,
+                pressedElevation = 8.dp,
+                disabledElevation = 24.dp
+            ),
             enabled = sendMessageEnabled,
-            onClick = onMessageSent,
+            onClick = {
+                clicked = !clicked
+                onMessageSent()
+            },
             colors = buttonColors,
             border = border,
-            contentPadding = PaddingValues(PaddingSize0_5)
         ) {
             Text(
                 "Send",
                 modifier = Modifier.padding(horizontal = PaddingSize2)
             )
+            shape = CircleShape,
+            contentPadding = PaddingValues(8.dp)
+        ) {
+            Row(Modifier.padding(4.dp)) {
+                Image(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .scale(2 * imageSize)
+                        .rotate(imageSize * -45f)
+                        .offset(y = (0).dp, x = (2).dp)
+                        .rotate(50f)
+                        .padding(start = 4.dp, end = 6.dp),
+                    painter = painterResource(R.drawable.horn),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(colorScheme.background),
+                )
+            }
         }
+        // Send button
+//        SendFab(MaterialTheme.colorScheme, onMessageSent)
     }
 }
 
@@ -395,7 +441,7 @@ private fun UserInputText(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .padding(start = PaddingSize4),
-                        text = "Reply",
+                        text = "Be Heard",
                         style = MaterialTheme.typography.bodyLarge.copy(color = disableContentColor)
                     )
                 }
@@ -408,7 +454,7 @@ private fun UserInputText(
 fun EmojiSelector(
     onTextAdded: (String) -> Unit,
     focusRequester: FocusRequester,
-    connection: NestedScrollConnection
+    connection: NestedScrollConnection?
 ) {
     var selected by remember { mutableStateOf(EmojiStickerSelector.EMOJI) }
 
@@ -438,7 +484,7 @@ fun EmojiSelector(
                 modifier = Modifier.weight(1f)
             )
         }
-        Row(modifier = Modifier.nestedScroll(connection)) {
+        Row(modifier = connection?.let { Modifier.nestedScroll(it) } ?: Modifier) {
             EmojiTable(onTextAdded, modifier = Modifier.padding(PaddingSize1))
         }
     }
@@ -638,3 +684,54 @@ private val emojis = listOf(
     "\ud83d\udc6d", // Two Women Holding Hands
     "\ud83d\udc8f" // Kiss
 )
+
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun SendFab(colorScheme: ColorScheme, onClick: () -> Unit) {
+    var clicked by remember { mutableStateOf(false) }
+
+    val size: Float by animateFloatAsState(
+        if (clicked) 1.2f else 1f,
+        animationSpec = TweenSpec(durationMillis = 150)
+    )
+    val imageSize: Float by animateFloatAsState(
+        if (clicked) 1.4f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium // with medium speed
+        )
+    )
+    if (size == 1.2f) clicked = false
+    val shape = CircleShape
+    LargeFloatingActionButton(
+        shape = shape,
+        containerColor = colorScheme.tertiary,
+        modifier = Modifier
+            .offset(x = 20.dp)
+            .clip(shape)
+            .size((60 * size).dp),
+        content = {
+            Column {
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .scale(1 * imageSize)
+                        .rotate(imageSize * -45f)
+                        .offset(y = (-4 * imageSize).dp, x = (10f / imageSize).dp)
+                        .rotate(60f),
+                    painter = painterResource(R.drawable.horn),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(colorScheme.background),
+                )
+                Text(text = "Toot")
+            }
+
+
+        },
+        onClick = {
+            clicked = !clicked
+            onClick()
+        }
+    )
+}

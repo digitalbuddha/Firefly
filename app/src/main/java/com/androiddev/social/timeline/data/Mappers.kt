@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun List<Status>.mapStatus(): List<UI> {
-    return map { item ->
+    val result= map { item ->
         val status = item.reblog ?: item
         val date: Date =
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(status.createdAt)
@@ -47,6 +47,7 @@ fun List<Status>.mapStatus(): List<UI> {
             emojis = status.emojis
         )
     }
+    return result
 }
 
 

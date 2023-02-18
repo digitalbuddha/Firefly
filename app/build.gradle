@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.activity.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.datastore)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
     implementation(libs.com.google.dagger)
     implementation(libs.com.squareup.retrofit2.retrofit)
