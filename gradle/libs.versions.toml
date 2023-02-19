@@ -1,6 +1,7 @@
 [versions]
 androidx-activity = "1.3.1"
 androidx-arch-core = "2.1.0"
+androidxComposeBom = "2023.01.00"
 androidx-compose-animation = "1.1.1"
 androidx-compose-foundation = "1.2.1"
 androidx-compose-runtime = "1.2.1"
@@ -20,9 +21,9 @@ constraintlayout-compose = "1.0.1"
 dagger-compiler = "2.44.2"
 jw-converter = "0.8.0"
 kotlinx-serialization-json = "1.5.0-RC"
+lifecycle-runtime-ktx = "2.3.1"
 io-coil-kt = "2.2.2"
 org-jetbrains-kotlin = "1.8.10"
-material = "1.0.0-alpha11"
 retained-compose = "1.0.0"
 retrofit = "2.9.0"
 revealswipe = "1.0.0"
@@ -32,10 +33,11 @@ swipe = "1.0.0"
 [libraries]
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
-androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayout-compose" }
 androidx-core-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
-androidx-lifecycle-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 androidx-nav-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-nav-compose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging-compose" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
