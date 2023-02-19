@@ -11,6 +11,7 @@ androidx-paging-compose = "1.0.0-alpha18"
 androidx-datastore = "1.0.0"
 androidx-savedstate = "1.2.0"
 androidx-vectordrawable = "1.1.0"
+anvil = "2.4.4"
 atomicfu = "0.18.5"
 browser = "1.5.0"
 com-google-dagger = "2.44.2"
@@ -19,6 +20,7 @@ com-squareup-okhttp3 = "4.10.0"
 com-squareup-okio = "3.2.0"
 constraintlayout-compose = "1.0.1"
 dagger-compiler = "2.44.2"
+gradle-plugin = "7.4.1"
 jw-converter = "0.8.0"
 kotlinx-serialization-json = "1.5.0-RC"
 kotlin = "1.8.10"
@@ -63,11 +65,9 @@ store-cache = { module = "org.mobilenativefoundation.store:cache5-jvm", version.
 store-jvm = { module = "org.mobilenativefoundation.store:store5-jvm", version.ref = "store" }
 
 [plugins]
-com-android-application = "com.android.application:7.4.1"
-com-android-library = "com.android.library:7.4.1"
-com-github-ben-manes-versions = "com.github.ben-manes.versions:0.41.0"
-com-squareup-anvil = "com.squareup.anvil:2.4.4"
-kotlinx-serialization = "kotlinx-serialization:1.8.10"
-nl-littlerobots-version-catalog-update = "nl.littlerobots.version-catalog-update:0.7.0"
-org-jetbrains-kotlin-android = "org.jetbrains.kotlin.android:1.8.10"
-org-jetbrains-kotlin-plugin-serialization = "org.jetbrains.kotlin.plugin.serialization:1.8.10"
+android-application = { id = "com.android.application", version.ref = "gradle-plugin" }
+android-library = { id = "com.android.library", version.ref = "gradle-plugin" }
+anvil = { id = "com.squareup.anvil", version.ref = "anvil" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
