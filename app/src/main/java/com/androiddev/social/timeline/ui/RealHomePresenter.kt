@@ -2,7 +2,6 @@ package com.androiddev.social.timeline.ui
 
 import androidx.paging.*
 import com.androiddev.social.AppScope
-import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.AppTokenRepository
 import com.androiddev.social.shared.Api
 import com.androiddev.social.timeline.data.mapStatus
@@ -15,10 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Provider
 
 @ContributesBinding(AppScope::class, boundType = HomePresenter::class)
 class RealHomePresenter @Inject constructor(
-    val timelineSource: TimelineSource
+    val timelineSource: Provider<TimelineSource>
 ) : HomePresenter() {
 
     override suspend fun eventHandler(event: HomeEvent) {
@@ -26,7 +26,7 @@ class RealHomePresenter @Inject constructor(
             is LoadSomething -> {
                 val scope = CoroutineScope(Dispatchers.IO)
                 model = model.copy(statuses = Pager(PagingConfig(pageSize = 6)) {
-                    timelineSource
+                    timelineSource.get()
                 }.flow.cachedIn(scope))
             }
         }
@@ -49,7 +49,6 @@ abstract class HomePresenter :
     sealed interface HomeEffect
 }
 
-@SingleIn(AppScope::class)
 class TimelineSource @Inject constructor(
     val api: Api,
     private val appTokenRepository: AppTokenRepository
@@ -63,8 +62,8 @@ class TimelineSource @Inject constructor(
     override suspend fun load(params: LoadParams<String>): LoadResult<String, UI> {
         return try {
             val token = appTokenRepository.getUserToken()
-            val since = params.key
-            val timeline = api.getTimeline(" Bearer $token", since = since)
+            val before = params.key
+            val timeline = api.getTimeline(" Bearer $token", since = before)
             val list = timeline.mapStatus()
             LoadResult.Page(
                 data = list,

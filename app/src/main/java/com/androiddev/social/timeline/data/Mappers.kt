@@ -40,7 +40,7 @@ fun List<Status>.mapStatus(): List<UI> {
             favoriteCount = status.favouritesCount ?: 0,
             timePosted = TimeUtils.getRelativeTime(timestamp).toString(),
             boostedBy = if (item.reblog != null) item.account?.displayName else null,
-            boostedAvatar = item.reblog?.account?.avatar,
+            boostedAvatar = item.account?.avatar,
             directMessage = status.visibility == Privacy.direct,
             avatar = status.account?.avatar,
             mentions = status.mentions ?: emptyList(),

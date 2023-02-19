@@ -9,6 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.SmallTopAppBar
@@ -49,6 +52,7 @@ interface Injector {
     fun repository(): AppTokenRepository
 }
 
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -163,7 +167,7 @@ class MainActivity : ComponentActivity() {
                 sheetContent = {
                     UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 20.dp))
                 }) {
-                timelineScreen(padding, homePresenter.events, homePresenter.model.statuses)
+                timelineScreen(homePresenter.events, homePresenter.model.statuses)
 
             }
         }
@@ -214,25 +218,30 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun timelineScreen(
-        padding: PaddingValues,
         events: MutableSharedFlow<HomePresenter.HomeEvent>,
-        statuses: Flow<PagingData<UI>>?
+        statuses: Flow<PagingData<UI>>?,
     ) {
         LaunchedEffect(key1 = HomePresenter.LoadSomething) {
             events.tryEmit(HomePresenter.LoadSomething)
         }
-        Column(
-            Modifier
-                .padding(paddingValues = padding)
-                .fillMaxSize()
-        ) {
+        val items = statuses?.collectAsLazyPagingItems()
+        var refreshing by remember { mutableStateOf(false) }
+
+        val pullRefreshState = rememberPullRefreshState(refreshing, {
+            refreshing = true
+            items?.refresh()
+        })
+
+        Box(Modifier.pullRefresh(pullRefreshState)) {
             statuses?.let {
                 TimelineScreen(
-                    it.collectAsLazyPagingItems()
-                )
+                    items!!
+                ) { refreshing = false }
             }
+            PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
     }
+
 
     fun noAuthComponent() =
         ((applicationContext as EbonyApp).component as ParentComponent).createAuthOptionalComponent()

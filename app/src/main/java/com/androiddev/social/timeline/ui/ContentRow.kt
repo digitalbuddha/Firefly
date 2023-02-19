@@ -221,7 +221,7 @@ fun rocket() = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = colorScheme.onErrorContainer,
+    background = colorScheme.tertiaryContainer,
     onSwipe = { }
 )
 
@@ -235,7 +235,7 @@ fun reply() = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = colorScheme.onErrorContainer,
+    background = colorScheme.tertiaryContainer,
     onSwipe = { }
 )
 
@@ -249,7 +249,7 @@ fun replyAll() = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = colorScheme.onErrorContainer,
+    background = colorScheme.tertiaryContainer,
     isUndo = true,
     onSwipe = { },
 )

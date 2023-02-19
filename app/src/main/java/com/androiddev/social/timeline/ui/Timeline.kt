@@ -7,10 +7,11 @@ import androidx.paging.compose.items
 import com.androiddev.social.timeline.ui.model.UI
 
 @Composable
-fun TimelineScreen(ui: LazyPagingItems<UI>) {
+fun TimelineScreen(ui: LazyPagingItems<UI>,  onRefreshComplete: () -> Unit,) {
     LazyColumn {
         items(ui) {
             it?.let {
+                onRefreshComplete()
                 TimelineCard(it)
             }
         }

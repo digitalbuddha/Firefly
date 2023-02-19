@@ -93,7 +93,7 @@ fun UserInput(
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
                 .background(
-                    MaterialTheme.colorScheme.secondary.copy(alpha = .1f)
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .99f)
                 )
         ) {
             UserInputText(
@@ -394,7 +394,7 @@ private fun UserInputText(
                     .height(PaddingSize8)
                     .weight(1f)
                     .align(Alignment.Bottom)
-                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = .1f))
+                    .background(colorScheme.onSecondaryContainer.copy(alpha = .99f))
             ) {
                 var lastFocusState by remember { mutableStateOf(false) }
                 BasicTextField(
@@ -416,18 +416,17 @@ private fun UserInputText(
                     ),
                     maxLines = 1,
                     cursorBrush = SolidColor(LocalContentColor.current),
-                    textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                 )
 
-                val disableContentColor =
-                    MaterialTheme.colorScheme.secondary.copy(.8f)
+
                 if (textFieldValue.text.isEmpty() && !focusState) {
                     Text(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .padding(start = PaddingSize4),
                         text = "Be Heard",
-                        style = MaterialTheme.typography.bodyLarge.copy(color = disableContentColor)
+                        style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                     )
                 }
             }
