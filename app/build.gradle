@@ -48,7 +48,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.2'
+        kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
     }
     packagingOptions {
         resources {
@@ -59,10 +59,8 @@ android {
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
+    kapt(libs.dagger.compiler)
 
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.espresso)
-    androidTestImplementation(libs.junit.ext)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -88,12 +86,9 @@ dependencies {
     implementation(libs.store.jvm)
     implementation(libs.androidx.paging.compose)
     implementation(libs.retained.compose)
-
     implementation(libs.androidx.nav.compose)
-
     api(libs.atomicfu)
 
-    kapt(libs.dagger.compiler)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.junit)
     testImplementation(libs.assertj)
@@ -101,4 +96,7 @@ dependencies {
     androidTestImplementation(libs.coroutines.test)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.assertj)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.espresso)
+    androidTestImplementation(libs.junit.ext)
 }
