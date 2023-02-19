@@ -40,21 +40,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.androiddev.social.theme.PaddingSizePanelHeight
-import com.androiddev.social.theme.PaddingSize0_5
-import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize2
-import com.androiddev.social.theme.PaddingSize4
-import com.androiddev.social.theme.PaddingSize5
-import com.androiddev.social.theme.PaddingSize8
-import com.androiddev.social.theme.PaddingSize9
-import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.theme.ThickSm
-import com.androiddev.social.theme.TonalSurfaceElevation
-import com.androiddev.social.theme.Touchpoint
-import com.androiddev.social.theme.TouchpointMd
 import com.androiddev.social.R
+import com.androiddev.social.theme.*
 
 enum class InputSelector {
     NONE,
@@ -98,11 +87,11 @@ fun UserInput(
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
 
-    Surface(tonalElevation = TonalSurfaceElevation, modifier = Modifier.background(Color.Transparent)) {
+    Surface(tonalElevation = 2.dp, modifier = Modifier.background(Color.Transparent)) {
         Column(
             modifier = modifier
                 .padding(PaddingSizeNone)
-                .clip(RoundedCornerShape(PaddingSize1))
+                .clip(RoundedCornerShape(8.dp))
                 .background(
                     MaterialTheme.colorScheme.secondary.copy(alpha = .1f)
                 )
@@ -300,9 +289,9 @@ private fun UserInputSelector(
                 .padding(end = 10.dp)
                 .wrapContentSize(),
             elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 24.dp,
-                pressedElevation = 8.dp,
-                disabledElevation = 24.dp
+                defaultElevation = PaddingSize3,
+                pressedElevation = PaddingSize1,
+                disabledElevation = PaddingSize3
             ),
             enabled = sendMessageEnabled,
             onClick = {
@@ -311,13 +300,8 @@ private fun UserInputSelector(
             },
             colors = buttonColors,
             border = border,
-        ) {
-            Text(
-                "Send",
-                modifier = Modifier.padding(horizontal = PaddingSize2)
-            )
             shape = CircleShape,
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(PaddingSize1)
         ) {
             Row(Modifier.padding(4.dp)) {
                 Image(
@@ -327,12 +311,13 @@ private fun UserInputSelector(
                         .rotate(imageSize * -45f)
                         .offset(y = (0).dp, x = (2).dp)
                         .rotate(50f)
-                        .padding(start = 4.dp, end = 6.dp),
+                        .padding(start = PaddingSize0_5, end = 6.dp),
                     painter = painterResource(R.drawable.horn),
                     contentDescription = "",
                     colorFilter = ColorFilter.tint(colorScheme.background),
                 )
             }
+
         }
         // Send button
 //        SendFab(MaterialTheme.colorScheme, onMessageSent)
@@ -538,7 +523,7 @@ fun EmojiTable(
                     Text(
                         modifier = Modifier
                             .clickable(onClick = { onTextAdded(emoji) })
-                            .sizeIn(minWidth = PaddingSize5, minHeight = PaddingSize5)
+                            .sizeIn(minWidth = 42.dp, minHeight = PaddingSize5)
                             .padding(PaddingSize1),
                         text = emoji,
                         style = LocalTextStyle.current.copy(

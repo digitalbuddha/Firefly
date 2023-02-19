@@ -18,7 +18,6 @@ import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize4
-import com.androiddev.social.timeline.ui.theme.Pink40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
