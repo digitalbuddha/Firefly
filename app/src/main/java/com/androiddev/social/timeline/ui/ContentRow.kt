@@ -28,9 +28,15 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize10
+import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSize6
+import com.androiddev.social.theme.PaddingSize7
+import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.theme.Pink80
 import com.androiddev.social.theme.Purple50
 import com.androiddev.social.timeline.data.LinkListener
@@ -50,12 +56,12 @@ fun TimelineCard(ui: UI) {
         Column(
             Modifier
                 .background(colorScheme.primary.copy(alpha = .7f))
-                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                .padding(bottom = PaddingSize2, start = PaddingSize2, end = PaddingSize2)
         ) {
             DirectMessage(ui.directMessage)
             Boosted(ui.boostedBy)
             UserInfo(ui)
-            Row(Modifier.padding(bottom = 0.dp)) {
+            Row(Modifier.padding(bottom = PaddingSizeNone)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val parseAsMastodonHtml: Spanned = ui.content.parseAsMastodonHtml()
                     println(parseAsMastodonHtml)
@@ -104,7 +110,7 @@ fun TimelineCard(ui: UI) {
                         inlineContent = mapping
                     )
                     ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
-                    val toolbarHeight = 48.dp
+                    val toolbarHeight = PaddingSize6
                     val toolbarHeightPx =
                         with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
                     val toolbarOffsetHeightPx =
@@ -140,7 +146,7 @@ fun TimelineCard(ui: UI) {
                         )
                     }
 
-                    Divider(Modifier.padding(top = 16.dp), color = Color.Gray.copy(alpha = .5f))
+                    Divider(Modifier.padding(top = PaddingSize2), color = Color.Gray.copy(alpha = .5f))
                 }
             }
         }
@@ -154,24 +160,24 @@ fun UserInfo(ui: UI) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp),
+            .padding(bottom = PaddingSize1),
         horizontalArrangement = Arrangement.Start
     ) {
-        ui.avatar?.let { Image(52.dp, it) }
+        ui.avatar?.let { Image(PaddingSize7, it) }
         ui.emojis?.let {
             val (inlineContentMap, text) = inlineEmojis(
                 ui.displayName,
                 it
             )
 
-            Column(Modifier.padding(start = 8.dp)) {
+            Column(Modifier.padding(start = PaddingSize1)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         color = colorScheme.secondary,
-                        modifier = Modifier.padding(bottom = 4.dp),
+                        modifier = Modifier.padding(bottom = PaddingSize0_5),
                         text = text,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -195,7 +201,7 @@ fun UserInfo(ui: UI) {
 val rocket = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(PaddingSize10),
             painter = painterResource(R.drawable.rocket3),
             contentDescription = "",
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
@@ -207,7 +213,7 @@ val rocket = SwipeAction(
 val reply = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(PaddingSize10),
             painter = painterResource(R.drawable.reply),
             contentDescription = "",
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
@@ -220,7 +226,7 @@ val reply = SwipeAction(
 val replyAll = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(PaddingSize10),
             painter = painterResource(R.drawable.reply_all),
             contentDescription = "",
             colorFilter = ColorFilter.tint(colorScheme.tertiary)

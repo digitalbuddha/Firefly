@@ -20,6 +20,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.theme.ThickSm
 
 @Composable
 fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
@@ -31,8 +34,8 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
 
     ) {
         OutlinedButton(
-            contentPadding = PaddingValues(0.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding = PaddingValues(PaddingSizeNone, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = { }
         ) {
             Image(
@@ -48,7 +51,7 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
 
         //placeholder for spacing
         OutlinedButton(
-            border = BorderStroke(1.dp, Color.Transparent),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = { }
         ) {
 //            Image(
@@ -61,8 +64,8 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
 
 
         OutlinedButton(
-            contentPadding = PaddingValues(0.dp, 8.dp),
-            border = BorderStroke(1.dp, Color.Transparent),
+            contentPadding = PaddingValues(PaddingSizeNone, PaddingSize1),
+            border = BorderStroke(ThickSm, Color.Transparent),
             onClick = { }
         ) {
             Image(

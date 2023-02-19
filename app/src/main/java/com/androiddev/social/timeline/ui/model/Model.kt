@@ -13,9 +13,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
+import com.androiddev.social.theme.PaddingSize2_5
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
@@ -79,7 +79,7 @@ fun Spanned.toAnnotatedString(
                 Placeholder(
                     20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
                 ), children = {
-                    Image(20.dp, url = emoji.url)
+                    Image(PaddingSize2_5, url = emoji.url)
                 })
         } else {
             builder.append(token)

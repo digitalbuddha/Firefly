@@ -17,8 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
+import com.androiddev.social.theme.PaddingSize4
+import com.androiddev.social.theme.ThickSm
 
 @Composable
 fun TabSelector() {
@@ -57,7 +58,7 @@ fun TabSelector() {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Image(
-                            modifier =Modifier.size(28.dp),
+                            modifier =Modifier.size(PaddingSize4),
                             painter = painterResource(items[index].second),
                             contentDescription = "",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
@@ -67,7 +68,7 @@ fun TabSelector() {
 
                 })
                 if (index != items.lastIndex)
-                    Divider(thickness = 1.dp, color = Color.Gray.copy(alpha = .1f))
+                    Divider(thickness = ThickSm, color = Color.Gray.copy(alpha = .1f))
             }
         }
     }
