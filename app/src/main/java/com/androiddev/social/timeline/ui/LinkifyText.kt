@@ -6,6 +6,7 @@ import android.text.style.URLSpan
 import android.text.util.Linkify
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -22,13 +23,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
-import com.androiddev.social.theme.Pink80
 
 @Composable
 fun LinkifyText2(
     text: String,
     modifier: Modifier = Modifier,
-    linkColor: Color = Pink80,
+    linkColor: Color = colorScheme.onErrorContainer,
     linkEntire: Boolean = false,
     color: Color = Color.Unspecified,
     fontSize: TextUnit = TextUnit.Unspecified,

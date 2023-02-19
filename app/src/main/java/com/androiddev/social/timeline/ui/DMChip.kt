@@ -18,10 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import com.androiddev.social.R
-import com.androiddev.social.theme.PaddingSize3
-import com.androiddev.social.timeline.ui.theme.Pink40
-import com.androiddev.social.theme.Pink40
 
+import com.androiddev.social.theme.PaddingSize3
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DirectMessage(directMessage: Boolean) {
@@ -32,12 +30,12 @@ fun DirectMessage(directMessage: Boolean) {
                 .fillMaxWidth()
         ) {
             AssistChip(
-                border = AssistChipDefaults.assistChipBorder(borderColor = Pink40.copy(alpha = .2f)),
+                border = AssistChipDefaults.assistChipBorder(borderColor = colorScheme.onErrorContainer),
                 colors = AssistChipDefaults.assistChipColors(
                     leadingIconContentColor = colorScheme.secondary.copy(
                         alpha = .5f
                     ), labelColor = colorScheme.secondary.copy(alpha = .9f),
-                    containerColor =  Pink40.copy(alpha = .2f)
+                    containerColor = colorScheme.onErrorContainer
 
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),

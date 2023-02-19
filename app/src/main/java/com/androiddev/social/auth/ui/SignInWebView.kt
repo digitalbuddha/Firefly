@@ -34,8 +34,8 @@ fun SignInWebView(
 ) {
     val webIntent = webBrowserIntent(
         url = url,
-        primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.tertiary,
-        secondaryColor =  androidx.compose.material3.MaterialTheme.colorScheme.tertiary.copy(alpha = .5f)
+        primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+        secondaryColor =  androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = .5f)
     )
 
     val handler = Handler(Looper.getMainLooper())

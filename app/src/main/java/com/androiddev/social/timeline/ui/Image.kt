@@ -14,10 +14,9 @@ import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize4
 
 @Composable
-fun Image(
+fun AvatarImage(
     size: Dp = PaddingSize4,
-    url: String = "https://placekitten.com/300/300",
-    showIcon: Boolean = false
+    url: String? = "https://placekitten.com/300/300"
 ) {
     Box() {
         AsyncImage(

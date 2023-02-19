@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
@@ -32,6 +33,12 @@ fun TabSelector() {
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
+        Image(
+            modifier =Modifier.size(28.dp),
+            painter = painterResource(items[selectedIndex].second),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
+        )
         Text(
             text = items[selectedIndex].first,
             color = MaterialTheme.colorScheme.secondary

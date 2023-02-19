@@ -27,7 +27,7 @@ fun inlineEmojis(
                     Placeholder(
                         20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
                     ), children = {
-                        Image(PaddingSize2_5, url = emoji.url)
+                        AvatarImage(PaddingSize2_5, url = emoji.url)
                     })
             } else {
                 append(token)

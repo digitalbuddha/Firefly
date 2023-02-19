@@ -22,6 +22,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
@@ -37,8 +38,6 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.theme.Pink80
-import com.androiddev.social.theme.Purple50
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.setClickableText
 import com.androiddev.social.timeline.ui.model.UI
@@ -50,16 +49,16 @@ import me.saket.swipe.SwipeableActionsBox
 @Composable
 fun TimelineCard(ui: UI) {
     SwipeableActionsBox(
-        startActions = listOf(rocket),
-        endActions = listOf(reply, replyAll)
+        startActions = listOf(rocket()),
+        endActions = listOf(reply(), replyAll())
     ) {
         Column(
             Modifier
-                .background(colorScheme.primary.copy(alpha = .7f))
+                .background(colorScheme.surface.copy(alpha = .99f))
                 .padding(bottom = PaddingSize2, start = PaddingSize2, end = PaddingSize2)
         ) {
             DirectMessage(ui.directMessage)
-            Boosted(ui.boostedBy)
+            Boosted(ui.boostedBy, ui.boostedAvatar)
             UserInfo(ui)
             Row(Modifier.padding(bottom = PaddingSizeNone)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -74,10 +73,11 @@ fun TimelineCard(ui: UI) {
                     val uriHandler = LocalUriHandler.current
 
                     val mapping by remember { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
+                    val linkColor = colorScheme.primary
                     val text by remember {
                         mutableStateOf(
                             prettyText.toAnnotatedString(
-                                Pink80,
+                                linkColor,
                                 ui.emojis,
                                 mapping
                             )
@@ -93,19 +93,9 @@ fun TimelineCard(ui: UI) {
                             lineHeight = 22.sp
                         ),
                         modifier = Modifier
-                            .fillMaxWidth(), text = text,
-                        onClick = {
-                            clicked = !clicked
-                            if (!clicked && showReply) showReply = false
-                            text.getStringAnnotations(
-                                tag = "URL", start = it,
-                                end = it
-                            )
-                                .firstOrNull()?.let { annotation ->
-                                    // If yes, we log its value
-                                    uriHandler.openUri(annotation.item)
-                                    Log.d("Clicked URL", annotation.item)
-                                }
+                            .fillMaxWidth(),
+                        text = text,
+                        onClick = { handleLink(clicked, showReply, text, it, uriHandler)
                         },
                         inlineContent = mapping
                     )
@@ -140,7 +130,7 @@ fun TimelineCard(ui: UI) {
                     }
                     AnimatedVisibility(visible = showReply) {
                         UserInput(connection = nestedScrollConnection,
-                          onMessageSent =   {
+                            onMessageSent = {
                                 it.length
                             }
                         )
@@ -155,6 +145,29 @@ fun TimelineCard(ui: UI) {
     }
 }
 
+
+private fun handleLink(
+    clicked: Boolean,
+    showReply: Boolean,
+    text: AnnotatedString,
+    it: Int,
+    uriHandler: UriHandler
+) {
+    var clicked1 = clicked
+    var showReply1 = showReply
+    clicked1 = !clicked1
+    if (!clicked1 && showReply1) showReply1 = false
+    text.getStringAnnotations(
+        tag = "URL", start = it,
+        end = it
+    )
+        .firstOrNull()?.let { annotation ->
+            // If yes, we log its value
+            uriHandler.openUri(annotation.item)
+            Log.d("Clicked URL", annotation.item)
+        }
+}
+
 @Composable
 fun UserInfo(ui: UI) {
     Row(
@@ -163,7 +176,7 @@ fun UserInfo(ui: UI) {
             .padding(bottom = PaddingSize1),
         horizontalArrangement = Arrangement.Start
     ) {
-        ui.avatar?.let { Image(PaddingSize7, it) }
+        ui.avatar?.let { AvatarImage(PaddingSize7, it) }
         ui.emojis?.let {
             val (inlineContentMap, text) = inlineEmojis(
                 ui.displayName,
@@ -198,7 +211,8 @@ fun UserInfo(ui: UI) {
     }
 }
 
-val rocket = SwipeAction(
+@Composable
+fun rocket() = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
             modifier = Modifier.size(PaddingSize10),
@@ -207,10 +221,12 @@ val rocket = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = Purple50,
+    background = colorScheme.onErrorContainer,
     onSwipe = { }
 )
-val reply = SwipeAction(
+
+@Composable
+fun reply() = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
             modifier = Modifier.size(PaddingSize10),
@@ -219,11 +235,12 @@ val reply = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = Purple50,
+    background = colorScheme.onErrorContainer,
     onSwipe = { }
 )
 
-val replyAll = SwipeAction(
+@Composable
+fun replyAll() = SwipeAction(
     icon = {
         androidx.compose.foundation.Image(
             modifier = Modifier.size(PaddingSize10),
@@ -232,7 +249,7 @@ val replyAll = SwipeAction(
             colorFilter = ColorFilter.tint(colorScheme.tertiary)
         )
     },
-    background = Purple50,
+    background = colorScheme.onErrorContainer,
     isUndo = true,
     onSwipe = { },
 )

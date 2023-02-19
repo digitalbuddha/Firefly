@@ -22,7 +22,7 @@ fun Profile(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
-        account?.let { Image(showIcon = false, url = it.avatar) }
+        account?.let { AvatarImage(url = it.avatar) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -39,7 +39,7 @@ fun Profile(
             }, text = {
                 Row {
                     account?.let { it ->
-                        Image(showIcon = false, url = it.avatar)
+                        AvatarImage(url = it.avatar)
                         val emojis = account.emojis
 
 
