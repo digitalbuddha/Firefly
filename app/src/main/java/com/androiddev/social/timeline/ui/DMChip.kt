@@ -7,11 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +37,7 @@ fun DirectMessage(directMessage: Boolean) {
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),
                 onClick = { /* Do something! */ },
-                label = { Text("Private Message") },
+                label = { Text("Private Message", style = MaterialTheme.typography.labelLarge) },
                 leadingIcon = {
                     Image(
                         modifier = Modifier.height(PaddingSize3),

@@ -45,7 +45,8 @@ fun List<Status>.mapStatus(): List<UI> {
             avatar = status.account?.avatar,
             mentions = status.mentions ?: emptyList(),
             tags = status.tags ?: emptyList(),
-            emojis = status.emojis
+            contentEmojis = status.emojis,
+            accountEmojis = status.account?.emojis
         )
     }
     return result

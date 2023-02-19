@@ -37,7 +37,8 @@ data class UI(
     val avatar: String? = null,
     val mentions: List<Mention>,
     val tags: List<Tag>,
-    val emojis: List<Emoji>?,
+    val contentEmojis: List<Emoji>?,
+    val accountEmojis: List<Emoji>?,
     val boostedAvatar: String?
 )
 

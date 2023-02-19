@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -27,17 +28,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import com.androiddev.social.R
-import com.androiddev.social.theme.PaddingSize0_5
-import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize10
-import com.androiddev.social.theme.PaddingSize2
-import com.androiddev.social.theme.PaddingSize6
-import com.androiddev.social.theme.PaddingSize7
-import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.setClickableText
 import com.androiddev.social.timeline.ui.model.UI
@@ -78,7 +71,7 @@ fun TimelineCard(ui: UI) {
                         mutableStateOf(
                             prettyText.toAnnotatedString(
                                 linkColor,
-                                ui.emojis,
+                                ui.contentEmojis,
                                 mapping
                             )
                         )
@@ -87,15 +80,14 @@ fun TimelineCard(ui: UI) {
                     var showReply by remember { mutableStateOf(false) }
 
                     ClickableText(
-                        style = TextStyle.Default.copy(
-                            color = colorScheme.secondary,
-                            fontSize = 16.sp,
-                            lineHeight = 22.sp
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = colorScheme.onSurface,
                         ),
                         modifier = Modifier
                             .fillMaxWidth(),
                         text = text,
-                        onClick = { handleLink(clicked, showReply, text, it, uriHandler)
+                        onClick = {
+                            handleLink(clicked, showReply, text, it, uriHandler)
                         },
                         inlineContent = mapping
                     )
@@ -136,7 +128,10 @@ fun TimelineCard(ui: UI) {
                         )
                     }
 
-                    Divider(Modifier.padding(top = PaddingSize2), color = Color.Gray.copy(alpha = .5f))
+                    Divider(
+                        Modifier.padding(top = PaddingSize2),
+                        color = Color.Gray.copy(alpha = .5f)
+                    )
                 }
             }
         }
@@ -177,7 +172,7 @@ fun UserInfo(ui: UI) {
         horizontalArrangement = Arrangement.Start
     ) {
         ui.avatar?.let { AvatarImage(PaddingSize7, it) }
-        ui.emojis?.let {
+        ui.accountEmojis?.let {
             val (inlineContentMap, text) = inlineEmojis(
                 ui.displayName,
                 it
@@ -189,20 +184,25 @@ fun UserInfo(ui: UI) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         color = colorScheme.secondary,
-                        modifier = Modifier.padding(bottom = PaddingSize0_5),
-                        text = text,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = PaddingSize0_5).fillMaxWidth(.6f),
+                        text = text+text,
+                        style = MaterialTheme.typography.titleMedium,
                         inlineContent = inlineContentMap
                     )
                     Text(
                         color = colorScheme.secondary,
                         text = ui.timePosted,
-                        fontSize = 18.sp
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                Text(color = colorScheme.secondary, text = ui.userName, fontSize = 14.sp)
+                Text(
+                    color = colorScheme.secondary,
+                    text = ui.userName,
+                    style = MaterialTheme.typography.titleSmall,
+                )
             }
 
         }

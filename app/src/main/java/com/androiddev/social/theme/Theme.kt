@@ -79,6 +79,7 @@ fun EbonyTheme(
 
     MaterialTheme(
         colorScheme = colors,
+
         content = content
     )
 }
