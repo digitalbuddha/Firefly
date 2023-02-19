@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import com.androiddev.social.R
@@ -20,11 +19,10 @@ import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.timeline.ui.theme.Pink40
-import com.androiddev.social.theme.Pink40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Boosted(boostedBy: String?) {
+fun Boosted(boostedBy: String?, boostedAvatar: String?) {
     boostedBy?.let {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -33,26 +31,27 @@ fun Boosted(boostedBy: String?) {
                 .padding(top = PaddingSize0_5, bottom = PaddingSize1)
         ) {
             AssistChip(
-                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
+//                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = Pink40.copy(alpha = .2f),
+                    containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary.copy(
                         alpha = .5f
-                    ), labelColor = colorScheme.secondary.copy(alpha = .7f)
+                    ), labelColor = colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),
                 onClick = { /* Do something! */ },
                 label = { Text(boostedBy) },
                 leadingIcon = {
-                    Image(size = PaddingSize3, showIcon = false)
+                    AvatarImage(size = PaddingSize3, url = boostedAvatar)
                 },
                 trailingIcon = {
                     Image(
                         modifier = Modifier.height(PaddingSize3),
                         painter = painterResource(R.drawable.rocket3),
                         contentDescription = "",
-                        colorFilter = ColorFilter.tint(Color.White.copy(alpha = .5f)),
+                        colorFilter = ColorFilter.tint(colorScheme.onPrimary.copy(alpha = .5f)),
                     )
+
                 }
             )
         }

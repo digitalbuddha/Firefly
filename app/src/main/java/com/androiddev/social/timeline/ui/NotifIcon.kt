@@ -37,7 +37,8 @@ fun NotifIcon() {
                 .size(PaddingSize3),
             painter = painterResource(R.drawable.notification),
             contentDescription = "",
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+
         )
     }
 }

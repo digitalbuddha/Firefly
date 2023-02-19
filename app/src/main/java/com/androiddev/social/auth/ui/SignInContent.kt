@@ -2,7 +2,6 @@ package com.androiddev.social.auth.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -54,12 +53,12 @@ fun SignInContent(
                     .wrapContentHeight()
                     .align(Alignment.CenterHorizontally)
                     .padding(PaddingSize2)
-                    .background(color = MaterialTheme.colorScheme.tertiary.copy(alpha = .5f))
+//                    .background(color = MaterialTheme.colorScheme.tertiary.copy(alpha = .5f))
                     .border(
                         border = BorderStroke(
                             width = ThickMd,
                             color =
-                            MaterialTheme.colorScheme.tertiary
+                            MaterialTheme.colorScheme.primary
                         ),
                         shape = MaterialTheme.shapes.small
                     )

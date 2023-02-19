@@ -20,7 +20,7 @@ import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
-import com.androiddev.social.timeline.ui.Image
+import com.androiddev.social.timeline.ui.AvatarImage
 
 data class UI(
     val imageUrl: String? = null,
@@ -37,7 +37,8 @@ data class UI(
     val avatar: String? = null,
     val mentions: List<Mention>,
     val tags: List<Tag>,
-    val emojis: List<Emoji>?
+    val emojis: List<Emoji>?,
+    val boostedAvatar: String?
 )
 
 
@@ -79,7 +80,7 @@ fun Spanned.toAnnotatedString(
                 Placeholder(
                     20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
                 ), children = {
-                    Image(PaddingSize2_5, url = emoji.url)
+                    AvatarImage(PaddingSize2_5, url = emoji.url)
                 })
         } else {
             builder.append(token)

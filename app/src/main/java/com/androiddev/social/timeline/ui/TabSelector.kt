@@ -32,6 +32,12 @@ fun TabSelector() {
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
+        Image(
+            modifier =Modifier.size(28.dp),
+            painter = painterResource(items[selectedIndex].second),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
+        )
         Text(
             text = items[selectedIndex].first,
             color = MaterialTheme.colorScheme.secondary

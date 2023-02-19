@@ -282,7 +282,7 @@ private fun UserInputSelector(
             contentColor = MaterialTheme.colorScheme.primary,
             disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .4f),
             disabledContentColor = disabledContentColor,
-            containerColor = MaterialTheme.colorScheme.tertiary
+//            containerColor = MaterialTheme.colorScheme.tertiary
         )
         var clicked by remember { mutableStateOf(false) }
 
@@ -348,7 +348,7 @@ private fun InputSelectorButton(
 ) {
     val backgroundModifier = if (selected) {
         Modifier.background(
-            color = MaterialTheme.colorScheme.tertiary,
+            color = MaterialTheme.colorScheme.primary,
             shape = RoundedCornerShape(Touchpoint)
         )
     } else {
@@ -505,7 +505,7 @@ fun ExtendedSelectorInnerButton(
         else Color.Transparent,
         disabledContainerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        disabledContentColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.74f)
+//        disabledContentColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.74f)
     )
     TextButton(
         onClick = onClick,
@@ -706,7 +706,7 @@ fun SendFab(colorScheme: ColorScheme, onClick: () -> Unit) {
     val shape = CircleShape
     LargeFloatingActionButton(
         shape = shape,
-        containerColor = colorScheme.tertiary,
+//        containerColor = colorScheme.tertiary,
         modifier = Modifier
             .offset(x = 20.dp)
             .clip(shape)

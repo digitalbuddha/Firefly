@@ -33,7 +33,7 @@ import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.ui.model.UI
-import com.androiddev.social.timeline.ui.theme.EbonyTheme
+import com.androiddev.social.theme.EbonyTheme
 import com.squareup.anvil.annotations.ContributesTo
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
@@ -163,7 +163,7 @@ class MainActivity : ComponentActivity() {
                 sheetElevation = 12.dp,
                 sheetState = state,
                 sheetContent = {
-                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 60.dp))
+                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 20.dp))
                 }) {
                 timelineScreen(padding, homePresenter.events, homePresenter.model.statuses)
 
