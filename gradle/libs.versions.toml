@@ -12,6 +12,7 @@ androidx-datastore = "1.0.0"
 androidx-savedstate = "1.2.0"
 androidx-vectordrawable = "1.1.0"
 anvil = "2.4.4"
+assertj = "3.24.2"
 atomicfu = "0.18.5"
 browser = "1.5.0"
 com-google-dagger = "2.44.2"
@@ -19,11 +20,15 @@ com-squareup-anvil = "2.4.4"
 com-squareup-okhttp3 = "4.10.0"
 com-squareup-okio = "3.2.0"
 constraintlayout-compose = "1.0.1"
+coroutines-test = "1.6.4"
 dagger-compiler = "2.44.2"
+espresso = "3.4.0"
 gradle-plugin = "7.4.1"
 jw-converter = "0.8.0"
 kotlinx-serialization-json = "1.5.0-RC"
 kotlin = "1.8.10"
+junit4 = "4.13.2"
+junit-ext = "1.1.3"
 lifecycle-runtime-ktx = "2.3.1"
 io-coil-kt = "2.2.2"
 retained-compose = "1.0.0"
@@ -49,6 +54,7 @@ androidx-lifecycle-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecy
 androidx-nav-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-nav-compose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging-compose" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "io-coil-kt" }
 com-google-dagger = { module = "com.google.dagger:dagger", version.ref = "com-google-dagger" }
@@ -56,9 +62,13 @@ com-jakewharton-retrofit = { module = "com.jakewharton.retrofit:retrofit2-kotlin
 com-squareup-okhttp3-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "com-squareup-okhttp3" }
 com-squareup-okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "com-squareup-okhttp3" }
 com-squareup-retrofit2-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines-test"}
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger-compiler" }
 de-charlex-compose-revealswipe = { module = "de.charlex.compose:revealswipe", version.ref = "revealswipe" }
+espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 me-saket-swipe = { module = "me.saket.swipe:swipe", version.ref = "swipe" }
+junit = { module = "junit:junit", version.ref = "junit4" }
+junit-ext = { module = "androidx.test.ext:junit", version.ref = "junit-ext" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 retained-compose = { module = "dev.marcellogalhardo:retained-compose", version.ref = "retained-compose" }
 store-cache = { module = "org.mobilenativefoundation.store:cache5-jvm", version.ref = "store" }
