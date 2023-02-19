@@ -1,9 +1,9 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id "org.jetbrains.kotlin.plugin.serialization" version "1.8.10"
-    id 'com.squareup.anvil' version "2.4.4"
-    id 'kotlin-kapt'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.anvil)
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -48,7 +48,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.2'
+        kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
     }
     packagingOptions {
         resources {
@@ -58,14 +58,14 @@ android {
 }
 
 dependencies {
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.foundation:foundation:$compose_version"
+    implementation(platform(libs.androidx.compose.bom))
+    kapt(libs.dagger.compiler)
+
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.me.saket.swipe)
     implementation(libs.androidx.activity.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -86,17 +86,17 @@ dependencies {
     implementation(libs.store.jvm)
     implementation(libs.androidx.paging.compose)
     implementation(libs.retained.compose)
-
     implementation(libs.androidx.nav.compose)
-
     api(libs.atomicfu)
 
-    kapt(libs.dagger.compiler)
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation("org.assertj:assertj-core:3.24.2")
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.junit)
+    testImplementation(libs.assertj)
 
-    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
-    androidTestImplementation 'junit:junit:4.13.2'
-    androidTestImplementation("org.assertj:assertj-core:3.24.2")
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.assertj)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.espresso)
+    androidTestImplementation(libs.junit.ext)
 }
