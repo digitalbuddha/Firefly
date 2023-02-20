@@ -34,7 +34,7 @@ fun BottomBar(replyCount: Int? = null, boostCount: Int? = null) {
         ) {
             Image(
                 modifier = Modifier.size(size.dp),
-                painter = painterResource(R.drawable.home),
+                painter = painterResource(R.drawable.at),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
             )

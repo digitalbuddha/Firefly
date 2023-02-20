@@ -7,24 +7,33 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.SmallTopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
@@ -52,6 +61,7 @@ interface Injector {
     fun repository(): AppTokenRepository
 }
 
+@ExperimentalTextApi
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -72,16 +82,140 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EbonyTheme {
-                val scope = rememberCoroutineScope()
-                val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "login") {
-                    composable("timeline") {
-                        TimelineScreen()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            androidx.compose.material3.MaterialTheme.colorScheme.secondaryContainer.copy(
+                                alpha = .8f
+                            )
+                        )
+                ) {
+//                    androidx.compose.foundation.Image(
+//                        colorFilter = ColorFilter.tint(
+//                            androidx.compose.material3.MaterialTheme.colorScheme.tertiary.copy(
+//                                alpha = .8f
+//                            )
+//                        ),
+//                        painter = painterResource(id = R.drawable.rocket2),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .padding(32.dp)
+//                            .fillMaxSize(),
+//                    )
+                    val scope = rememberCoroutineScope()
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "selectServer") {
+                        composable("timeline") {
+                            TimelineScreen()
 
-                        /*...*/
-                    }
-                    composable("login") {
-                        SignedInScreen(navController, scope)
+                            /*...*/
+                        }
+
+                        dialog("selectServer") {
+                            var server by remember { mutableStateOf("androiddev.social") }
+                            EbonyTheme {
+                                Surface(
+                                    modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+                                    color = colorScheme.surface.copy(alpha = .8f)
+                                ) {
+                                    val configuration = LocalConfiguration.current
+
+                                    val screenHeight = configuration.screenHeightDp
+
+                                    Column(
+                                        Modifier
+                                            .padding(
+                                                PaddingSize2
+                                            )
+                                            .fillMaxWidth(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .height((screenHeight * .5f).dp)
+                                        ,
+                                        verticalArrangement = Arrangement.SpaceBetween
+
+
+                                    ) {
+                                        Text(
+                                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier
+                                                .padding(
+                                                    PaddingSize1
+                                                ),
+                                            text = "Welcome!",
+                                            style = androidx.compose.material3.MaterialTheme.typography.headlineLarge
+                                        )
+                                        Text(
+                                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier
+                                                .padding(
+                                                    PaddingSize1
+                                                ),
+                                            text = "Which Server should we connect to?",
+                                            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+                                        )
+
+                                        TextField(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight()
+                                                .wrapContentWidth(),
+                                            textStyle = LocalTextStyle.current.copy(
+//                                        textAlign = TextAlign.Cewn
+                                            ),
+                                            colors = TextFieldDefaults.textFieldColors(
+                                                backgroundColor = colorScheme.onSecondaryContainer,
+                                                cursorColor = Color.Black,
+                                                disabledLabelColor = colorScheme.onSecondaryContainer,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                textColor = colorScheme.secondaryContainer
+                                            ),
+                                            shape = RoundedCornerShape(8.dp),
+                                            value = server,
+                                            onValueChange = {
+                                                server = it
+                                            },
+                                            trailingIcon = {
+                                                Icon(
+                                                    Icons.Default.Clear,
+                                                    contentDescription = "clear text",
+                                                    modifier = Modifier
+                                                        .clickable {
+                                                            server = ""
+                                                        }
+                                                )
+                                            })
+                                        Box(
+                                            modifier = Modifier
+                                                .alpha(.8f)
+                                                .fillMaxWidth()
+
+                                        ) {
+                                            ExtendedFloatingActionButton(
+                                                backgroundColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .fillMaxWidth(.7f)
+                                                    .align(Alignment.Center),
+                                                text = {
+                                                    Text("Continue to Server")
+                                                },
+                                                onClick =
+                                                {
+                                                    scope.launch {
+                                                        navController.navigate("login/$server")
+                                                    }
+                                                })
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                        composable("login/{server}") {
+                            val server = it.arguments?.getString("server")!!
+                            SignedInScreen(navController, scope, server)
+                        }
                     }
                 }
             }
@@ -104,25 +238,47 @@ class MainActivity : ComponentActivity() {
         val state = rememberModalBottomSheetState(
             initialValue = ModalBottomSheetValue.Hidden,
         )
-        androidx.compose.material.Scaffold(
+        Scaffold(
             bottomBar = {
-                androidx.compose.material.BottomAppBar(
+                BottomAppBar(
                     modifier = Modifier.height(PaddingSize8),
                     contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
                     elevation = BottomBarElevation,
                     //                            cutoutShape = CutCornerShape(50),
-                    backgroundColor = colorScheme.surface.copy(alpha = .9f),
+                    backgroundColor = colorScheme.surface.copy(alpha = .5f),
                 ) {
                     BottomBar()
                 }
             },
-            topBar = {
-                SmallTopAppBar(
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = colorScheme.surface.copy(
-                            alpha = .9f
-                        )
+            floatingActionButtonPosition = FabPosition.Center,
+            isFloatingActionButtonDocked = true,
+            floatingActionButton = {
+                val scope = rememberCoroutineScope()
+                if (!state.isVisible) {
+                    FAB(colorScheme) {
+                        scope.launch {
+                            state.show()
+                        }
+                    }
+                }
+            }
+        ) { padding ->
+            Box {
+                ModalBottomSheetLayout(
+                    sheetElevation = PaddingSize2,
+                    sheetState = state,
+                    sheetContent = {
+                        UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 20.dp))
+                    }) {
+                    timelineScreen(homePresenter.events, homePresenter.model.statuses)
+
+                }
+                TopAppBar(
+                    modifier =Modifier.height(60.dp),
+                    backgroundColor = colorScheme.surface.copy(
+                        alpha = .9f
                     ),
+
                     title = {
                         Row(
                             Modifier.fillMaxWidth(),
@@ -146,29 +302,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 )
-            },
-            floatingActionButtonPosition = FabPosition.Center,
-            isFloatingActionButtonDocked = true,
-            floatingActionButton = {
-                val scope = rememberCoroutineScope()
-                if (!state.isVisible) {
-                    FAB(colorScheme) {
-                        scope.launch {
-                            state.show()
-                        }
-                    }
-                }
-            }
-        ) { padding ->
-
-            ModalBottomSheetLayout(
-                sheetElevation = PaddingSize2,
-                sheetState = state,
-                sheetContent = {
-                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 20.dp))
-                }) {
-                timelineScreen(homePresenter.events, homePresenter.model.statuses)
-
             }
         }
     }
@@ -176,7 +309,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun SignedInScreen(
         navController: NavHostController,
-        scope: CoroutineScope
+        scope: CoroutineScope,
+        server: String
     ) {
         val component: Injector = retain { noAuthComponent() } as Injector
         val signInPresenter = component.signInPresenter()
@@ -191,13 +325,13 @@ class MainActivity : ComponentActivity() {
             signInPresenter.start()
         }
         LaunchedEffect("signIn") {
-            val userToken = component.repository().getUserToken()
+            val userToken = component.repository().getUserToken(null)
             if (userToken != null) {
                 navController.navigate("timeline") {
                     popUpTo(0)
                 }
             } else {
-                signInPresenter.handle(SignInPresenter.LoadSomething)
+                signInPresenter.handle(SignInPresenter.SetServer(server))
             }
         }
         SignInContent(
@@ -225,20 +359,24 @@ class MainActivity : ComponentActivity() {
             events.tryEmit(HomePresenter.LoadSomething)
         }
         val items = statuses?.collectAsLazyPagingItems()
-        var refreshing by remember { mutableStateOf(false) }
-
+        val refreshing = items?.loadState?.refresh is LoadState.Loading
         val pullRefreshState = rememberPullRefreshState(refreshing, {
-            refreshing = true
             items?.refresh()
         })
 
-        Box(Modifier.pullRefresh(pullRefreshState)) {
+
+        Box(Modifier.pullRefresh(pullRefreshState).padding(top=60.dp)) {
             statuses?.let {
                 TimelineScreen(
                     items!!
-                ) { refreshing = false }
+                )
             }
-            PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
+            CustomViewPullRefreshView(pullRefreshState, refreshTriggerDistance= 4.dp ,isRefreshing = refreshing)
+//            PullRefreshIndicator(
+//                refreshing,
+//                pullRefreshState,
+//                Modifier.align(Alignment.TopCenter)
+//            )
         }
     }
 

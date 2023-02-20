@@ -13,11 +13,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
@@ -34,19 +34,22 @@ fun TabSelector() {
     var selectedIndex by remember { mutableStateOf(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
         Image(
-            modifier =Modifier.size(28.dp),
+            modifier =Modifier.size(PaddingSize4).align(CenterVertically),
             painter = painterResource(items[selectedIndex].second),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
         )
         Text(
+            modifier = Modifier.align(CenterVertically),
             text = items[selectedIndex].first,
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
+            style =  MaterialTheme.typography.headlineSmall
         )
         Icon(
-            Icons.Outlined.ArrowDropDown,
+            imageVector = Icons.Outlined.ArrowDropDown,
             contentDescription = "down arrow",
             modifier = Modifier.align(Bottom),
+            tint = MaterialTheme.colorScheme.secondary
         )
         DropdownMenu(
             expanded = expanded,
@@ -62,15 +65,17 @@ fun TabSelector() {
                     selectedIndex = index
                     expanded = false
                 }, text = {
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Image(
-                            modifier =Modifier.size(PaddingSize4),
+                            modifier = Modifier.size(PaddingSize4),
                             painter = painterResource(items[index].second),
                             contentDescription = "",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
                         )
-                        Text(text =   " "+items[index].first,)
+                        Text(text = " " + items[index].first)
                     }
 
                 })

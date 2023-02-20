@@ -3,9 +3,11 @@ package com.androiddev.social.timeline.ui
 import android.text.Spanned
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Divider
@@ -23,7 +25,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
@@ -39,11 +40,13 @@ import com.androiddev.social.timeline.ui.model.toAnnotatedString
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TimelineCard(ui: UI) {
+fun LazyItemScope.TimelineCard(ui: UI) {
     SwipeableActionsBox(
         startActions = listOf(rocket()),
-        endActions = listOf(reply(), replyAll())
+        endActions = listOf(reply(), replyAll()),
+        modifier = Modifier.animateItemPlacement()
     ) {
         Column(
             Modifier
@@ -87,7 +90,17 @@ fun TimelineCard(ui: UI) {
                             .fillMaxWidth(),
                         text = text,
                         onClick = {
-                            handleLink(clicked, showReply, text, it, uriHandler)
+                            clicked = !clicked
+                            if (!clicked && showReply) showReply = false
+                            text.getStringAnnotations(
+                                tag = "URL", start = it,
+                                end = it
+                            )
+                                .firstOrNull()?.let { annotation ->
+                                    // If yes, we log its value
+                                    uriHandler.openUri(annotation.item)
+                                    Log.d("Clicked URL", annotation.item)
+                                }
                         },
                         inlineContent = mapping
                     )
@@ -141,27 +154,6 @@ fun TimelineCard(ui: UI) {
 }
 
 
-private fun handleLink(
-    clicked: Boolean,
-    showReply: Boolean,
-    text: AnnotatedString,
-    it: Int,
-    uriHandler: UriHandler
-) {
-    var clicked1 = clicked
-    var showReply1 = showReply
-    clicked1 = !clicked1
-    if (!clicked1 && showReply1) showReply1 = false
-    text.getStringAnnotations(
-        tag = "URL", start = it,
-        end = it
-    )
-        .firstOrNull()?.let { annotation ->
-            // If yes, we log its value
-            uriHandler.openUri(annotation.item)
-            Log.d("Clicked URL", annotation.item)
-        }
-}
 
 @Composable
 fun UserInfo(ui: UI) {

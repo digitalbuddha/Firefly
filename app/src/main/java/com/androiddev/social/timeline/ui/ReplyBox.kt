@@ -1,5 +1,11 @@
 package com.androiddev.social.timeline.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -29,7 +35,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
@@ -42,6 +48,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.androiddev.social.R
 import com.androiddev.social.theme.*
 
@@ -92,9 +99,9 @@ fun UserInput(
             modifier = modifier
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
-                .background(
-                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .99f)
-                )
+//                .background(
+//                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .9f)
+//                )
         ) {
             UserInputText(
                 textFieldValue = textState,
@@ -170,7 +177,7 @@ private fun SelectorExpanded(
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.DM -> NotAvailablePopup(onCloseRequested)
-            InputSelector.PICTURE -> FunctionalityNotAvailablePanel()
+            InputSelector.PICTURE ->PhotoPickerResultComposable()
             InputSelector.MAP -> FunctionalityNotAvailablePanel()
             InputSelector.PHONE -> FunctionalityNotAvailablePanel()
             else -> {
@@ -188,24 +195,49 @@ fun FunctionalityNotAvailablePanel() {
         enter = expandHorizontally() + fadeIn(),
         exit = shrinkHorizontally() + fadeOut()
     ) {
-        Column(
-            modifier = Modifier
-                .height(PaddingSizePanelHeight)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "Not Available",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Not Available",
-                modifier = Modifier.paddingFrom(FirstBaseline, before = PaddingSize4),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+    }
+
+}
+
+@Composable
+fun PhotoPickerResultComposable() {
+    var result by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            result = it.data?.data
         }
+    Column(
+        modifier = Modifier.fillMaxWidth().fillMaxHeight(.3f).padding(PaddingSize2),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+                type = "image/*"
+                // only videos
+                type = "video/*"
+            }
+
+            OpenPhotoPicker(openLauncher = { launcher.launch(intent)})
+            AsyncImage(
+                model = result,
+                contentDescription = "Image from photo picker",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(200.dp, 200.dp)
+                    .clip(CircleShape)
+            )
+        } else {
+            TODO("VERSION.SDK_INT < TIRAMISU")
+        }
+    }
+}
+
+@Composable
+fun OpenPhotoPicker(openLauncher: () -> Unit) {
+    OutlinedButton(onClick = openLauncher) {
+        Text("Open photo picker")
     }
 }
 
@@ -348,7 +380,7 @@ private fun InputSelectorButton(
         val tint = if (selected) {
             MaterialTheme.colorScheme.primary.copy(alpha = .5f)
         } else {
-            MaterialTheme.colorScheme.tertiary.copy(.7f)
+            MaterialTheme.colorScheme.tertiary.copy(.5f)
         }
         Icon(
             icon,

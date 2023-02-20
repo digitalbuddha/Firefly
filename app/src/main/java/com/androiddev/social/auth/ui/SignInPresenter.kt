@@ -32,7 +32,7 @@ abstract class SignInPresenter :
         SignInModel(false)
     ) {
     sealed interface SignInEvent
-    object LoadSomething : SignInEvent
+    data class SetServer(val domain: String) : SignInEvent
 
 
     data class SignInModel(
@@ -64,13 +64,13 @@ class RealSignInPresenter @Inject constructor(
     }
 
     override suspend fun eventHandler(event: SignInEvent) {
-        when(event){
-            LoadSomething->{
+        when (event) {
+            is SetServer -> {
                 val params = ApplicationBody()
                 val result: Result<NewOauthApplication> = kotlin.runCatching {
                     appTokenRepository.getAppToken(
                         AppTokenRequest(
-                            "https://${params.baseUrl}/api/v1/apps",
+                            "https://${event.domain}/api/v1/apps",
                             params.scopes,
                             params.clientName,
                             params.redirectUris()
@@ -132,13 +132,13 @@ class RealSignInPresenter @Inject constructor(
                         AccessTokenRequest(
                             code = code,
                             domain = model.server,
-                            clientId =  model.clientId,
+                            clientId = model.clientId,
                             clientSecret = model.clientSecret,
                             redirectUri = model.redirectUri,
                         )
 
                     )
-                    if (token!=null) {
+                    if (token != null) {
                         model = model.copy(signedIn = true)
                     } else {
                         displayErrorWithDuration("An error occurred.")
