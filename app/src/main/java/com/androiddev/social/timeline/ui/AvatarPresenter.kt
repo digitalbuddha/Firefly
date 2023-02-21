@@ -1,9 +1,9 @@
 package com.androiddev.social.timeline.ui
 
-import com.androiddev.social.AppScope
+import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
-import com.androiddev.social.auth.data.AppTokenRepository
-import com.androiddev.social.shared.Api
+import com.androiddev.social.auth.data.OauthRepository
+import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
@@ -15,7 +15,7 @@ abstract class AvatarPresenter :
     ) {
     sealed interface AvatarEvent
 
-    object Load : AvatarEvent
+   object Load : AvatarEvent
 
     data class AvatarModel(
         val loading: Boolean,
@@ -24,17 +24,18 @@ abstract class AvatarPresenter :
 
     sealed interface AvatarEffect
 }
-@ContributesBinding(AppScope::class, boundType = AvatarPresenter::class)
-@SingleIn(AppScope::class)
-class RealAvatarPresenter @Inject constructor(val api: Api, val repository: AppTokenRepository) :
+
+@ContributesBinding(AuthRequiredScope::class, boundType = AvatarPresenter::class)
+@SingleIn(AuthRequiredScope::class)
+class RealAvatarPresenter @Inject constructor(val api: UserApi, val repository: OauthRepository) :
     AvatarPresenter() {
 
     override suspend fun eventHandler(event: AvatarEvent) {
         when (event) {
-            Load -> {
-                val token = " Bearer ${repository.getUserToken()}"
-                val account = api.accountVerifyCredentials(token)
-                model = model.copy(account = account)
+            is Load -> {
+                val token = " Bearer ${repository.getCurrent()}"
+                val account: Result<Account> = kotlin.runCatching { api.accountVerifyCredentials(token) }
+                if (account.isSuccess) model = model.copy(account = account.getOrThrow())
             }
         }
     }

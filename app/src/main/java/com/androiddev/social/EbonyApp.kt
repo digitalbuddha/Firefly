@@ -4,6 +4,7 @@ package com.androiddev.social
 
 
 import android.app.Application
+import com.androiddev.social.auth.data.AccessTokenRequest
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi
@@ -59,7 +60,7 @@ interface UserComponent  {
     @ContributesSubcomponent.Factory
     interface Factory {
         fun userComponent(
-            @BindsInstance user: String
+            @BindsInstance accessTokenRequest: AccessTokenRequest
         ): UserComponent
     }
 }
@@ -86,7 +87,9 @@ interface AuthRequiredComponent {
     }
 }
 
-interface Injector
+interface Injector {
+//    abstract fun signInPresenter(): Any
+}
 
 @OptIn(ExperimentalAnvilApi::class)
 @ContributesSubcomponent(

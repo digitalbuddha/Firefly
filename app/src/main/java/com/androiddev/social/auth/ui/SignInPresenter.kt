@@ -14,10 +14,7 @@ package com.androiddev.social.auth.ui
 
 import com.androiddev.social.AppScope
 import com.androiddev.social.SingleIn
-import com.androiddev.social.auth.data.AccessTokenRequest
-import com.androiddev.social.auth.data.AppTokenRepository
-import com.androiddev.social.auth.data.AppTokenRequest
-import com.androiddev.social.auth.data.ApplicationBody
+import com.androiddev.social.auth.data.*
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
@@ -37,13 +34,13 @@ abstract class SignInPresenter :
 
     data class SignInModel(
         val loading: Boolean,
-        val server: String = "",
         val oauthAuthorizeUrl: String = "",
         val redirectUri: String = "",
         val error: String? = null,
         val signedIn: Boolean = false,
         val clientId: String = "",
-        val clientSecret: String = ""
+        val clientSecret: String = "",
+        val accessTokenRequest: AccessTokenRequest? = null
 
     )
 
@@ -66,7 +63,7 @@ class RealSignInPresenter @Inject constructor(
     override suspend fun eventHandler(event: SignInEvent) {
         when (event) {
             is SetServer -> {
-                val params = ApplicationBody()
+                val params = ApplicationBody(baseUrl = event.domain)
                 val result: Result<NewOauthApplication> = kotlin.runCatching {
                     appTokenRepository.getAppToken(
                         AppTokenRequest(
@@ -82,7 +79,6 @@ class RealSignInPresenter @Inject constructor(
                     model = model.copy(
                         redirectUri = value.redirectUri,
                         oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
-                        server = params.baseUrl,
                         clientId = value.clientId,
                         clientSecret = value.clientSecret
                     )
@@ -128,21 +124,14 @@ class RealSignInPresenter @Inject constructor(
             query.contains("code=") -> {
                 val code = query.replace("code=", "")
                 scope.launch {
-                    val token = appTokenRepository.getUserToken(
-                        AccessTokenRequest(
-                            code = code,
-                            domain = model.server,
-                            clientId = model.clientId,
-                            clientSecret = model.clientSecret,
-                            redirectUri = model.redirectUri,
-                        )
-
+                    val accessTokenRequest = AccessTokenRequest(
+                        code = code,
+                        clientId = model.clientId,
+                        clientSecret = model.clientSecret,
+                        redirectUri = model.redirectUri,
                     )
-                    if (token != null) {
-                        model = model.copy(signedIn = true)
-                    } else {
-                        displayErrorWithDuration("An error occurred.")
-                    }
+                        model = model.copy(accessTokenRequest = accessTokenRequest)
+
                 }
                 true
             }
