@@ -39,7 +39,7 @@ data class Account(
 
     // statistical attributes
     @SerialName("created_at") val createdAt: String,
-    @SerialName("last_status_at") val last_statusAt: String="",
+    @SerialName("last_status_at") val last_statusAt: String? = "",
     @SerialName("statuses_count") val statusesCount: Int,
     @SerialName("followers_count") val followersCount: Int,
     @SerialName("following_count") val followingCount: Int,
