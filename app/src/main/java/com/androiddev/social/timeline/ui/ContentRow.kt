@@ -180,7 +180,7 @@ fun UserInfo(ui: UI) {
                         overflow = TextOverflow.Ellipsis,
                         color = colorScheme.secondary,
                         modifier = Modifier.padding(bottom = PaddingSize0_5).fillMaxWidth(.6f),
-                        text = text+text,
+                        text = text,
                         style = MaterialTheme.typography.titleMedium,
                         inlineContent = inlineContentMap
                     )

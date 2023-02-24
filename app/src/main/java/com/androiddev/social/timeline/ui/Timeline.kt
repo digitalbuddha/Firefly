@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -33,7 +34,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun TimelineScreen(userComponent: UserComponent) {
     val context = LocalContext.current
-    val component = retain {(userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+    val component =
+        retain { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     val homePresenter = component.homePresenter()
     val avatarPresenter = component.avatarPresenter()
 
@@ -46,17 +48,22 @@ fun TimelineScreen(userComponent: UserComponent) {
     val state = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
     )
+    var replying by remember { mutableStateOf(false) }
+    if (!state.isVisible) replying = false
+
     Scaffold(
         bottomBar = {
-            BottomAppBar(
-                modifier = Modifier.height(PaddingSize8),
-                contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
-                elevation = BottomBarElevation,
-                //                            cutoutShape = CutCornerShape(50),
-                backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
-            ) {
-                BottomBar()
+         AnimatedVisibility( !replying, enter = fadeIn(), exit = fadeOut()){
+                BottomAppBar(
+                    modifier = Modifier.height(PaddingSize8),
+                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                    elevation = BottomBarElevation,
+                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+                ) {
+                    BottomBar()
+                }
             }
+
         },
         floatingActionButtonPosition = FabPosition.Center,
         isFloatingActionButtonDocked = true,
@@ -64,6 +71,7 @@ fun TimelineScreen(userComponent: UserComponent) {
             val scope = rememberCoroutineScope()
             if (!state.isVisible) {
                 FAB(MaterialTheme.colorScheme) {
+                    replying = true
                     scope.launch {
                         state.show()
                     }
@@ -73,13 +81,15 @@ fun TimelineScreen(userComponent: UserComponent) {
     ) { padding ->
         Box {
             ModalBottomSheetLayout(
+                sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
+                    alpha = .5f
+                ),
                 sheetElevation = PaddingSize2,
                 sheetState = state,
                 sheetContent = {
-                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 20.dp))
+                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 0.dp))
                 }) {
                 timelineScreen(homePresenter.events, homePresenter.model.statuses)
-
             }
             TopAppBar(
                 modifier = Modifier.height(60.dp),
@@ -133,7 +143,8 @@ private fun timelineScreen(
     Box(
         Modifier
             .pullRefresh(pullRefreshState)
-            .padding(top = 60.dp)) {
+            .padding(top = 60.dp)
+    ) {
         statuses?.let {
             TimelineRows(
                 items!!

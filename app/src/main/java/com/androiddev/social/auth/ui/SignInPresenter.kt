@@ -12,13 +12,19 @@
  */
 package com.androiddev.social.auth.ui
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.androiddev.social.AppScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.*
+import com.androiddev.social.shared.Api
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.net.URI
 import java.net.URLEncoder
 import javax.inject.Inject
@@ -53,6 +59,8 @@ abstract class SignInPresenter :
 @SingleIn(AppScope::class)
 class RealSignInPresenter @Inject constructor(
     val appTokenRepository: AppTokenRepository,
+    val api: Api,
+    private val dataStore: DataStore<Preferences>
 ) : SignInPresenter() {
 
     init {
@@ -76,12 +84,29 @@ class RealSignInPresenter @Inject constructor(
                 }
                 if (result.isSuccess) {
                     val value = result.getOrThrow()
-                    model = model.copy(
-                        redirectUri = value.redirectUri,
-                        oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
-                        clientId = value.clientId,
-                        clientSecret = value.clientSecret
+                    val userKey = dataStore.data.map { preferences ->
+                        preferences[stringPreferencesKey(USER_KEY_PREFIX + event.domain)]
+                    }.first()
+                    if (userKey != null)
+                       model= model.copy(
+                        accessTokenRequest = AccessTokenRequest(
+                            //since we already have a token in datastore we don't need to get a new code
+                            code = "STUBBEDCODE",
+                            clientId = value.clientId,
+                            clientSecret = value.clientSecret,
+                            redirectUri = value.redirectUri,
+                            domain = event.domain
+                        )
                     )
+                    else {
+                        model = model.copy(
+                            redirectUri = value.redirectUri,
+                            oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
+                            clientId = value.clientId,
+                            clientSecret = value.clientSecret
+                        )
+                    }
+
                 } else {
                     result.exceptionOrNull()
                 }
@@ -130,8 +155,7 @@ class RealSignInPresenter @Inject constructor(
                         clientSecret = model.clientSecret,
                         redirectUri = model.redirectUri,
                     )
-                        model = model.copy(accessTokenRequest = accessTokenRequest)
-
+                    model = model.copy(accessTokenRequest = accessTokenRequest)
                 }
                 true
             }

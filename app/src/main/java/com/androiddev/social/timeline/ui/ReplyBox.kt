@@ -94,14 +94,12 @@ fun UserInput(
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
 
-    Surface(tonalElevation = 2.dp, modifier = Modifier.background(Color.Transparent)) {
+    Surface(tonalElevation = 2.dp, color= Color.Transparent) {
         Column(
             modifier = modifier
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
-//                .background(
-//                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .9f)
-//                )
+                .background(MaterialTheme.colorScheme.surface.copy(alpha=.9f))
         ) {
             UserInputText(
                 textFieldValue = textState,
@@ -297,7 +295,7 @@ private fun UserInputSelector(
         }
         Spacer(modifier = Modifier.weight(1f))
 
-        val disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = .4f)
+        val disabledContentColor = colorScheme.primary.copy(alpha = .4f)
 
         val buttonColors = ButtonDefaults.buttonColors(
             contentColor = MaterialTheme.colorScheme.primary,
@@ -365,8 +363,8 @@ private fun InputSelectorButton(
 ) {
     val backgroundModifier = if (selected) {
         Modifier.background(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(Touchpoint)
+            color = colorScheme.primary.copy(alpha=.5f),
+            shape = RoundedCornerShape(TouchpointMd)
         )
     } else {
         Modifier
@@ -375,17 +373,17 @@ private fun InputSelectorButton(
         onClick = onClick,
         modifier = Modifier
             .size(TouchpointMd)
-            .then(backgroundModifier)
+//            .then(backgroundModifier)
     ) {
         val tint = if (selected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = .5f)
+            colorScheme.primary.copy(alpha = .5f)
         } else {
-            MaterialTheme.colorScheme.tertiary.copy(.5f)
+            colorScheme.tertiary.copy(.5f)
         }
         Icon(
             icon,
             tint = tint,
-            modifier = Modifier.padding(PaddingSize2),
+            modifier = Modifier.padding(0.dp),
             contentDescription = description
         )
     }

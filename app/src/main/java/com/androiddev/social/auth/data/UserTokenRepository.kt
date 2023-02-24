@@ -17,36 +17,41 @@ interface OauthRepository {
     suspend fun getCurrent(): String?
 }
 
+val USER_KEY_PREFIX = "USER_TOKEN_FOR_"
+
 @ContributesBinding(UserScope::class)
 @SingleIn(UserScope::class)
 class RealOauthRepository @Inject constructor(
-    private val accessTokenRequest: AccessTokenRequest, val api: Api,
+    private val accessTokenRequest: AccessTokenRequest,
+    val api: Api,
     private val dataStore: DataStore<Preferences>
 ) : OauthRepository {
-    private val KEY_PREFIX = "USER_TOKEN_FOR_"
 
-    private val sourceOfTruth = SourceOfTruth.of<AccessTokenRequest, Token, String>(
+    private val sourceOfTruth = SourceOfTruth.of<String, Token, String>(
         reader = {
             dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey(KEY_PREFIX + accessTokenRequest.domain)]
+                preferences[stringPreferencesKey(USER_KEY_PREFIX + accessTokenRequest.domain)]
             }
         },
         writer = { _, token ->
             dataStore.edit {
-                it[stringPreferencesKey(KEY_PREFIX + accessTokenRequest.domain)] = token.accessToken
+                it[stringPreferencesKey(USER_KEY_PREFIX + accessTokenRequest.domain)] =
+                    token.accessToken
             }
         }
     )
 
-    private val userTokenStore: Store<AccessTokenRequest, String> =
+    private val userTokenStore: Store<String, String> =
         StoreBuilder.from(
-            fetcher = Fetcher.of { key: AccessTokenRequest -> fetcher(key) },
+            fetcher = Fetcher.of { key: String -> fetcher() },
             sourceOfTruth = sourceOfTruth
         ).build()
 
-    override suspend fun getCurrent(): String= userTokenStore.get(accessTokenRequest)
+    override suspend fun getCurrent(): String {
+        return userTokenStore.get(accessTokenRequest.domain!!)
+    }
 
-    suspend fun fetcher(accessTokenRequest: AccessTokenRequest): Token =
+    suspend fun fetcher(): Token =
         api.createAccessToken(
             domain = "https://${accessTokenRequest.domain}/oauth/token",
             clientId = accessTokenRequest.clientId,
@@ -56,7 +61,5 @@ class RealOauthRepository @Inject constructor(
             code = accessTokenRequest.code,
             scope = "read write follow push"
         )
-
-
 }
 

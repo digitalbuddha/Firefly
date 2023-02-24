@@ -40,9 +40,6 @@ class RealAppTokenRepository @Inject constructor(
             appTokenRequest.redirect_uris
         )
     }
-
-
-
 }
 
 data class AppTokenRequest(
