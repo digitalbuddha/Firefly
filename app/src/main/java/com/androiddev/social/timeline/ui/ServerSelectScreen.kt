@@ -28,7 +28,7 @@ fun ServerSelectScreen(
     scope: CoroutineScope,
     navController: NavHostController
 ) {
-    var server by remember { mutableStateOf("allthingstech.social") }
+    var server by remember { mutableStateOf("androiddev.social") }
 
     EbonyTheme {
         Surface(
