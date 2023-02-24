@@ -24,7 +24,8 @@ import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.timeline.ui.model.UI
+import com.androiddev.social.timeline.data.StatusDB
+import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -53,7 +54,7 @@ fun TimelineScreen(userComponent: UserComponent) {
 
     Scaffold(
         bottomBar = {
-         AnimatedVisibility( !replying, enter = fadeIn(), exit = fadeOut()){
+            AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
                 BottomAppBar(
                     modifier = Modifier.height(PaddingSize8),
                     contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
@@ -87,7 +88,19 @@ fun TimelineScreen(userComponent: UserComponent) {
                 sheetElevation = PaddingSize2,
                 sheetState = state,
                 sheetContent = {
-                    UserInput(onMessageSent = {}, modifier = Modifier.padding(bottom = 0.dp))
+                    var done by remember { mutableStateOf(false) }
+                    if(done) {
+                        LaunchedEffect(Unit) {
+                            state.hide()
+                        }
+                    }
+                    UserInput(
+                        onMessageSent = {
+                            homePresenter.handle(HomePresenter.PostMessage(it))
+                            done = true
+                        },
+                        modifier = Modifier.padding(bottom = 0.dp)
+                    )
                 }) {
                 timelineScreen(homePresenter.events, homePresenter.model.statuses)
             }
@@ -129,12 +142,12 @@ fun TimelineScreen(userComponent: UserComponent) {
 @Composable
 private fun timelineScreen(
     events: MutableSharedFlow<HomePresenter.HomeEvent>,
-    statuses: Flow<PagingData<UI>>?
+    statuses: Flow<PagingData<StatusDB>>?
 ) {
     LaunchedEffect(key1 = Unit) {
         events.tryEmit(HomePresenter.Load)
     }
-    val items = statuses?.collectAsLazyPagingItems()
+    val items: LazyPagingItems<StatusDB>? = statuses?.collectAsLazyPagingItems()
     val refreshing = items?.loadState?.refresh is LoadState.Loading
     val pullRefreshState = rememberPullRefreshState(refreshing, {
         items?.refresh()
@@ -159,11 +172,11 @@ private fun timelineScreen(
 }
 
 @Composable
-fun TimelineRows(ui: LazyPagingItems<UI>) {
+fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
     LazyColumn {
         items(ui) {
-            it?.let {
-                TimelineCard(it)
+            it?.mapStatus()?.let { ui ->
+                TimelineCard(ui)
             }
         }
     }

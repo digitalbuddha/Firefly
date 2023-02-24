@@ -22,34 +22,60 @@ import java.net.URISyntaxException
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun List<Status>.mapStatus(): List<UI> {
-    val result= map { item ->
-        val status = item.reblog ?: item
-        val date: Date =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(status.createdAt)
-        val timestamp: Long = date.time
 
-        val mediaAttachments = status.mediaAttachments
-        UI(
-            imageUrl = mediaAttachments?.firstOrNull()?.url,
-            displayName = status.account?.displayName ?: "FriendlyMike",
-            userName = status.account?.username ?: "FriendlyMike",
-            content = status.content,
-            replyCount = status.repliesCount ?: 0,
-            boostCount = status.reblogsCount ?: 0,
-            favoriteCount = status.favouritesCount ?: 0,
-            timePosted = TimeUtils.getRelativeTime(timestamp).toString(),
-            boostedBy = if (item.reblog != null) item.account?.displayName else null,
-            boostedAvatar = item.account?.avatar,
-            directMessage = status.visibility == Privacy.direct,
-            avatar = status.account?.avatar,
-            mentions = status.mentions ?: emptyList(),
-            tags = status.tags ?: emptyList(),
-            contentEmojis = status.emojis,
-            accountEmojis = status.account?.emojis
-        )
-    }
-    return result
+fun Status.toStatusDb(): StatusDB {
+    val status = reblog ?: this
+    val date: Date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(status.createdAt)
+    val timestamp: Long = date.time
+    return StatusDB(
+        type = FeedType.Home.type,
+        remoteId = status.id,
+        uri = status.uri,
+        createdAt = timestamp,
+        content = status.content,
+        accountId = status.account?.id,
+        visibility = status.visibility.name,
+        spoilerText = status.spoilerText,
+        applicationName = status.application?.name ?: "",
+        repliesCount = status.repliesCount ?: 0,
+        reblogsCount = status.reblogsCount ?: 0,
+        favouritesCount = status.favouritesCount ?: 0,
+        isDirectMessage = status.visibility == Privacy.direct,
+        avatarUrl = status.account?.avatar ?: "",
+        imageUrl = status.mediaAttachments?.firstOrNull()?.url,
+        accountAddress = status.account?.acct ?: "",
+        userName = status.account?.username ?: " ",
+        displayName = status.account?.displayName ?: " ",
+        emoji = status.emojis ?: emptyList(),
+        accountEmojis = status.account?.emojis ?: emptyList(),
+        mentions = status.mentions ?: emptyList(),
+        tags = status.tags ?: emptyList(),
+        boostedBy = if (reblog != null) account?.displayName else null,
+        boostedAvatar = account?.avatar
+    )
+}
+
+
+fun StatusDB.mapStatus(): UI {
+    val status = this
+        return UI(
+        imageUrl = status.imageUrl,
+        displayName = status.displayName,
+        userName = status.userName,
+        content = status.content,
+        replyCount = status.repliesCount ?: 0,
+        boostCount = status.reblogsCount ?: 0,
+        favoriteCount = status.favouritesCount ?: 0,
+        timePosted = TimeUtils.getRelativeTime(status.createdAt).toString(),
+        boostedBy = status.boostedBy,
+        boostedAvatar = status.boostedAvatar,
+        directMessage = status.isDirectMessage,
+        avatar = status.avatarUrl,
+        mentions = status.mentions,
+        tags = status.tags,
+        contentEmojis = status.emoji,
+        accountEmojis = status.accountEmojis
+    )
 }
 
 

@@ -5,31 +5,55 @@ import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
-import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.timeline.ui.model.UI
+import com.androiddev.social.timeline.data.*
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import retrofit2.HttpException
-import java.io.IOException
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Provider
 
+@ExperimentalPagingApi
 @ContributesBinding(AuthRequiredScope::class, boundType = HomePresenter::class)
 @SingleIn(AuthRequiredScope::class)
 class RealHomePresenter @Inject constructor(
-    val timelineSource: Provider<TimelineSource>,
+    timelineRemoteMediator: TimelineRemoteMediator,
+    val statusDao: StatusDao,
+    val api: UserApi,
+    val oauthRepository: OauthRepository
 ) : HomePresenter() {
+
+    val flow = Pager(
+        config = PagingConfig(pageSize = 40, initialLoadSize = 40),
+        remoteMediator = timelineRemoteMediator
+    ) {
+        val data: PagingSource<Int, StatusDB> = statusDao.getAll()
+        data
+    }.flow
 
     override suspend fun eventHandler(event: HomeEvent) {
         when (event) {
             is Load -> {
                 val scope = CoroutineScope(Dispatchers.IO)
-                model = model.copy(statuses = Pager(PagingConfig(pageSize = 6)) {
-                    timelineSource.get()
-                }.flow.cachedIn(scope))
+
+                model = model.copy(
+                    statuses =
+                    flow.cachedIn(scope)
+                )
+            }
+            is PostMessage -> {
+                val result = kotlin.runCatching {
+                    api.newStatus(
+                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                        content = event.content
+                    )
+                }
+                if (result.isSuccess) {
+                    withContext(Dispatchers.IO){
+                        statusDao.insertAll(listOf(result.getOrThrow().toStatusDb()))
+                    }
+                }
             }
         }
     }
@@ -42,43 +66,12 @@ abstract class HomePresenter :
     ) {
     sealed interface HomeEvent
     object Load : HomeEvent
+    data class PostMessage(val content: String) : HomeEvent
 
     data class HomeModel(
         val loading: Boolean,
-        val statuses: Flow<PagingData<UI>>? = null
+        val statuses: Flow<PagingData<StatusDB>>? = null
     )
 
     sealed interface HomeEffect
-}
-
-class TimelineSource @Inject constructor(
-    val api: UserApi,
-    private val oauthRepository: OauthRepository,
-
-    ) : PagingSource<String, UI>() {
-
-
-    override fun getRefreshKey(state: PagingState<String, UI>): String? {
-        return null
-    }
-
-    override suspend fun load(params: LoadParams<String>): LoadResult<String, UI> {
-        return try {
-            val token = oauthRepository.getCurrent()
-            val before = params.key
-            val timeline = api.getTimeline(" Bearer $token", since = before)
-            val list = timeline.mapStatus()
-            LoadResult.Page(
-                data = list,
-                prevKey = null,
-                nextKey = if (list.isEmpty()) null else timeline.last().id
-            )
-        } catch (exception: IOException) {
-            return LoadResult.Error(exception)
-        } catch (exception: HttpException) {
-            return LoadResult.Error(exception)
-        } catch (exception: Exception) {
-            return LoadResult.Error(exception)
-        }
-    }
 }

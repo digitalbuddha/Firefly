@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 android {
     signingConfigs {
         release {
@@ -88,6 +93,7 @@ dependencies {
     implementation(libs.retained.compose)
     implementation(libs.androidx.nav.compose)
     api(libs.atomicfu)
+    implementation("app.cash.sqldelight:android-driver:2.0.0-alpha05")
 
     testImplementation(libs.coroutines.test)
     testImplementation(libs.junit)
@@ -96,7 +102,23 @@ dependencies {
     androidTestImplementation(libs.coroutines.test)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.assertj)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+//    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.espresso)
     androidTestImplementation(libs.junit.ext)
+
+   def  room_version = "2.5.0"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    // To use Kotlin annotation processing tool (kapt)
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
+    // optional - Test helpers
+    testImplementation("androidx.room:room-testing:$room_version")
+
+    // optional - Paging 3 Integration
+    implementation("androidx.room:room-paging:$room_version")
 }

@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class Status(
     // base attributes
     val id: String,
+    val boostedBy:String? = null, //displayName
+    val boostedAvatar:String? = null, //displayName
     val uri: String,
     @SerialName("created_at") val createdAt: String,
     val account: Account? = null,

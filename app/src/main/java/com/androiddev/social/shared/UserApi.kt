@@ -13,6 +13,13 @@ interface UserApi {
         @Query("max_id") since:String?
     ): List<Status>
 
+    @POST("/api/v1/statuses")
+    @FormUrlEncoded
+    suspend fun newStatus(
+        @Header("Authorization") authHeader: String?,
+        @Field("status") content: String,
+        ): Status
+
     @GET("api/v1/accounts/verify_credentials")
     suspend fun accountVerifyCredentials(
         @Header("Authorization") authHeader: String?,

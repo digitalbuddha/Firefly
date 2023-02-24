@@ -1,17 +1,28 @@
 package com.androiddev.social.shared.data
 
+import com.androiddev.social.auth.data.AccessTokenRequest
+import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.DataModule
+import com.androiddev.social.timeline.data.UserModule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Test
 
-class DataModuleTest {
-//    val module = DataModule()
-//    val client = module.providesHttpClient()
-//    val api = module.providesRetrofit(client)
-//    private val bearer = " Bearer o4i6i5EmNEqmN8PiecyY5EGHHKEQTT7fIZrPovH8S1s"
-//
-//    @Test
-//    fun timeLineTest() = runTest {
-//        val result = api.getTimeline(bearer, since = null)
-//        assertThat(result).isNotNull()
-//    }
+
+@ExperimentalCoroutinesApi
+class UserModuleTest {
+    val module = DataModule()
+    val userModule = UserModule()
+    val client = module.providesHttpClient()
+    val api: UserApi = userModule.providesRetrofit(client, AccessTokenRequest(domain = "androiddev.social", "", "", "", ""))
+    private val bearer = " Bearer EQkWgT1_hzzx4iITmAVXUzat6h5kTyC4hHl3CPA7FZQ"
+
+    @Test
+    fun timeLineTest() = runTest {
+        val result = api.newStatus(bearer, "Hello World from Ebony")
+        assertThat(result.id).isNotNull()
+    }
 //
 //    @Test
 //    fun accountInfoTest() = runTest {

@@ -1,5 +1,7 @@
 package com.androiddev.social.timeline.data
 
+import android.app.Application
+import androidx.room.Room
 import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.AccessTokenRequest
@@ -32,4 +34,19 @@ class UserModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build().create(UserApi::class.java)
     }
+
+    @Provides
+    @SingleIn(UserScope::class)
+    fun provideDB(applicationContext: Application): AppDatabase =
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database-name"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+
+
+    @Provides
+    @SingleIn(UserScope::class)
+    fun provideStatusDao(appDatabase: AppDatabase): StatusDao = appDatabase.statusDao()
 }

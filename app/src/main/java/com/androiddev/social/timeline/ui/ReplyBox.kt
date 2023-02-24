@@ -122,7 +122,7 @@ fun UserInput(
                 onMessageSent = {
                     onMessageSent(textState.text)
                     // Reset text field and close keyboard
-//                    textState = TextFieldValue()
+                    textState = TextFieldValue()
                     // Move scroll to bottom
                     resetScroll()
                     dismissKeyboard()
@@ -429,7 +429,10 @@ private fun UserInputText(
                 var lastFocusState by remember { mutableStateOf(false) }
                 BasicTextField(
                     value = textFieldValue,
-                    onValueChange = { onTextChanged(it) },
+                    onValueChange = {
+
+
+                        onTextChanged(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = PaddingSize4)
@@ -444,7 +447,7 @@ private fun UserInputText(
                         keyboardType = keyboardType,
                         imeAction = ImeAction.Send
                     ),
-                    maxLines = 1,
+                    maxLines = 10,
                     cursorBrush = SolidColor(LocalContentColor.current),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                 )
