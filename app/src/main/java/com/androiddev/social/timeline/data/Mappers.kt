@@ -147,9 +147,6 @@ fun setClickableText(
     removeSpan(span)
     setSpan(customSpan, start, end, flags)
 
-    /* Add zero-width space after links in end of line to fix its too large hitbox.
-     * See also : https://github.com/tuskyapp/Tusky/issues/846
-     *            https://github.com/tuskyapp/Tusky/pull/916 */
     if (end >= length || subSequence(end, end + 1).toString() == "\n") {
         insert(end, "\u200B")
     }
@@ -192,7 +189,6 @@ private fun getCustomSpanForMention(
     span: URLSpan,
     listener: LinkListener
 ): ClickableSpan? {
-    // https://github.com/tuskyapp/Tusky/pull/2339
     return mentions.firstOrNull { it.url == span.url }?.let {
         getCustomSpanForMentionUrl(span.url, it.id, listener)
     }

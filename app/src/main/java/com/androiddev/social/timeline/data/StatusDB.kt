@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 data class StatusDB(
     val type: String,
     val isDirectMessage: Boolean,
+    @PrimaryKey
     val remoteId: String,
     val uri: String,
     val createdAt: Long,
@@ -31,8 +32,8 @@ data class StatusDB(
     val tags: List<Tag>,
     val boostedBy: String?, //displayName
     val boostedAvatar: String?, //displayName
-    @PrimaryKey(autoGenerate = true)
-    var uid: Int = 0,
+
+//    var uid: Int = 0,
 )
 
 @Dao
@@ -51,7 +52,7 @@ interface StatusDao {
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 3)
+@Database(entities = [StatusDB::class], version = 4)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
