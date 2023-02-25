@@ -28,6 +28,7 @@ import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -128,6 +129,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                                     FeedType.Home.type -> {
                                         FeedType.Home
                                     }
+
                                     else -> {
                                         FeedType.Home
                                     }
@@ -147,10 +149,11 @@ fun TimelineScreen(userComponent: UserComponent) {
 private fun timelineScreen(
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>, statuses: Flow<PagingData<StatusDB>>?
 ) {
+    val items: LazyPagingItems<StatusDB>? = statuses?.collectAsLazyPagingItems()
+
     LaunchedEffect(key1 = Unit) {
         events.tryEmit(TimelinePresenter.Load(FeedType.Home))
     }
-    val items: LazyPagingItems<StatusDB>? = statuses?.collectAsLazyPagingItems()
     val refreshing = items?.loadState?.refresh is LoadState.Loading
     val pullRefreshState = rememberPullRefreshState(refreshing, {
         items?.refresh()
@@ -162,6 +165,10 @@ private fun timelineScreen(
             .padding(top = 60.dp)
     ) {
         statuses?.let {
+            LaunchedEffect(key1 = Unit) {
+                delay(2000)
+                items!!.refresh()
+            }
             TimelineRows(
                 items!!
             )
@@ -175,7 +182,7 @@ private fun timelineScreen(
 @Composable
 fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
     LazyColumn {
-        items(items = ui, key = { it.remoteId }) {
+        items(items = ui, key = { it.originalId }) {
             it?.mapStatus()?.let { ui ->
                 TimelineCard(ui)
             }

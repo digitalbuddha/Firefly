@@ -17,19 +17,27 @@ import android.widget.TextView
 import androidx.annotation.VisibleForTesting
 import androidx.core.net.toUri
 import com.androiddev.social.timeline.ui.model.UI
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.monthsUntil
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.until
+import kotlinx.datetime.yearsUntil
 import java.net.URI
 import java.net.URISyntaxException
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
     val status = reblog ?: this
-    val date: Date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(status.createdAt)
-    val timestamp: Long = date.time
+    createdAt.toLocalDateTime(TimeZone.currentSystemDefault()).time
+
+    val timestamp: Long = createdAt.toEpochMilliseconds()
     return StatusDB(
         type = feedType.type,
         remoteId = status.id,
+        originalId = id,
         uri = status.uri,
         createdAt = timestamp,
         content = status.content,
@@ -58,6 +66,60 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
 
 fun StatusDB.mapStatus(): UI {
     val status = this
+
+    val createdAt = Instant.fromEpochMilliseconds(status.createdAt)
+    val now = Clock.System.now()
+    val years = createdAt.yearsUntil(now, TimeZone.UTC)
+    val months = createdAt.monthsUntil(now, TimeZone.UTC)
+    val days = createdAt.until(now, DateTimeUnit.DAY, TimeZone.UTC).toInt()
+    val hours = createdAt.until(now, DateTimeUnit.HOUR, TimeZone.UTC).toInt()
+    val minutes = createdAt.until(now, DateTimeUnit.MINUTE, TimeZone.UTC).toInt()
+    val createdString =
+        when {
+            years == 1 -> {
+                "1 year ago"
+            }
+
+            years > 1 -> {
+                "$years year ago"
+            }
+
+            months == 1 -> {
+                "1 month ago"
+            }
+
+            months > 1 -> {
+                "$months months ago"
+            }
+
+            days == 1 -> {
+                "1 day ago"
+            }
+
+            days > 1 -> {
+                "$days days ago"
+            }
+
+            hours == 1 -> {
+                "1 hour ago"
+            }
+
+            hours > 1 -> {
+                "$hours hours ago"
+            }
+
+            minutes == 1 -> {
+                "1 minute ago"
+            }
+
+            minutes > 1 -> {
+                "$minutes minutes ago"
+            }
+
+            else -> {
+                "years ago"
+            }
+        }
     return UI(
         imageUrl = status.imageUrl,
         displayName = status.displayName,
@@ -66,7 +128,7 @@ fun StatusDB.mapStatus(): UI {
         replyCount = status.repliesCount ?: 0,
         boostCount = status.reblogsCount ?: 0,
         favoriteCount = status.favouritesCount ?: 0,
-        timePosted = TimeUtils.getRelativeTime(status.createdAt).toString(),
+        timePosted = createdString,
         boostedBy = status.boostedBy,
         boostedAvatar = status.boostedAvatar,
         directMessage = status.isDirectMessage,

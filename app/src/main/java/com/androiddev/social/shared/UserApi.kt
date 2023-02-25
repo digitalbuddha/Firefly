@@ -17,7 +17,7 @@ interface UserApi {
     suspend fun getTimeline(
         @Header("Authorization") authHeader: String?,
         @Query("local") localOnly:Boolean = true,
-        @Query("limit") limit: String = "40",
+        @Query("limit") limit: String = "1",
         @Query("max_id") since:String?,
     ): List<Status>
 

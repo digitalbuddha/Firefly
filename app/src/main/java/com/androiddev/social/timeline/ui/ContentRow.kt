@@ -46,7 +46,7 @@ fun LazyItemScope.TimelineCard(ui: UI) {
     SwipeableActionsBox(
         startActions = listOf(rocket()),
         endActions = listOf(reply(), replyAll()),
-        modifier = Modifier.animateItemPlacement()
+//        modifier = Modifier.animateItemPlacement()
     ) {
         Column(
             Modifier

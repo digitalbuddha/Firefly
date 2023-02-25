@@ -9,8 +9,9 @@ import kotlinx.serialization.json.Json
 data class StatusDB(
     val type: String,
     val isDirectMessage: Boolean,
-    @PrimaryKey
     val remoteId: String,
+    @PrimaryKey
+    val originalId: String,
     val uri: String,
     val createdAt: Long,
     val content: String,
@@ -38,8 +39,11 @@ data class StatusDB(
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM status ")
+    @Query("SELECT * FROM status ORDER BY originalId Desc")
     fun getHomeTimeline(): PagingSource<Int, StatusDB>
+
+    @Query("SELECT * FROM status ORDER BY remoteId Asc Limit 1")
+    fun getHomeTimelineLast(): StatusDB
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -49,7 +53,7 @@ interface StatusDao {
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 4)
+@Database(entities = [StatusDB::class], version = 6)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

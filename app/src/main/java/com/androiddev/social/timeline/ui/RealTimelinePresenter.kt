@@ -36,7 +36,7 @@ class RealTimelinePresenter @Inject constructor(
                         timelineRemoteMediators.filterIsInstance<HomeTimelineRemoteMediator>()
                             .single()
                     val flow = Pager(
-                        config = PagingConfig(pageSize = 10, initialLoadSize = 10, prefetchDistance = 10),
+                        config = PagingConfig(pageSize = 20, initialLoadSize = 30, prefetchDistance = 10),
                         remoteMediator = remoteMediator
                     ) {
                         val data: PagingSource<Int, StatusDB> = statusDao.getHomeTimeline()
@@ -48,23 +48,23 @@ class RealTimelinePresenter @Inject constructor(
                     ).also {
                         remoteMediator.fetch()
                     }
-                } else if(event.feedType == FeedType.Local){
-                    val remoteMediator =
-                        timelineRemoteMediators.filterIsInstance<HomeTimelineRemoteMediator>()
-                            .single()
-                    val flow = Pager(
-                        config = PagingConfig(pageSize = 10, initialLoadSize = 10, prefetchDistance = 10),
-                        remoteMediator = remoteMediator
-                    ) {
-                        val data: PagingSource<Int, StatusDB> = statusDao.getHomeTimeline()
-                        data
-                    }.flow
-
-                    model = model.copy(
-                        statuses = flow.cachedIn(scope)
-                    ).also {
-                        remoteMediator.fetch()
-                    }
+//                } else if(event.feedType == FeedType.Local){
+//                    val remoteMediator =
+//                        timelineRemoteMediators.filterIsInstance<HomeTimelineRemoteMediator>()
+//                            .single()
+//                    val flow = Pager(
+//                        config = PagingConfig(pageSize = 10, initialLoadSize = 10, prefetchDistance = 10),
+//                        remoteMediator = remoteMediator
+//                    ) {
+//                        val data: PagingSource<Int, StatusDB> = statusDao.getHomeTimeline()
+//                        data
+//                    }.flow
+//
+//                    model = model.copy(
+//                        statuses = flow.cachedIn(scope)
+//                    ).also {
+//                        remoteMediator.fetch()
+//                    }
                 }
 
             }

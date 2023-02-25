@@ -20,11 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.NavHostController
-import com.androiddev.social.auth.data.USER_KEY_PREFIX
 import com.androiddev.social.theme.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,21 +29,6 @@ import kotlinx.coroutines.launch
 fun ServerSelectScreen(
     scope: CoroutineScope, navController: NavHostController, dataStore: DataStore<Preferences>
 ) {
-    var needToSelectServer by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        val accounts: Map<Preferences.Key<*>, Any>? = dataStore.data.map { preferences ->
-            preferences.asMap()
-        }.firstOrNull()
-
-        val value: String? = accounts?.keys?.firstOrNull()?.name
-        val loggedInAccount: String? = value?.removePrefix(USER_KEY_PREFIX)
-        if (loggedInAccount == null) {
-            needToSelectServer = true
-        } else {
-            navController.navigate("login/$loggedInAccount")
-        }
-    }
 
         var server by remember { mutableStateOf("androiddev.social") }
         EbonyTheme {

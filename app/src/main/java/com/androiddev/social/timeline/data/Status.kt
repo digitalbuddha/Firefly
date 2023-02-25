@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.data
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -10,7 +11,7 @@ data class Status(
     val boostedBy:String? = null, //displayName
     val boostedAvatar:String? = null, //displayName
     val uri: String,
-    @SerialName("created_at") val createdAt: String,
+    @SerialName("created_at") val createdAt: Instant,
     val account: Account? = null,
     val content: String,
     val visibility: Privacy,
