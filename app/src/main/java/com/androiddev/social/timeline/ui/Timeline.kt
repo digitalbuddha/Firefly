@@ -24,6 +24,7 @@ import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
@@ -50,22 +51,22 @@ fun TimelineScreen(userComponent: UserComponent) {
         initialValue = ModalBottomSheetValue.Hidden,
     )
     var replying by remember { mutableStateOf(false) }
+    var tabToLoad by remember { mutableStateOf(FeedType.Home) }
     if (!state.isVisible) replying = false
 
-    Scaffold(
-        bottomBar = {
-            AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
-                BottomAppBar(
-                    modifier = Modifier.height(PaddingSize8),
-                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
-                    elevation = BottomBarElevation,
-                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
-                ) {
-                    BottomBar()
-                }
+    Scaffold(bottomBar = {
+        AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
+            BottomAppBar(
+                modifier = Modifier.height(PaddingSize8),
+                contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                elevation = BottomBarElevation,
+                backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+            ) {
+                BottomBar()
             }
+        }
 
-        },
+    },
         floatingActionButtonPosition = FabPosition.Center,
         isFloatingActionButtonDocked = true,
         floatingActionButton = {
@@ -78,34 +79,27 @@ fun TimelineScreen(userComponent: UserComponent) {
                     }
                 }
             }
-        }
-    ) { padding ->
+        }) { padding ->
         Box {
-            ModalBottomSheetLayout(
-                sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
-                    alpha = .5f
-                ),
-                sheetElevation = PaddingSize2,
-                sheetState = state,
-                sheetContent = {
-                    var done by remember { mutableStateOf(false) }
-                    if(done) {
-                        LaunchedEffect(Unit) {
-                            state.hide()
-                        }
+            ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
+                alpha = .5f
+            ), sheetElevation = PaddingSize2, sheetState = state, sheetContent = {
+                var done by remember { mutableStateOf(false) }
+                if (done) {
+                    LaunchedEffect(Unit) {
+                        state.hide()
                     }
-                    UserInput(
-                        onMessageSent = {
-                            homePresenter.handle(HomePresenter.PostMessage(it))
-                            done = true
-                        },
-                        modifier = Modifier.padding(bottom = 0.dp)
-                    )
-                }) {
+                }
+                UserInput(
+                    onMessageSent = {
+                        homePresenter.handle(TimelinePresenter.PostMessage(it))
+                        done = true
+                    }, modifier = Modifier.padding(bottom = 0.dp)
+                )
+            }) {
                 timelineScreen(homePresenter.events, homePresenter.model.statuses)
             }
-            TopAppBar(
-                modifier = Modifier.height(60.dp),
+            TopAppBar(modifier = Modifier.height(60.dp),
                 backgroundColor = MaterialTheme.colorScheme.surface.copy(
                     alpha = .9f
                 ),
@@ -128,11 +122,21 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 account = avatarPresenter.model.account
                             )
                         }
-                        Box(Modifier.align(Alignment.CenterVertically)) { TabSelector() }
+                        Box(Modifier.align(Alignment.CenterVertically)) {
+                            TabSelector { it ->
+                                tabToLoad = when (it) {
+                                    FeedType.Home.type -> {
+                                        FeedType.Home
+                                    }
+                                    else -> {
+                                        FeedType.Home
+                                    }
+                                }
+                            }
+                        }
                         NotifIcon()
                     }
-                }
-            )
+                })
         }
     }
 }
@@ -141,11 +145,10 @@ fun TimelineScreen(userComponent: UserComponent) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineScreen(
-    events: MutableSharedFlow<HomePresenter.HomeEvent>,
-    statuses: Flow<PagingData<StatusDB>>?
+    events: MutableSharedFlow<TimelinePresenter.HomeEvent>, statuses: Flow<PagingData<StatusDB>>?
 ) {
     LaunchedEffect(key1 = Unit) {
-        events.tryEmit(HomePresenter.Load)
+        events.tryEmit(TimelinePresenter.Load(FeedType.Home))
     }
     val items: LazyPagingItems<StatusDB>? = statuses?.collectAsLazyPagingItems()
     val refreshing = items?.loadState?.refresh is LoadState.Loading
@@ -164,9 +167,7 @@ private fun timelineScreen(
             )
         }
         CustomViewPullRefreshView(
-            pullRefreshState,
-            refreshTriggerDistance = 4.dp,
-            isRefreshing = refreshing
+            pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
         )
     }
 }
@@ -174,7 +175,7 @@ private fun timelineScreen(
 @Composable
 fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
     LazyColumn {
-        items(ui) {
+        items(items = ui, key = { it.remoteId }) {
             it?.mapStatus()?.let { ui ->
                 TimelineCard(ui)
             }

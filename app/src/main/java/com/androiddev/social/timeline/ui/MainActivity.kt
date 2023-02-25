@@ -36,7 +36,7 @@ interface AuthOptionalInjector {
 @ContributesTo(AuthRequiredScope::class)
 interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
-    fun homePresenter(): HomePresenter
+    fun homePresenter(): TimelinePresenter
 }
 
 @ExperimentalTextApi

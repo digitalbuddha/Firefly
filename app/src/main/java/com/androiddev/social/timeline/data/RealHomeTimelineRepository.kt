@@ -9,6 +9,7 @@ package com.androiddev.social.timeline.data
 
 sealed class FeedType(val type: String) {
     object Home : FeedType("HOME")
+    object Local : FeedType("LOCAL")
 }
 
 data class FeedRequest(val feedType: FeedType, val before: String)

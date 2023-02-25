@@ -11,16 +11,17 @@ import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
 import dagger.Provides
 
-private val Context.dataStore by preferencesDataStore("account_preferences")
+ val Context.dataStore by preferencesDataStore("account_preferences")
 
 @ContributesTo(AppScope::class)
 @Module
 class AccountModule {
     @Provides
     @SingleIn(AppScope::class)
-    fun profideDataStore(
+    fun provide(
         context: Application,
-    ): DataStore<Preferences> {
-       return context.dataStore
+    ): @JvmSuppressWildcards DataStore<Preferences> {
+        return context.dataStore
     }
 }
+

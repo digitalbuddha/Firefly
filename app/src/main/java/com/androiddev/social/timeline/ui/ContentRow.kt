@@ -68,9 +68,9 @@ fun LazyItemScope.TimelineCard(ui: UI) {
                     )
                     val uriHandler = LocalUriHandler.current
 
-                    val mapping by remember { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
+                    val mapping by remember(ui) { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
                     val linkColor = colorScheme.primary
-                    val text by remember {
+                    val text by remember(ui) {
                         mutableStateOf(
                             prettyText.toAnnotatedString(
                                 linkColor,
@@ -79,8 +79,8 @@ fun LazyItemScope.TimelineCard(ui: UI) {
                             )
                         )
                     }
-                    var clicked by remember { mutableStateOf(false) }
-                    var showReply by remember { mutableStateOf(false) }
+                    var clicked by remember(ui) { mutableStateOf(false) }
+                    var showReply by remember(ui) { mutableStateOf(false) }
 
                     ClickableText(
                         style = MaterialTheme.typography.bodyMedium.copy(
@@ -110,8 +110,8 @@ fun LazyItemScope.TimelineCard(ui: UI) {
                         with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
                     val toolbarOffsetHeightPx =
 
-                        remember { mutableStateOf(0f) }
-                    val nestedScrollConnection = remember {
+                        remember(ui) { mutableStateOf(0f) }
+                    val nestedScrollConnection = remember(ui) {
                         object : NestedScrollConnection {
                             override fun onPreScroll(
                                 available: Offset,
@@ -272,7 +272,7 @@ fun ClickableText(
     onClick: (Int) -> Unit,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
 ) {
-    val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val layoutResult = remember(text) { mutableStateOf<TextLayoutResult?>(null) }
     val pressIndicator = Modifier.pointerInput(onClick) {
         detectTapGestures { pos ->
             layoutResult.value?.let { layoutResult ->

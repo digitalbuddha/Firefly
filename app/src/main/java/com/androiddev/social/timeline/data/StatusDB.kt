@@ -39,10 +39,7 @@ data class StatusDB(
 @Dao
 interface StatusDao {
     @Query("SELECT * FROM status ")
-    fun getAll(): PagingSource<Int, StatusDB>
-
-    @Query("SELECT * FROM status")
-    suspend fun getAllSync(): List<StatusDB>
+    fun getHomeTimeline(): PagingSource<Int, StatusDB>
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -13,6 +13,14 @@ interface UserApi {
         @Query("max_id") since:String?
     ): List<Status>
 
+    @GET("api/v1/timelines/public")
+    suspend fun getTimeline(
+        @Header("Authorization") authHeader: String?,
+        @Query("local") localOnly:Boolean = true,
+        @Query("limit") limit: String = "40",
+        @Query("max_id") since:String?,
+    ): List<Status>
+
     @POST("/api/v1/statuses")
     @FormUrlEncoded
     suspend fun newStatus(

@@ -1,7 +1,11 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -9,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize4
 
 @Composable
@@ -22,9 +26,7 @@ fun AvatarImage(
         AsyncImage(
             modifier = Modifier
                 .clip(CircleShape)
-//                .background(Color.Green)
                 .size(size)
-//                .border(1.dp, Pink40)
             ,
             alignment = Alignment.CenterStart,
             model = url,
@@ -40,9 +42,9 @@ fun ContentImage(url: String = "https://placekitten.com/302/302", clicked: Boole
 
     AsyncImage(
         modifier = Modifier
-            .fillMaxWidth(.99f)
+            .fillMaxWidth()
             .aspectRatio(1f)
-            .padding(PaddingSize1)
+            .padding(0.dp)
             .clickable {
                       onClick
             },

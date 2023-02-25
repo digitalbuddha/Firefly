@@ -23,12 +23,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-fun Status.toStatusDb(): StatusDB {
+fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
     val status = reblog ?: this
     val date: Date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(status.createdAt)
     val timestamp: Long = date.time
     return StatusDB(
-        type = FeedType.Home.type,
+        type = feedType.type,
         remoteId = status.id,
         uri = status.uri,
         createdAt = timestamp,
@@ -58,7 +58,7 @@ fun Status.toStatusDb(): StatusDB {
 
 fun StatusDB.mapStatus(): UI {
     val status = this
-        return UI(
+    return UI(
         imageUrl = status.imageUrl,
         displayName = status.displayName,
         userName = status.userName,
@@ -172,10 +172,7 @@ fun getTagName(text: CharSequence, tags: List<Tag>?): String? {
 }
 
 private fun getCustomSpanForTag(
-    text: CharSequence,
-    tags: List<Tag>?,
-    span: URLSpan,
-    listener: LinkListener
+    text: CharSequence, tags: List<Tag>?, span: URLSpan, listener: LinkListener
 ): ClickableSpan? {
     return getTagName(text, tags)?.let {
         object : NoUnderlineURLSpan(span.url) {
@@ -185,9 +182,7 @@ private fun getCustomSpanForTag(
 }
 
 private fun getCustomSpanForMention(
-    mentions: List<Mention>,
-    span: URLSpan,
-    listener: LinkListener
+    mentions: List<Mention>, span: URLSpan, listener: LinkListener
 ): ClickableSpan? {
     return mentions.firstOrNull { it.url == span.url }?.let {
         getCustomSpanForMentionUrl(span.url, it.id, listener)
@@ -195,9 +190,7 @@ private fun getCustomSpanForMention(
 }
 
 private fun getCustomSpanForMentionUrl(
-    url: String,
-    mentionId: String,
-    listener: LinkListener
+    url: String, mentionId: String, listener: LinkListener
 ): ClickableSpan {
     return object : NoUnderlineURLSpan(url) {
         override fun onClick(view: View) = listener.onViewAccount(mentionId)
@@ -329,26 +322,18 @@ fun looksLikeMastodonUrl(urlString: String): Boolean {
         return false
     }
 
-    if (uri.query != null ||
-        uri.fragment != null ||
-        uri.path == null
-    ) {
+    if (uri.query != null || uri.fragment != null || uri.path == null) {
         return false
     }
 
     return uri.path.let {
-        it.matches("^/@[^/]+$".toRegex()) ||
-                it.matches("^/@[^/]+/\\d+$".toRegex()) ||
-                it.matches("^/users/\\w+$".toRegex()) ||
-                it.matches("^/notice/[a-zA-Z0-9]+$".toRegex()) ||
-                it.matches("^/objects/[-a-f0-9]+$".toRegex()) ||
-                it.matches("^/notes/[a-z0-9]+$".toRegex()) ||
-                it.matches("^/display/[-a-f0-9]+$".toRegex()) ||
-                it.matches("^/profile/\\w+$".toRegex()) ||
-                it.matches("^/p/\\w+/\\d+$".toRegex()) ||
-                it.matches("^/\\w+$".toRegex()) ||
-                it.matches("^/@[^/]+/statuses/[a-zA-Z0-9]+$".toRegex()) ||
-                it.matches("^/o/[a-f0-9]+$".toRegex())
+        it.matches("^/@[^/]+$".toRegex()) || it.matches("^/@[^/]+/\\d+$".toRegex()) || it.matches("^/users/\\w+$".toRegex()) || it.matches(
+            "^/notice/[a-zA-Z0-9]+$".toRegex()
+        ) || it.matches("^/objects/[-a-f0-9]+$".toRegex()) || it.matches("^/notes/[a-z0-9]+$".toRegex()) || it.matches(
+            "^/display/[-a-f0-9]+$".toRegex()
+        ) || it.matches("^/profile/\\w+$".toRegex()) || it.matches("^/p/\\w+/\\d+$".toRegex()) || it.matches(
+            "^/\\w+$".toRegex()
+        ) || it.matches("^/@[^/]+/statuses/[a-zA-Z0-9]+$".toRegex()) || it.matches("^/o/[a-f0-9]+$".toRegex())
     }
 
 

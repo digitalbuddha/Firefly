@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -9,6 +10,7 @@ import androidx.navigation.compose.dialog
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.UserManagerProvider
+import com.androiddev.social.timeline.data.dataStore
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -32,7 +34,10 @@ fun Navigator(
         }
 
         dialog("selectServer") {
-            ServerSelectScreen(scope, navController)
+//            val dataStore = ((LocalContext.current.applicationContext as EbonyApp).dat
+
+            val current: Context = LocalContext.current
+            ServerSelectScreen(scope, navController, current.dataStore)
         }
         composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
