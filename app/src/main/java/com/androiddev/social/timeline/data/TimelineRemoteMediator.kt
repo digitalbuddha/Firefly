@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.data
 
 import androidx.paging.*
+import androidx.room.withTransaction
 import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
@@ -15,8 +16,7 @@ import javax.inject.Inject
 abstract class TimelineRemoteMediator : RemoteMediator<Int, StatusDB>() {
     @OptIn(ExperimentalPagingApi::class)
     abstract override suspend fun load(
-        loadType: LoadType,
-        state: PagingState<Int, StatusDB>
+        loadType: LoadType, state: PagingState<Int, StatusDB>
     ): MediatorResult
 }
 
@@ -25,12 +25,12 @@ abstract class TimelineRemoteMediator : RemoteMediator<Int, StatusDB>() {
 @SingleIn(UserScope::class)
 class RealTimelineRemoteMediator @Inject constructor(
     private val dao: StatusDao,
+    private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
     override suspend fun load(
-        loadType: LoadType,
-        state: PagingState<Int, StatusDB>
+        loadType: LoadType, state: PagingState<Int, StatusDB>
     ): MediatorResult {
         return try {
             // The network load method takes an optional after=<user.id>
@@ -39,9 +39,10 @@ class RealTimelineRemoteMediator @Inject constructor(
             // pass null to load the first page.
             val loadKey = when (loadType) {
                 LoadType.REFRESH -> null
-                LoadType.PREPEND ->
-                    return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+
                 LoadType.APPEND -> {
+                    state
                     val lastItem: StatusDB? = state.lastItemOrNull()
                     if (lastItem == null) {
                         return MediatorResult.Success(
@@ -54,22 +55,21 @@ class RealTimelineRemoteMediator @Inject constructor(
 
             val token = oauthRepository.getCurrent()
             val response = userApi.getTimeline(
-                authHeader = " Bearer $token",
-                since = loadKey
+                authHeader = " Bearer $token", since = loadKey
             )
 
-//            database.withTransaction {
-            if (loadType == LoadType.REFRESH) {
-                dao.delete()
-            }
+            database.withTransaction {
+                if (loadType == LoadType.REFRESH) {
+                    dao.delete()
+                }
 
-            // Insert new statuses into database, which invalidates the
-            // current PagingData, allowing Paging to present the updates
-            // in the DB.
-            dao.insertAll(response.map { it.toStatusDb() })
-//            }
-            val current= dao.getAllSync()
-            current.size
+                // Insert new statuses into database, which invalidates the
+                // current PagingData, allowing Paging to present the updates
+                // in the DB.
+                dao.insertAll(response.map { it.toStatusDb() })
+            }
+//            val current= dao.getAllSync()
+//            current.size
             MediatorResult.Success(
                 endOfPaginationReached = false //TODO MIKE - when to flip
             )

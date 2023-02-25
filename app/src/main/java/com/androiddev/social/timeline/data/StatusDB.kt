@@ -38,7 +38,7 @@ data class StatusDB(
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM status ORDER BY createdAt DESC")
+    @Query("SELECT * FROM status ")
     fun getAll(): PagingSource<Int, StatusDB>
 
     @Query("SELECT * FROM status")

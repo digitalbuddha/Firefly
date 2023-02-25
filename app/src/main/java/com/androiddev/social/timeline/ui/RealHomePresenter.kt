@@ -25,7 +25,7 @@ class RealHomePresenter @Inject constructor(
 ) : HomePresenter() {
 
     val flow = Pager(
-        config = PagingConfig(pageSize = 40, initialLoadSize = 40),
+        config = PagingConfig(pageSize = 10, initialLoadSize = 40),
         remoteMediator = timelineRemoteMediator
     ) {
         val data: PagingSource<Int, StatusDB> = statusDao.getAll()
