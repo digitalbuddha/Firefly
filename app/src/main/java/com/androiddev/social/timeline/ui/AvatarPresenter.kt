@@ -7,6 +7,7 @@ import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
+import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
 abstract class AvatarPresenter :
@@ -30,7 +31,7 @@ abstract class AvatarPresenter :
 class RealAvatarPresenter @Inject constructor(val api: UserApi, val repository: OauthRepository) :
     AvatarPresenter() {
 
-    override suspend fun eventHandler(event: AvatarEvent) {
+    override suspend fun eventHandler(event: AvatarEvent, coroutineScope: CoroutineScope) {
         when (event) {
             is Load -> {
                 val token = " Bearer ${repository.getCurrent()}"

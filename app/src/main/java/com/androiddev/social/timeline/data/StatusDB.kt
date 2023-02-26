@@ -5,12 +5,11 @@ import androidx.room.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-@Entity(tableName = "status")
+@Entity(tableName = "status", primaryKeys = ["type", "originalId"])
 data class StatusDB(
     val type: String,
     val isDirectMessage: Boolean,
     val remoteId: String,
-    @PrimaryKey
     val originalId: String,
     val uri: String,
     val createdAt: Long,
@@ -39,8 +38,8 @@ data class StatusDB(
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM status ORDER BY originalId Desc")
-    fun getHomeTimeline(): PagingSource<Int, StatusDB>
+    @Query("SELECT * FROM status WHERE type = :type ORDER BY originalId Desc")
+    fun getTimeline(type: String): PagingSource<Int, StatusDB>
 
     @Query("SELECT * FROM status ORDER BY remoteId Asc Limit 1")
     fun getHomeTimelineLast(): StatusDB
@@ -53,7 +52,7 @@ interface StatusDao {
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 6)
+@Database(entities = [StatusDB::class], version = 7)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

@@ -7,17 +7,17 @@ import retrofit2.http.*
 
 interface UserApi {
     @GET("api/v1/timelines/home")
-    suspend fun getTimeline(
+    suspend fun getHomeTimeline(
         @Header("Authorization") authHeader: String?,
         @Query("limit") limit: String = "40",
         @Query("max_id") since:String?
     ): List<Status>
 
     @GET("api/v1/timelines/public")
-    suspend fun getTimeline(
+    suspend fun getLocalTimeline(
         @Header("Authorization") authHeader: String?,
         @Query("local") localOnly:Boolean = true,
-        @Query("limit") limit: String = "1",
+        @Query("limit") limit: String = "40",
         @Query("max_id") since:String?,
     ): List<Status>
 

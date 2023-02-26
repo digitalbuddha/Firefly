@@ -57,7 +57,7 @@ class RealSignInPresenter @Inject constructor(
 
     }
 
-    override suspend fun eventHandler(event: SignInEvent) {
+    override suspend fun eventHandler(event: SignInEvent, scope: CoroutineScope) {
         when (event) {
             is SetServer -> {
                 val params = ApplicationBody(baseUrl = event.domain)

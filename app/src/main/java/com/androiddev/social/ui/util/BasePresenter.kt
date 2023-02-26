@@ -3,6 +3,8 @@ package com.androiddev.social.ui.util
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -18,14 +20,14 @@ abstract class Presenter<Event, Model, Effect>(
 
     val effects: MutableSharedFlow<Effect> = MutableSharedFlow(extraBufferCapacity = 1)
 
-    fun handle(event:Event) = events.tryEmit(event)
-    suspend fun start() {
+    fun handle(event: Event) = events.tryEmit(event)
+    suspend fun start(scope: CoroutineScope = GlobalScope) {
         events.collect {
-            eventHandler(it)
+            eventHandler(it, scope = scope)
         }
     }
 
-    abstract suspend fun eventHandler(event: Event)
+    abstract suspend fun eventHandler(event: Event, scope: CoroutineScope)
 
 
 }

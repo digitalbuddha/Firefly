@@ -25,46 +25,66 @@ class RealTimelinePresenter @Inject constructor(
 ) : TimelinePresenter() {
 
 
+    private val pagingConfig = PagingConfig(
+        pageSize = 20,
+        initialLoadSize = 30,
+        prefetchDistance = 10
+    )
 
-    override suspend fun eventHandler(event: HomeEvent) {
+    override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
         when (event) {
             is Load -> {
 
-                val scope = CoroutineScope(Dispatchers.IO)
-                if(event.feedType == FeedType.Home){
+                if (event.feedType == FeedType.Home) {
                     val remoteMediator =
                         timelineRemoteMediators.filterIsInstance<HomeTimelineRemoteMediator>()
                             .single()
                     val flow = Pager(
-                        config = PagingConfig(pageSize = 20, initialLoadSize = 30, prefetchDistance = 10),
+                        config = pagingConfig,
                         remoteMediator = remoteMediator
                     ) {
-                        val data: PagingSource<Int, StatusDB> = statusDao.getHomeTimeline()
+                        val data: PagingSource<Int, StatusDB> =
+                            statusDao.getTimeline(FeedType.Home.type)
                         data
                     }.flow
 
                     model = model.copy(
-                        statuses = flow.cachedIn(scope)
-                    ).also {
-                        remoteMediator.fetch()
-                    }
-//                } else if(event.feedType == FeedType.Local){
-//                    val remoteMediator =
-//                        timelineRemoteMediators.filterIsInstance<HomeTimelineRemoteMediator>()
-//                            .single()
-//                    val flow = Pager(
-//                        config = PagingConfig(pageSize = 10, initialLoadSize = 10, prefetchDistance = 10),
-//                        remoteMediator = remoteMediator
-//                    ) {
-//                        val data: PagingSource<Int, StatusDB> = statusDao.getHomeTimeline()
-//                        data
-//                    }.flow
-//
-//                    model = model.copy(
-//                        statuses = flow.cachedIn(scope)
-//                    ).also {
-//                        remoteMediator.fetch()
-//                    }
+                        homeStatuses = flow.cachedIn(scope)
+                    )
+
+                } else if (event.feedType == FeedType.Local) {
+                    val remoteMediator =
+                        timelineRemoteMediators.filterIsInstance<LocalTimelineRemoteMediator>()
+                            .single()
+                    val flow = Pager(
+                        config = pagingConfig,
+                        remoteMediator = remoteMediator
+                    ) {
+                        val data: PagingSource<Int, StatusDB> =
+                            statusDao.getTimeline(FeedType.Local.type)
+                        data
+                    }.flow
+
+                    model = model.copy(
+                        localStatuses = flow.cachedIn(scope)
+                    )
+                }
+                else if (event.feedType == FeedType.Federated) {
+                    val remoteMediator =
+                        timelineRemoteMediators.filterIsInstance<FederatedTimelineRemoteMediator>()
+                            .single()
+                    val flow = Pager(
+                        config = pagingConfig,
+                        remoteMediator = remoteMediator
+                    ) {
+                        val data: PagingSource<Int, StatusDB> =
+                            statusDao.getTimeline(FeedType.Federated.type)
+                        data
+                    }.flow
+
+                    model = model.copy(
+                        federatedStatuses = flow.cachedIn(scope)
+                    )
                 }
 
             }
@@ -100,7 +120,10 @@ abstract class TimelinePresenter :
     data class PostMessage(val content: String) : HomeEvent
 
     data class HomeModel(
-        val loading: Boolean, val statuses: Flow<PagingData<StatusDB>>? = null
+        val loading: Boolean,
+        val homeStatuses: Flow<PagingData<StatusDB>>? = null,
+        val federatedStatuses: Flow<PagingData<StatusDB>>? = null,
+        val localStatuses: Flow<PagingData<StatusDB>>? = null
     )
 
     sealed interface HomeEffect

@@ -19,13 +19,12 @@ abstract class TimelineRemoteMediator : RemoteMediator<Int, StatusDB>() {
         loadType: LoadType, state: PagingState<Int, StatusDB>
     ): MediatorResult
 
-    abstract suspend fun fetch()
 }
 
 @ExperimentalPagingApi
 @ContributesMultibinding(UserScope::class, boundType = TimelineRemoteMediator::class)
 @SingleIn(UserScope::class)
-class HomeTimelineRemoteMediator @Inject constructor(
+class LocalTimelineRemoteMediator @Inject constructor(
     private val dao: StatusDao,
     private val database: AppDatabase,
     private val userApi: UserApi,
@@ -53,16 +52,13 @@ class HomeTimelineRemoteMediator @Inject constructor(
             }
 
             val token = oauthRepository.getCurrent()
-            val response = userApi.getTimeline(authHeader = " Bearer $token", since = loadKey)
+            val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey)
 
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    dao.delete()
+//                    dao.delete()
                 }
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
-//                val homeTimelineAll = dao.getHomeTimelineAll()
-//                homeTimelineAll
-
+                dao.insertAll(response.map { it.toStatusDb(FeedType.Local) })
             }
 
             MediatorResult.Success(
@@ -74,14 +70,106 @@ class HomeTimelineRemoteMediator @Inject constructor(
             MediatorResult.Error(e)
         }
     }
+}
 
-    override suspend fun fetch() {
-//        withContext(Dispatchers.IO) {
-//            val token = oauthRepository.getCurrent()
-//            val response = userApi.getTimeline(
-//                authHeader = " Bearer $token", since = null
-//            )
-//            dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
-//        }
+@ExperimentalPagingApi
+@ContributesMultibinding(UserScope::class, boundType = TimelineRemoteMediator::class)
+@SingleIn(UserScope::class)
+class HomeTimelineRemoteMediator @Inject constructor(
+    private val dao: StatusDao,
+    private val database: AppDatabase,
+    private val userApi: UserApi,
+    private val oauthRepository: OauthRepository
+) : TimelineRemoteMediator() {
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+
+    override suspend fun load(
+        loadType: LoadType, state: PagingState<Int, StatusDB>
+    ): MediatorResult {
+        return try {
+            val loadKey = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -> {
+                    val lastItem: StatusDB? = state.lastItemOrNull()
+                    if (lastItem == null) {
+                        return MediatorResult.Success(
+                            endOfPaginationReached = true
+                        )
+                    }
+                    lastItem.originalId
+                }
+            }
+
+            val token = oauthRepository.getCurrent()
+            val response = userApi.getHomeTimeline(authHeader = " Bearer $token", since = loadKey)
+
+            database.withTransaction {
+                if (loadType == LoadType.REFRESH) {
+                    dao.delete()
+                }
+                dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
+            }
+
+            MediatorResult.Success(
+                endOfPaginationReached = false
+            )
+        } catch (e: IOException) {
+            MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            MediatorResult.Error(e)
+        }
+    }
+}
+
+
+@ExperimentalPagingApi
+@ContributesMultibinding(UserScope::class, boundType = TimelineRemoteMediator::class)
+@SingleIn(UserScope::class)
+class FederatedTimelineRemoteMediator @Inject constructor(
+    private val dao: StatusDao,
+    private val database: AppDatabase,
+    private val userApi: UserApi,
+    private val oauthRepository: OauthRepository
+) : TimelineRemoteMediator() {
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+
+    override suspend fun load(
+        loadType: LoadType, state: PagingState<Int, StatusDB>
+    ): MediatorResult {
+        return try {
+            val loadKey = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -> {
+                    state
+                    val lastItem: StatusDB? = state.lastItemOrNull()
+                    if (lastItem == null) {
+                        return MediatorResult.Success(
+                            endOfPaginationReached = true
+                        )
+                    }
+                    lastItem.originalId
+                }
+            }
+
+            val token = oauthRepository.getCurrent()
+            val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey, localOnly = false)
+
+            database.withTransaction {
+                if (loadType == LoadType.REFRESH) {
+//                    dao.delete()
+                }
+                dao.insertAll(response.map { it.toStatusDb(FeedType.Federated) })
+            }
+
+            MediatorResult.Success(
+                endOfPaginationReached = false
+            )
+        } catch (e: IOException) {
+            MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            MediatorResult.Error(e)
+        }
     }
 }

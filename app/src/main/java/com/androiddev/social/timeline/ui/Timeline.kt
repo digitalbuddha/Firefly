@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -14,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
@@ -29,7 +29,6 @@ import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
@@ -41,9 +40,9 @@ fun TimelineScreen(userComponent: UserComponent) {
         retain { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     val homePresenter = component.homePresenter()
     val avatarPresenter = component.avatarPresenter()
-
+    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = "start") {
-        homePresenter.start()
+        homePresenter.start(scope)
     }
     LaunchedEffect(key1 = "start") {
         avatarPresenter.start()
@@ -52,22 +51,23 @@ fun TimelineScreen(userComponent: UserComponent) {
         initialValue = ModalBottomSheetValue.Hidden,
     )
     var replying by remember { mutableStateOf(false) }
-    var tabToLoad by remember { mutableStateOf(FeedType.Home) }
+    var tabToLoad: FeedType by remember { mutableStateOf(FeedType.Home) }
     if (!state.isVisible) replying = false
 
-    Scaffold(bottomBar = {
-        AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
-            BottomAppBar(
-                modifier = Modifier.height(PaddingSize8),
-                contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
-                elevation = BottomBarElevation,
-                backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
-            ) {
-                BottomBar()
+    Scaffold(
+        bottomBar = {
+            AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
+                BottomAppBar(
+                    modifier = Modifier.height(PaddingSize8),
+                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                    elevation = BottomBarElevation,
+                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+                ) {
+                    BottomBar()
+                }
             }
-        }
 
-    },
+        },
         floatingActionButtonPosition = FabPosition.Center,
         isFloatingActionButtonDocked = true,
         floatingActionButton = {
@@ -84,62 +84,92 @@ fun TimelineScreen(userComponent: UserComponent) {
         Box {
             ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
                 alpha = .5f
-            ), sheetElevation = PaddingSize2, sheetState = state, sheetContent = {
-                var done by remember { mutableStateOf(false) }
-                if (done) {
-                    LaunchedEffect(Unit) {
-                        state.hide()
+            ),
+                sheetElevation = PaddingSize2,
+                sheetState = state,
+                sheetContent = {
+                    var done by remember { mutableStateOf(false) }
+                    if (done) {
+                        LaunchedEffect(Unit) {
+                            state.hide()
+                        }
                     }
+                    UserInput(
+                        onMessageSent = {
+                            homePresenter.handle(TimelinePresenter.PostMessage(it))
+                            done = true
+                        }, modifier = Modifier.padding(bottom = 0.dp)
+                    )
+                }) {
+                val model = homePresenter.model
+
+                if (tabToLoad == FeedType.Home) {
+                    timelineScreen(
+                        homePresenter.events,
+                        FeedType.Home,
+                        items = model.homeStatuses?.collectAsLazyPagingItems()
+
+                    )
+                } else if (tabToLoad == FeedType.Local) {
+                    timelineScreen(
+                        homePresenter.events,
+                        FeedType.Local,
+                        model.localStatuses?.collectAsLazyPagingItems()
+                    )
                 }
-                UserInput(
-                    onMessageSent = {
-                        homePresenter.handle(TimelinePresenter.PostMessage(it))
-                        done = true
-                    }, modifier = Modifier.padding(bottom = 0.dp)
-                )
-            }) {
-                timelineScreen(homePresenter.events, homePresenter.model.statuses)
+                else if (tabToLoad == FeedType.Federated) {
+                    timelineScreen(
+                        homePresenter.events,
+                        FeedType.Federated,
+                        model.federatedStatuses?.collectAsLazyPagingItems()
+                    )
+                }
             }
-            TopAppBar(modifier = Modifier.height(60.dp),
-                backgroundColor = MaterialTheme.colorScheme.surface.copy(
-                    alpha = .9f
-                ),
+        }
+        TopAppBar(modifier = Modifier.height(60.dp),
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(
+                alpha = .9f
+            ),
 
-                title = {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        LaunchedEffect(key1 = "avatar") {
-                            avatarPresenter.start()
-                        }
-                        LaunchedEffect(key1 = "avatar") {
-                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
-                        }
+            title = {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    LaunchedEffect(key1 = "avatar") {
+                        avatarPresenter.start()
+                    }
+                    LaunchedEffect(key1 = "avatar") {
+                        avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+                    }
 
-                        Box {
-                            Profile(
-                                account = avatarPresenter.model.account
-                            )
-                        }
-                        Box(Modifier.align(Alignment.CenterVertically)) {
-                            TabSelector { it ->
-                                tabToLoad = when (it) {
-                                    FeedType.Home.type -> {
-                                        FeedType.Home
-                                    }
-
-                                    else -> {
-                                        FeedType.Home
-                                    }
+                    Box {
+                        Profile(
+                            account = avatarPresenter.model.account
+                        )
+                    }
+                    Box(Modifier.align(Alignment.CenterVertically)) {
+                        TabSelector { it ->
+                            tabToLoad = when (it) {
+                                FeedType.Home.type -> {
+                                    FeedType.Home
+                                }
+                                FeedType.Local.type -> {
+                                    FeedType.Local
+                                }
+                                FeedType.Federated.type -> {
+                                    FeedType.Federated
+                                }
+                                else -> {
+                                    FeedType.Home
                                 }
                             }
                         }
-                        NotifIcon()
                     }
-                })
-        }
+                    NotifIcon()
+                }
+            })
     }
 }
 
@@ -147,13 +177,14 @@ fun TimelineScreen(userComponent: UserComponent) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineScreen(
-    events: MutableSharedFlow<TimelinePresenter.HomeEvent>, statuses: Flow<PagingData<StatusDB>>?
+    events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
+    tabToLoad: FeedType,
+    items: LazyPagingItems<StatusDB>?
 ) {
-    val items: LazyPagingItems<StatusDB>? = statuses?.collectAsLazyPagingItems()
-
-    LaunchedEffect(key1 = Unit) {
-        events.tryEmit(TimelinePresenter.Load(FeedType.Home))
+    LaunchedEffect(key1 = tabToLoad) {
+        events.tryEmit(TimelinePresenter.Load(tabToLoad))
     }
+
     val refreshing = items?.loadState?.refresh is LoadState.Loading
     val pullRefreshState = rememberPullRefreshState(refreshing, {
         items?.refresh()
@@ -163,10 +194,14 @@ private fun timelineScreen(
         Modifier
             .pullRefresh(pullRefreshState)
             .padding(top = 60.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .fillMaxSize()
     ) {
-        statuses?.let {
-            LaunchedEffect(key1 = Unit) {
-                delay(2000)
+        items?.let {
+            LaunchedEffect(key1 = tabToLoad) {
+                //very unexact way to run after the first append/prepend ran
+                //otherwise infinite scroll never calls append on first launch
+                delay(200)
                 items!!.refresh()
             }
             TimelineRows(
@@ -181,7 +216,7 @@ private fun timelineScreen(
 
 @Composable
 fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
-    LazyColumn {
+    LazyColumn() {
         items(items = ui, key = { it.originalId }) {
             it?.mapStatus()?.let { ui ->
                 TimelineCard(ui)
