@@ -51,7 +51,7 @@ fun LazyItemScope.TimelineCard(ui: UI) {
         Column(
             Modifier
                 .background(colorScheme.surface.copy(alpha = .99f))
-                .padding(bottom = PaddingSize2, start = PaddingSize2, end = PaddingSize2)
+                .padding(bottom = PaddingSize2, start = PaddingSize2, end = PaddingSize2, top = PaddingSize2)
         ) {
             DirectMessage(ui.directMessage)
             Boosted(ui.boostedBy, ui.boostedAvatar)

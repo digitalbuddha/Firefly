@@ -55,9 +55,6 @@ class LocalTimelineRemoteMediator @Inject constructor(
             val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey)
 
             database.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-//                    dao.delete()
-                }
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Local) })
             }
 
@@ -105,9 +102,6 @@ class HomeTimelineRemoteMediator @Inject constructor(
             val response = userApi.getHomeTimeline(authHeader = " Bearer $token", since = loadKey)
 
             database.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    dao.delete()
-                }
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
             }
 
@@ -157,9 +151,6 @@ class FederatedTimelineRemoteMediator @Inject constructor(
             val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey, localOnly = false)
 
             database.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-//                    dao.delete()
-                }
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Federated) })
             }
 

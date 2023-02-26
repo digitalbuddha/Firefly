@@ -94,12 +94,12 @@ fun UserInput(
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
 
-    Surface(tonalElevation = 2.dp, color= Color.Transparent) {
+    Surface(tonalElevation = 2.dp, color = Color.Transparent) {
         Column(
             modifier = modifier
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha=.9f))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f))
         ) {
             UserInputText(
                 textFieldValue = textState,
@@ -175,7 +175,7 @@ private fun SelectorExpanded(
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.DM -> NotAvailablePopup(onCloseRequested)
-            InputSelector.PICTURE ->PhotoPickerResultComposable()
+            InputSelector.PICTURE -> PhotoPickerResultComposable()
             InputSelector.MAP -> FunctionalityNotAvailablePanel()
             InputSelector.PHONE -> FunctionalityNotAvailablePanel()
             else -> {
@@ -206,7 +206,10 @@ fun PhotoPickerResultComposable() {
             result = it.data?.data
         }
     Column(
-        modifier = Modifier.fillMaxWidth().fillMaxHeight(.3f).padding(PaddingSize2),
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(.3f)
+            .padding(PaddingSize2),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -217,7 +220,7 @@ fun PhotoPickerResultComposable() {
                 type = "video/*"
             }
 
-            OpenPhotoPicker(openLauncher = { launcher.launch(intent)})
+            OpenPhotoPicker(openLauncher = { launcher.launch(intent) })
             AsyncImage(
                 model = result,
                 contentDescription = "Image from photo picker",
@@ -363,7 +366,7 @@ private fun InputSelectorButton(
 ) {
     val backgroundModifier = if (selected) {
         Modifier.background(
-            color = colorScheme.primary.copy(alpha=.5f),
+            color = colorScheme.primary.copy(alpha = .5f),
             shape = RoundedCornerShape(TouchpointMd)
         )
     } else {
@@ -424,15 +427,12 @@ private fun UserInputText(
                     .height(PaddingSize8)
                     .weight(1f)
                     .align(Alignment.Bottom)
-                    .background(colorScheme.onSecondaryContainer.copy(alpha = .99f))
+                    .background(colorScheme.tertiary.copy(alpha = .9f))
             ) {
                 var lastFocusState by remember { mutableStateOf(false) }
                 BasicTextField(
                     value = textFieldValue,
-                    onValueChange = {
-
-
-                        onTextChanged(it) },
+                    onValueChange = { onTextChanged(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = PaddingSize4)

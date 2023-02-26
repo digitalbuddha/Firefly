@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -55,6 +56,7 @@ fun TimelineScreen(userComponent: UserComponent) {
     if (!state.isVisible) replying = false
 
     Scaffold(
+        backgroundColor = Color.Transparent,
         bottomBar = {
             AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
                 BottomAppBar(
@@ -126,10 +128,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                 }
             }
         }
-        TopAppBar(modifier = Modifier.height(60.dp),
-            backgroundColor = MaterialTheme.colorScheme.surface.copy(
-                alpha = .9f
-            ),
+        TopAppBar(modifier = Modifier.height(60.dp).background(Color.Transparent),
+            backgroundColor = Color.Transparent,
 
             title = {
                 Row(
@@ -216,7 +216,7 @@ private fun timelineScreen(
 
 @Composable
 fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
-    LazyColumn() {
+    LazyColumn {
         items(items = ui, key = { it.originalId }) {
             it?.mapStatus()?.let { ui ->
                 TimelineCard(ui)

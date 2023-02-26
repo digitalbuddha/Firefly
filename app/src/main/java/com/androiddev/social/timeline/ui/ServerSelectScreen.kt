@@ -27,31 +27,35 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerSelectScreen(
-    scope: CoroutineScope, navController: NavHostController, dataStore: DataStore<Preferences>
+    scope: CoroutineScope,
+    navController: NavHostController,
+    dataStore: DataStore<Preferences>,
+    needToSelectServer: Boolean
 ) {
 
-        var server by remember { mutableStateOf("androiddev.social") }
-        EbonyTheme {
-            Surface(
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)),
-                color = colorScheme.surface.copy(alpha = .8f)
+    var server by remember { mutableStateOf("androiddev.social") }
+    EbonyTheme {
+        Surface(
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+            color = colorScheme.surface.copy(alpha = .8f)
+        ) {
+            val configuration = LocalConfiguration.current
+
+            val screenHeight = configuration.screenHeightDp
+
+            Column(
+                Modifier
+                    .padding(
+                        PaddingSize2
+                    )
+                    .fillMaxWidth(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .height((screenHeight * .5f).dp),
+                verticalArrangement = Arrangement.SpaceBetween
+
+
             ) {
-                val configuration = LocalConfiguration.current
-
-                val screenHeight = configuration.screenHeightDp
-
-                Column(
-                    Modifier
-                        .padding(
-                            PaddingSize2
-                        )
-                        .fillMaxWidth(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .height((screenHeight * .5f).dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-
-
-                ) {
+                if (needToSelectServer) {
                     Text(
                         color = colorScheme.onSurface, modifier = Modifier.padding(
                             PaddingSize1
@@ -116,3 +120,4 @@ fun ServerSelectScreen(
             }
         }
     }
+}

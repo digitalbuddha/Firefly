@@ -47,7 +47,8 @@ fun CustomViewPullRefreshView(
         if (isRefreshing) {
             LinearProgressIndicator(
                 Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = Color.Transparent
             )
         } else {
             val trigger = with(LocalDensity.current) { refreshTriggerDistance.toPx() }
@@ -55,7 +56,9 @@ fun CustomViewPullRefreshView(
             LinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = Color.Transparent
+
             )
         }
     }

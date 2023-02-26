@@ -12,7 +12,7 @@ sealed class FeedType(val type: String) {
     object Local : FeedType("Local")
 
     object Federated : FeedType("Federated")
-    object Favorites : FeedType("Favorites")
+//    object Favorites : FeedType("Favorites")
 }
 
 data class FeedRequest(val feedType: FeedType, val before: String)

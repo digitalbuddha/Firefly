@@ -43,8 +43,6 @@ fun Navigator(
         }
 
         dialog("selectServer") {
-//            val dataStore = ((LocalContext.current.applicationContext as EbonyApp).dat
-
             val current: Context = LocalContext.current
             var needToSelectServer by remember { mutableStateOf(false) }
 
@@ -62,9 +60,8 @@ fun Navigator(
                     navController.navigate("login/$loggedInAccount")
                 }
             }
-//            if (needToSelectServer) {
-                ServerSelectScreen(scope, navController, current.dataStore)
-//            }
+                ServerSelectScreen(scope, navController, current.dataStore, needToSelectServer)
+
         }
         composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
