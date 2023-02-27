@@ -148,7 +148,11 @@ class FederatedTimelineRemoteMediator @Inject constructor(
             }
 
             val token = oauthRepository.getCurrent()
-            val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey, localOnly = false)
+            val response = userApi.getLocalTimeline(
+                authHeader = " Bearer $token",
+                since = loadKey,
+                localOnly = false
+            )
 
             database.withTransaction {
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Federated) })
@@ -164,3 +168,53 @@ class FederatedTimelineRemoteMediator @Inject constructor(
         }
     }
 }
+
+@ExperimentalPagingApi
+@ContributesMultibinding(UserScope::class, boundType = TimelineRemoteMediator::class)
+@SingleIn(UserScope::class)
+class TrendingRemoteMediator @Inject constructor(
+    private val dao: StatusDao,
+    private val database: AppDatabase,
+    private val userApi: UserApi,
+    private val oauthRepository: OauthRepository
+) : TimelineRemoteMediator() {
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+
+    override suspend fun load(
+        loadType: LoadType, state: PagingState<Int, StatusDB>
+    ): MediatorResult {
+        return try {
+            val loadKey = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -> {
+                    state
+                    val lastItem = state.anchorPosition
+                    if (lastItem == null) {
+                        return MediatorResult.Success(
+                            endOfPaginationReached = true
+                        )
+                    }
+                    lastItem
+                }
+            }
+
+            val token = oauthRepository.getCurrent()
+            val response =
+                userApi.getTrending(authHeader = " Bearer $token", offset = loadKey.toString())
+
+            database.withTransaction {
+                dao.insertAll(response.map { it.toStatusDb(FeedType.Trending) })
+            }
+
+            MediatorResult.Success(
+                endOfPaginationReached = false
+            )
+        } catch (e: IOException) {
+            MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            MediatorResult.Error(e)
+        }
+    }
+}
+

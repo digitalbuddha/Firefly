@@ -79,6 +79,21 @@ class RealTimelinePresenter @Inject constructor(
                             federatedStatuses = flow.cachedIn(scope)
                         )
                     }
+                    FeedType.Trending -> {
+                        val remoteMediator =
+                            timelineRemoteMediators.filterIsInstance<TrendingRemoteMediator>()
+                                .single()
+                        val flow = Pager(
+                            config = pagingConfig,
+                            remoteMediator = remoteMediator
+                        ) {
+                            statusDao.getTimeline(FeedType.Trending.type)
+                        }.flow
+
+                        model = model.copy(
+                            trendingStatuses = flow.cachedIn(scope)
+                        )
+                    }
                 }
             }
 
@@ -118,6 +133,7 @@ abstract class TimelinePresenter :
         val loading: Boolean,
         val homeStatuses: Flow<PagingData<StatusDB>>? = null,
         val federatedStatuses: Flow<PagingData<StatusDB>>? = null,
+        val trendingStatuses: Flow<PagingData<StatusDB>>? = null,
         val localStatuses: Flow<PagingData<StatusDB>>? = null
     )
 

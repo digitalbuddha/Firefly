@@ -105,26 +105,36 @@ fun TimelineScreen(userComponent: UserComponent) {
                 }) {
                 val model = homePresenter.model
 
-                if (tabToLoad == FeedType.Home) {
-                    timelineScreen(
-                        homePresenter.events,
-                        FeedType.Home,
-                        items = model.homeStatuses?.collectAsLazyPagingItems()
+                when (tabToLoad) {
+                    FeedType.Home -> {
+                        timelineScreen(
+                            homePresenter.events,
+                            FeedType.Home,
+                            items = model.homeStatuses?.collectAsLazyPagingItems()
 
-                    )
-                } else if (tabToLoad == FeedType.Local) {
-                    timelineScreen(
-                        homePresenter.events,
-                        FeedType.Local,
-                        model.localStatuses?.collectAsLazyPagingItems()
-                    )
-                }
-                else if (tabToLoad == FeedType.Federated) {
-                    timelineScreen(
-                        homePresenter.events,
-                        FeedType.Federated,
-                        model.federatedStatuses?.collectAsLazyPagingItems()
-                    )
+                        )
+                    }
+                    FeedType.Local -> {
+                        timelineScreen(
+                            homePresenter.events,
+                            FeedType.Local,
+                            model.localStatuses?.collectAsLazyPagingItems()
+                        )
+                    }
+                    FeedType.Federated -> {
+                        timelineScreen(
+                            homePresenter.events,
+                            FeedType.Federated,
+                            model.federatedStatuses?.collectAsLazyPagingItems()
+                        )
+                    }
+                    FeedType.Trending -> {
+                        timelineScreen(
+                            homePresenter.events,
+                            FeedType.Trending,
+                            model.trendingStatuses?.collectAsLazyPagingItems()
+                        )
+                    }
                 }
             }
         }
@@ -160,6 +170,9 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 }
                                 FeedType.Federated.type -> {
                                     FeedType.Federated
+                                }
+                                FeedType.Trending.type -> {
+                                    FeedType.Trending
                                 }
                                 else -> {
                                     FeedType.Home
@@ -201,11 +214,12 @@ private fun timelineScreen(
             LaunchedEffect(key1 = tabToLoad) {
                 //very unexact way to run after the first append/prepend ran
                 //otherwise infinite scroll never calls append on first launch
+                // and I have no idea why
                 delay(200)
-                items!!.refresh()
+                items.refresh()
             }
             TimelineRows(
-                items!!
+                items
             )
         }
         CustomViewPullRefreshView(
