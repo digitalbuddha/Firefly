@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -35,8 +34,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.contentDescription
@@ -48,9 +47,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.androiddev.social.R
 import com.androiddev.social.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class InputSelector {
     NONE,
@@ -78,8 +78,10 @@ fun UserInput(
     connection: NestedScrollConnection? = null,
 
     modifier: Modifier = Modifier,
-    onMessageSent: (String) -> Unit,
+    onMessageSent: (String, String) -> Unit,
     resetScroll: () -> Unit = {},
+    defaultVisiblity: String = "Public",
+    participants: String = " "
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
@@ -89,12 +91,17 @@ fun UserInput(
 //        BackPressHandler(onBackPressed = dismissKeyboard)
     }
 
-    var textState by remember { mutableStateOf(TextFieldValue()) }
+    var textState by remember { mutableStateOf(TextFieldValue(participants)) }
 
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
+    var visibility by remember { mutableStateOf(defaultVisiblity) }
 
-    Surface(tonalElevation = 2.dp, color = Color.Transparent) {
+    Surface(
+        tonalElevation = 2.dp,
+        color = Color.Transparent,
+        modifier = modifier
+    ) {
         Column(
             modifier = modifier
                 .padding(PaddingSizeNone)
@@ -103,7 +110,7 @@ fun UserInput(
         ) {
             UserInputText(
                 textFieldValue = textState,
-                onTextChanged = { textState = it },
+                onTextChanged = { it: TextFieldValue, selected-> textState = it; visibility = selected},
                 // Only show the keyboard if there's no input selector and text field has focus
                 keyboardShown = currentInputSelector == InputSelector.NONE && textFieldFocusState,
                 // Close extended selector if text field receives focus
@@ -114,13 +121,13 @@ fun UserInput(
                     }
                     textFieldFocusState = focused
                 },
-                focusState = textFieldFocusState
-            )
+                focusState = textFieldFocusState,
+                defaultVisiblity = visibility)
             UserInputSelector(
                 onSelectorChange = { currentInputSelector = it },
                 sendMessageEnabled = textState.text.isNotBlank(),
                 onMessageSent = {
-                    onMessageSent(textState.text)
+                    onMessageSent(textState.text, visibility)
                     // Reset text field and close keyboard
                     textState = TextFieldValue()
                     // Move scroll to bottom
@@ -174,10 +181,10 @@ private fun SelectorExpanded(
     Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
-            InputSelector.DM -> NotAvailablePopup(onCloseRequested)
+//            InputSelector.DM -> NotAvailablePopup(onCloseRequested)
             InputSelector.PICTURE -> PhotoPickerResultComposable()
-            InputSelector.MAP -> FunctionalityNotAvailablePanel()
-            InputSelector.PHONE -> FunctionalityNotAvailablePanel()
+//            InputSelector.MAP -> FunctionalityNotAvailablePanel()
+//            InputSelector.PHONE -> FunctionalityNotAvailablePanel()
             else -> {
                 throw NotImplementedError()
             }
@@ -205,32 +212,14 @@ fun PhotoPickerResultComposable() {
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             result = it.data?.data
         }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(.3f)
-            .padding(PaddingSize2),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    LaunchedEffect(key1 = Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
                 type = "image/*"
                 // only videos
                 type = "video/*"
             }
-
-            OpenPhotoPicker(openLauncher = { launcher.launch(intent) })
-            AsyncImage(
-                model = result,
-                contentDescription = "Image from photo picker",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(200.dp, 200.dp)
-                    .clip(CircleShape)
-            )
-        } else {
-            TODO("VERSION.SDK_INT < TIRAMISU")
+            launcher.launch(intent)
         }
     }
 }
@@ -252,41 +241,24 @@ private fun UserInputSelector(
 ) {
     Row(
         modifier = modifier
-            .height(162.dp)
             .wrapContentHeight()
-            .padding(start = PaddingSizeNone, end = PaddingSize1, bottom = PaddingSize2),
+            .padding(start = PaddingSizeNone, end = PaddingSize1, bottom = PaddingSize1),
         verticalAlignment = Alignment.CenterVertically
     ) {
         InputSelectorButton(
             onClick = { onSelectorChange(InputSelector.EMOJI) },
-            icon = Icons.Outlined.ThumbUp,
+            icon = ImageVector.vectorResource(R.drawable.smile),
             selected = currentInputSelector == InputSelector.EMOJI,
             description = "Emoji"
         )
-        InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.DM) },
-            icon = Icons.Outlined.Email,
-            selected = currentInputSelector == InputSelector.DM,
-            description = "DM"
-        )
+
         InputSelectorButton(
             onClick = { onSelectorChange(InputSelector.PICTURE) },
-            icon = Icons.Outlined.Person,
+            icon = ImageVector.vectorResource(R.drawable.photo),
             selected = currentInputSelector == InputSelector.PICTURE,
             description = "Photo"
         )
-        InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.MAP) },
-            icon = Icons.Outlined.Place,
-            selected = currentInputSelector == InputSelector.MAP,
-            description = "Map"
-        )
-        InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.PHONE) },
-            icon = Icons.Outlined.Phone,
-            selected = currentInputSelector == InputSelector.PHONE,
-            description = "Video Chat"
-        )
+
 
         val border = if (!sendMessageEnabled) {
             BorderStroke(
@@ -316,10 +288,11 @@ private fun UserInputSelector(
             )
         )
         if (imageSize == 1.1f) clicked = false
+        val scope = rememberCoroutineScope()
 
         Button(
             modifier = Modifier
-                .padding(end = 10.dp)
+                .padding(end = 10.dp, top = PaddingSize0_5, bottom = PaddingSize0_5)
                 .wrapContentSize(),
             elevation = ButtonDefaults.buttonElevation(
                 defaultElevation = PaddingSize3,
@@ -329,7 +302,11 @@ private fun UserInputSelector(
             enabled = sendMessageEnabled,
             onClick = {
                 clicked = !clicked
-                onMessageSent()
+                scope.launch {
+                    delay(500)
+                    onMessageSent()
+                }
+
             },
             colors = buttonColors,
             border = border,
@@ -352,8 +329,6 @@ private fun UserInputSelector(
             }
 
         }
-        // Send button
-//        SendFab(MaterialTheme.colorScheme, onMessageSent)
     }
 }
 
@@ -404,17 +379,18 @@ var SemanticsPropertyReceiver.keyboardShownProperty by KeyboardShownKey
 @Composable
 private fun UserInputText(
     keyboardType: KeyboardType = KeyboardType.Text,
-    onTextChanged: (TextFieldValue) -> Unit,
+    onTextChanged: (TextFieldValue, String) -> Unit,
     textFieldValue: TextFieldValue,
     keyboardShown: Boolean,
     onTextFieldFocused: (Boolean) -> Unit,
-    focusState: Boolean
+    focusState: Boolean,
+    defaultVisiblity: String,
 ) {
     val a11ylabel = "description"
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(PaddingSize8)
+            .wrapContentHeight()
             .semantics {
                 contentDescription = a11ylabel
                 keyboardShownProperty = keyboardShown
@@ -422,46 +398,57 @@ private fun UserInputText(
         horizontalArrangement = Arrangement.End
     ) {
         Surface {
-            Box(
-                modifier = Modifier
-                    .height(PaddingSize8)
-                    .weight(1f)
-                    .align(Alignment.Bottom)
-                    .background(colorScheme.tertiary.copy(alpha = .9f))
-            ) {
-                var lastFocusState by remember { mutableStateOf(false) }
-                BasicTextField(
-                    value = textFieldValue,
-                    onValueChange = { onTextChanged(it) },
+            Row(modifier = Modifier.background(colorScheme.tertiary.copy(alpha = .9f))) {
+
+                var visibility by remember { mutableStateOf(defaultVisiblity) }
+
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = PaddingSize4)
-                        .align(Alignment.CenterStart)
-                        .onFocusChanged { state ->
-                            if (lastFocusState != state.isFocused) {
-                                onTextFieldFocused(state.isFocused)
-                            }
-                            lastFocusState = state.isFocused
-                        },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = keyboardType,
-                        imeAction = ImeAction.Send
-                    ),
-                    maxLines = 10,
-                    cursorBrush = SolidColor(LocalContentColor.current),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
-                )
+                        .wrapContentHeight()
+                        .fillMaxWidth(.75f)
+                        .align(Alignment.Bottom)
+//                        .background(Color.Red)
+                ) {
+                    var lastFocusState by remember { mutableStateOf(false) }
 
-
-                if (textFieldValue.text.isEmpty() && !focusState) {
-                    Text(
+                    BasicTextField(
+                        value = textFieldValue,
+                        onValueChange = {
+                            onTextChanged(it, visibility) },
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = PaddingSize4),
-                        text = "Be Heard",
-                        style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
+                            .wrapContentWidth()
+                            .wrapContentHeight()
+                            .padding(start = PaddingSize4, bottom = PaddingSize2)
+                            .align(Alignment.TopStart)
+                            .onFocusChanged { state ->
+                                if (lastFocusState != state.isFocused) {
+                                    onTextFieldFocused(state.isFocused)
+                                }
+                                lastFocusState = state.isFocused
+                            },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = keyboardType,
+                            imeAction = ImeAction.Send
+                        ),
+                        maxLines = 10,
+                        cursorBrush = SolidColor(LocalContentColor.current),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                     )
+
+
+                    if (textFieldValue.text.isEmpty() && !focusState) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(start = PaddingSize3, bottom = PaddingSize2),
+                            text = "Be Heard",
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
+                        )
+                    }
                 }
+
+                Visibility(visibility) {selected-> visibility = selected }
             }
         }
     }
@@ -488,18 +475,18 @@ fun EmojiSelector(
                 .fillMaxWidth()
                 .padding(horizontal = PaddingSize1)
         ) {
-            ExtendedSelectorInnerButton(
-                text = "Emoji",
-                onClick = { selected = EmojiStickerSelector.EMOJI },
-                selected = true,
-                modifier = Modifier.weight(1f)
-            )
-            ExtendedSelectorInnerButton(
-                text = "Stickers",
-                onClick = { selected = EmojiStickerSelector.STICKER },
-                selected = false,
-                modifier = Modifier.weight(1f)
-            )
+//            ExtendedSelectorInnerButton(
+//                text = "Emoji",
+//                onClick = { selected = EmojiStickerSelector.EMOJI },
+//                selected = true,
+//                modifier = Modifier.weight(1f)
+//            )
+//            ExtendedSelectorInnerButton(
+//                text = "Stickers",
+//                onClick = { selected = EmojiStickerSelector.STICKER },
+//                selected = false,
+//                modifier = Modifier.weight(1f)
+//            )
         }
         Row(modifier = connection?.let { Modifier.nestedScroll(it) } ?: Modifier) {
             EmojiTable(onTextAdded, modifier = Modifier.padding(PaddingSize1))
@@ -544,7 +531,11 @@ fun EmojiTable(
     onTextAdded: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier.fillMaxWidth()) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = .8f))
+    ) {
         repeat(4) { x ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -702,53 +693,3 @@ private val emojis = listOf(
     "\ud83d\udc8f" // Kiss
 )
 
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun SendFab(colorScheme: ColorScheme, onClick: () -> Unit) {
-    var clicked by remember { mutableStateOf(false) }
-
-    val size: Float by animateFloatAsState(
-        if (clicked) 1.2f else 1f,
-        animationSpec = TweenSpec(durationMillis = 150)
-    )
-    val imageSize: Float by animateFloatAsState(
-        if (clicked) 1.4f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioHighBouncy,
-            stiffness = Spring.StiffnessMedium // with medium speed
-        )
-    )
-    if (size == 1.2f) clicked = false
-    val shape = CircleShape
-    LargeFloatingActionButton(
-        shape = shape,
-//        containerColor = colorScheme.tertiary,
-        modifier = Modifier
-            .offset(x = 20.dp)
-            .clip(shape)
-            .size((60 * size).dp),
-        content = {
-            Column {
-                Image(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .scale(1 * imageSize)
-                        .rotate(imageSize * -45f)
-                        .offset(y = (-4 * imageSize).dp, x = (10f / imageSize).dp)
-                        .rotate(60f),
-                    painter = painterResource(R.drawable.horn),
-                    contentDescription = "",
-                    colorFilter = ColorFilter.tint(colorScheme.background),
-                )
-                Text(text = "Toot")
-            }
-
-
-        },
-        onClick = {
-            clicked = !clicked
-            onClick()
-        }
-    )
-}

@@ -32,7 +32,9 @@ interface UserApi {
     @FormUrlEncoded
     suspend fun newStatus(
         @Header("Authorization") authHeader: String?,
+        @Field("in_reply_to_id") replyStatusId: String? = null,
         @Field("status") content: String,
+        @Field("visibility") visibility: String,
         ): Status
 
     @GET("api/v1/accounts/verify_credentials")

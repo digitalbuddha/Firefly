@@ -136,7 +136,8 @@ fun StatusDB.mapStatus(): UI {
         mentions = status.mentions,
         tags = status.tags,
         contentEmojis = status.emoji,
-        accountEmojis = status.accountEmojis
+        accountEmojis = status.accountEmojis,
+        remoteId = status.remoteId
     )
 }
 

@@ -2,7 +2,11 @@ package com.androiddev.social.timeline.ui.model
 
 import android.graphics.Typeface
 import android.text.Spanned
-import android.text.style.*
+import android.text.style.CharacterStyle
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.text.style.URLSpan
+import android.text.style.UnderlineSpan
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.graphics.Color
@@ -39,7 +43,8 @@ data class UI(
     val tags: List<Tag>,
     val contentEmojis: List<Emoji>?,
     val accountEmojis: List<Emoji>?,
-    val boostedAvatar: String?
+    val boostedAvatar: String?,
+    val remoteId:String
 )
 
 

@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import com.androiddev.social.R
@@ -30,13 +29,12 @@ fun DirectMessage(directMessage: Boolean) {
                 .fillMaxWidth()
         ) {
             AssistChip(
-                border = AssistChipDefaults.assistChipBorder(borderColor = colorScheme.onErrorContainer),
+//                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
                 colors = AssistChipDefaults.assistChipColors(
+                    containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary.copy(
                         alpha = .5f
-                    ), labelColor = colorScheme.secondary.copy(alpha = .9f),
-                    containerColor = colorScheme.primary
-
+                    ), labelColor = colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),
                 onClick = { /* Do something! */ },
@@ -46,7 +44,7 @@ fun DirectMessage(directMessage: Boolean) {
                         modifier = Modifier.height(PaddingSize3),
                         painter = painterResource(R.drawable.mail),
                         contentDescription = "",
-                        colorFilter = ColorFilter.tint(Color.White.copy(alpha = .8f)),
+                        colorFilter = ColorFilter.tint(colorScheme.onPrimary.copy(alpha = .5f)),
                     )
                 },
             )

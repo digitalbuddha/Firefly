@@ -97,10 +97,10 @@ fun TimelineScreen(userComponent: UserComponent) {
                         }
                     }
                     UserInput(
-                        onMessageSent = {
-                            homePresenter.handle(TimelinePresenter.PostMessage(it))
+                        modifier = Modifier.padding(bottom = 0.dp), onMessageSent = { it, visibility ->
+                            homePresenter.handle(TimelinePresenter.PostMessage(it, visibility))
                             done = true
-                        }, modifier = Modifier.padding(bottom = 0.dp)
+                        }, participants = ""
                     )
                 }) {
                 val model = homePresenter.model
@@ -114,6 +114,7 @@ fun TimelineScreen(userComponent: UserComponent) {
 
                         )
                     }
+
                     FeedType.Local -> {
                         timelineScreen(
                             homePresenter.events,
@@ -121,6 +122,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             model.localStatuses?.collectAsLazyPagingItems()
                         )
                     }
+
                     FeedType.Federated -> {
                         timelineScreen(
                             homePresenter.events,
@@ -128,6 +130,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             model.federatedStatuses?.collectAsLazyPagingItems()
                         )
                     }
+
                     FeedType.Trending -> {
                         timelineScreen(
                             homePresenter.events,
@@ -138,7 +141,9 @@ fun TimelineScreen(userComponent: UserComponent) {
                 }
             }
         }
-        TopAppBar(modifier = Modifier.height(60.dp).background(Color.Transparent),
+        TopAppBar(modifier = Modifier
+            .height(60.dp)
+            .background(Color.Transparent),
             backgroundColor = Color.Transparent,
 
             title = {
@@ -165,15 +170,19 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 FeedType.Home.type -> {
                                     FeedType.Home
                                 }
+
                                 FeedType.Local.type -> {
                                     FeedType.Local
                                 }
+
                                 FeedType.Federated.type -> {
                                     FeedType.Federated
                                 }
+
                                 FeedType.Trending.type -> {
                                     FeedType.Trending
                                 }
+
                                 else -> {
                                     FeedType.Home
                                 }
@@ -220,7 +229,12 @@ private fun timelineScreen(
             }
             TimelineRows(
                 items
-            )
+            ) { content, visiblity, replyToId ->
+                events.tryEmit(
+                    TimelinePresenter
+                        .PostMessage(content, visiblity, replyToId)
+                )
+            }
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -229,11 +243,14 @@ private fun timelineScreen(
 }
 
 @Composable
-fun TimelineRows(ui: LazyPagingItems<StatusDB>) {
+fun TimelineRows(
+    ui: LazyPagingItems<StatusDB>,
+    replyToStatus: (String, String, String) -> Boolean
+) {
     LazyColumn {
         items(items = ui, key = { it.originalId }) {
             it?.mapStatus()?.let { ui ->
-                TimelineCard(ui)
+                TimelineCard(ui, replyToStatus)
             }
         }
     }

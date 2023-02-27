@@ -101,7 +101,9 @@ class RealTimelinePresenter @Inject constructor(
                 val result = kotlin.runCatching {
                     api.newStatus(
                         authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        content = event.content
+                        content = event.content,
+                        visibility = event.visibility.toLowerCase(),
+                        replyStatusId = event.replyStatusId
                     )
                 }
                 when {
@@ -127,7 +129,10 @@ abstract class TimelinePresenter :
     ) {
     sealed interface HomeEvent
     data class Load(val feedType: FeedType) : HomeEvent
-    data class PostMessage(val content: String) : HomeEvent
+    data class PostMessage(val content: String,
+                           val visibility:String,
+                           val replyStatusId:String? = null
+    ) : HomeEvent
 
     data class HomeModel(
         val loading: Boolean,

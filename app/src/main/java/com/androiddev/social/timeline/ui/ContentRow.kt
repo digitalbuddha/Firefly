@@ -38,121 +38,133 @@ import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.timeline.ui.model.parseAsMastodonHtml
 import com.androiddev.social.timeline.ui.model.toAnnotatedString
 import me.saket.swipe.SwipeAction
-import me.saket.swipe.SwipeableActionsBox
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LazyItemScope.TimelineCard(ui: UI) {
-    SwipeableActionsBox(
-        startActions = listOf(rocket()),
-        endActions = listOf(reply(), replyAll()),
-//        modifier = Modifier.animateItemPlacement()
+fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -> Boolean) {
+//    SwipeableActionsBox(
+//        startActions = listOf(rocket()),
+//        endActions = listOf(reply(), replyAll()),
+////        modifier = Modifier.animateItemPlacement()
+//    ) {
+    Column(
+        Modifier
+            .background(colorScheme.surface.copy(alpha = .99f))
+            .padding(
+                bottom = PaddingSize2,
+                start = PaddingSize2,
+                end = PaddingSize2,
+                top = PaddingSize2
+            )
     ) {
-        Column(
+        DirectMessage(ui.directMessage)
+        Boosted(ui.boostedBy, ui.boostedAvatar)
+        UserInfo(ui)
+        Row(
             Modifier
-                .background(colorScheme.surface.copy(alpha = .99f))
-                .padding(bottom = PaddingSize2, start = PaddingSize2, end = PaddingSize2, top = PaddingSize2)
+                .padding(bottom = PaddingSizeNone)
+                .wrapContentHeight()
         ) {
-            DirectMessage(ui.directMessage)
-            Boosted(ui.boostedBy, ui.boostedAvatar)
-            UserInfo(ui)
-            Row(Modifier.padding(bottom = PaddingSizeNone)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val parseAsMastodonHtml: Spanned = ui.content.parseAsMastodonHtml()
-                    println(parseAsMastodonHtml)
-                    val prettyText = setClickableText(
-                        parseAsMastodonHtml,
-                        ui.mentions,
-                        ui.tags,
-                        empty
-                    )
-                    val uriHandler = LocalUriHandler.current
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val parseAsMastodonHtml: Spanned = ui.content.parseAsMastodonHtml()
+                println(parseAsMastodonHtml)
+                val prettyText = setClickableText(
+                    parseAsMastodonHtml,
+                    ui.mentions,
+                    ui.tags,
+                    empty
+                )
+                val uriHandler = LocalUriHandler.current
 
-                    val mapping by remember(ui) { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
-                    val linkColor = colorScheme.primary
-                    val text by remember(ui) {
-                        mutableStateOf(
-                            prettyText.toAnnotatedString(
-                                linkColor,
-                                ui.contentEmojis,
-                                mapping
-                            )
+                val mapping by remember(ui) { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
+                val linkColor = colorScheme.primary
+                val text by remember(ui) {
+                    mutableStateOf(
+                        prettyText.toAnnotatedString(
+                            linkColor,
+                            ui.contentEmojis,
+                            mapping
                         )
-                    }
-                    var clicked by remember(ui) { mutableStateOf(false) }
-                    var showReply by remember(ui) { mutableStateOf(false) }
-
-                    ClickableText(
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = colorScheme.onSurface,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        text = text,
-                        onClick = {
-                            clicked = !clicked
-                            if (!clicked && showReply) showReply = false
-                            text.getStringAnnotations(
-                                tag = "URL", start = it,
-                                end = it
-                            )
-                                .firstOrNull()?.let { annotation ->
-                                    // If yes, we log its value
-                                    uriHandler.openUri(annotation.item)
-                                    Log.d("Clicked URL", annotation.item)
-                                }
-                        },
-                        inlineContent = mapping
-                    )
-                    ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
-                    val toolbarHeight = PaddingSize6
-                    val toolbarHeightPx =
-                        with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
-                    val toolbarOffsetHeightPx =
-
-                        remember(ui) { mutableStateOf(0f) }
-                    val nestedScrollConnection = remember(ui) {
-                        object : NestedScrollConnection {
-                            override fun onPreScroll(
-                                available: Offset,
-                                source: NestedScrollSource
-                            ): Offset {
-                                val delta = available.y
-                                val newOffset = toolbarOffsetHeightPx.value + delta
-                                toolbarOffsetHeightPx.value =
-                                    newOffset.coerceIn(-toolbarHeightPx, 0f)
-                                return Offset.Zero
-                            }
-                        }
-                    }
-
-                    AnimatedVisibility(visible = clicked) {
-                        Column {
-                            ButtonBar(ui.replyCount, ui.boostCount) {
-                                showReply = !showReply
-                            }
-                        }
-                    }
-                    AnimatedVisibility(visible = showReply) {
-                        UserInput(connection = nestedScrollConnection,
-                            onMessageSent = {
-                                it.length
-                            }
-                        )
-                    }
-
-                    Divider(
-                        Modifier.padding(top = PaddingSize2),
-                        color = Color.Gray.copy(alpha = .5f)
                     )
                 }
+                var clicked by remember(ui) { mutableStateOf(false) }
+                var showReply by remember(ui) { mutableStateOf(false) }
+
+                ClickableText(
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = colorScheme.onSurface,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = text,
+                    onClick = {
+                        clicked = !clicked
+                        if (!clicked && showReply) showReply = false
+                        text.getStringAnnotations(
+                            tag = "URL", start = it,
+                            end = it
+                        )
+                            .firstOrNull()?.let { annotation ->
+                                // If yes, we log its value
+                                uriHandler.openUri(annotation.item)
+                                Log.d("Clicked URL", annotation.item)
+                            }
+                    },
+                    inlineContent = mapping
+                )
+                ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
+                val toolbarHeight = PaddingSize6
+                val toolbarHeightPx =
+                    with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
+                val toolbarOffsetHeightPx =
+
+                    remember(ui) { mutableStateOf(0f) }
+                val nestedScrollConnection = remember(ui) {
+                    object : NestedScrollConnection {
+                        override fun onPreScroll(
+                            available: Offset,
+                            source: NestedScrollSource
+                        ): Offset {
+                            val delta = available.y
+                            val newOffset = toolbarOffsetHeightPx.value + delta
+                            toolbarOffsetHeightPx.value =
+                                newOffset.coerceIn(-toolbarHeightPx, 0f)
+                            return Offset.Zero
+                        }
+                    }
+                }
+
+                AnimatedVisibility(visible = clicked) {
+                    Column {
+                        ButtonBar(ui.replyCount, ui.boostCount) {
+                            showReply = !showReply
+                        }
+                    }
+                }
+                AnimatedVisibility(visible = showReply) {
+                    var mentions = ui.mentions.map { mention -> mention.username }.toMutableList()
+
+                    if (mentions.isEmpty()) mentions.add(ui.userName)
+                    mentions = mentions.map { "@${it}" }.toMutableList()
+                    UserInput(
+                        connection = nestedScrollConnection,
+                        onMessageSent = { it, visibility ->
+
+                            replyToStatus(it, visibility, ui.remoteId)
+
+                        },
+                        defaultVisiblity = "Direct",
+                        participants = mentions.joinToString(" ")
+                    )
+                }
+                Divider(
+                    Modifier.padding(top = PaddingSize2),
+                    color = Color.Gray.copy(alpha = .5f)
+                )
             }
         }
-
-
     }
 }
-
 
 
 @Composable
@@ -179,7 +191,9 @@ fun UserInfo(ui: UI) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = colorScheme.secondary,
-                        modifier = Modifier.padding(bottom = PaddingSize0_5).fillMaxWidth(.6f),
+                        modifier = Modifier
+                            .padding(bottom = PaddingSize0_5)
+                            .fillMaxWidth(.6f),
                         text = text,
                         style = MaterialTheme.typography.titleMedium,
                         inlineContent = inlineContentMap
