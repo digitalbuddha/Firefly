@@ -38,7 +38,7 @@ fun TabSelector( onClick: (String) -> Unit) {
         "Home" to R.drawable.house,
         "Local" to R.drawable.local,
         "Federated" to R.drawable.world,
-//        "Favorites" to R.drawable.star
+        "Trending" to R.drawable.star
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {

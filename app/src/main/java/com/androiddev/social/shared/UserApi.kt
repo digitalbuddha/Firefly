@@ -21,6 +21,13 @@ interface UserApi {
         @Query("max_id") since:String?,
     ): List<Status>
 
+    @GET("/api/v1/trends/statuses")
+    suspend fun getTrending(
+        @Header("Authorization") authHeader: String?,
+        @Query("limit") limit: String = "40",
+        @Query("offset") offset:String?,
+    ): List<Status>
+
     @POST("/api/v1/statuses")
     @FormUrlEncoded
     suspend fun newStatus(
