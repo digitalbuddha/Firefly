@@ -20,11 +20,11 @@ android {
             keyPassword 'Qwer1234'
         }
     }
-    namespace 'com.androiddev.social'
+    namespace 'social.androiddev'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.androiddev.social"
+        applicationId "social.androiddev"
         minSdk 26
         targetSdk 33
         versionCode 1

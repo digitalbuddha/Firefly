@@ -1,7 +1,7 @@
 package com.androiddev.social.timeline.data
 
 import com.androiddev.social.AppScope
-import com.androiddev.social.BuildConfig
+import social.androiddev.BuildConfig
 import com.androiddev.social.SingleIn
 import com.androiddev.social.shared.Api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory

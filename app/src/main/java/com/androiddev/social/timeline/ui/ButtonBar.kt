@@ -29,13 +29,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import social.androiddev.R
 
 @Composable
 fun ButtonBar(

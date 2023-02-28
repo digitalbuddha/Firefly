@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.androiddev.social.R
+import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.theme.ThickSm

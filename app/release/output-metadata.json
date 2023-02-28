@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.androiddev.social",
+  "applicationId": "social.androiddev",
   "variantName": "release",
   "elements": [
     {

@@ -46,7 +46,7 @@ fun Navigator(
 
             LaunchedEffect(Unit) {
                 val result = scale.animateTo(
-                    targetValue = .01f,
+                    targetValue = 0f,
                     animationSpec = tween(
                         durationMillis = 800,
                         easing = {

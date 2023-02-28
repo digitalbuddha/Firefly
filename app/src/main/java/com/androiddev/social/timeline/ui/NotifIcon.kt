@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import com.androiddev.social.R
+import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3

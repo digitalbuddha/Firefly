@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import com.androiddev.social.R
+import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
 

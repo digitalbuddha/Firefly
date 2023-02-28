@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.androiddev.social.R
+import social.androiddev.R
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

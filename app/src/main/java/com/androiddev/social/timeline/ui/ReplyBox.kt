@@ -50,7 +50,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.androiddev.social.R
+import social.androiddev.R
 import com.androiddev.social.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -42,7 +42,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize10
@@ -54,13 +53,15 @@ import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import me.saket.swipe.SwipeAction
+import social.androiddev.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun LazyItemScope.TimelineCard(
     ui: UI, replyToStatus: (String, String, String) -> Unit,
     boostStatus: (String) -> Unit,
-    state: ModalBottomSheetState
+    state: ModalBottomSheetState,
+    isReplying: (Boolean) -> Unit
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
@@ -89,12 +90,7 @@ fun LazyItemScope.TimelineCard(
                 val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
                 var clicked by remember(ui) { mutableStateOf(false) }
                 var showReply by remember(ui) { mutableStateOf(false) }
-
                 if (clicked) {
-                    LaunchedEffect(Unit) {
-                        state.show()
-                    }
-                } else {
                     LaunchedEffect(Unit) {
                         state.hide()
                     }
@@ -112,6 +108,8 @@ fun LazyItemScope.TimelineCard(
                     onClick = {
                         clicked = !clicked
                         if (!clicked && showReply) showReply = false
+                        isReplying(clicked)
+
                         text.getStringAnnotations(
                             tag = "URL", start = it,
                             end = it

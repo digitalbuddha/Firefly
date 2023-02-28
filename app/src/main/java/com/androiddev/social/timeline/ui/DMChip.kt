@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import com.androiddev.social.R
+import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize3
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)

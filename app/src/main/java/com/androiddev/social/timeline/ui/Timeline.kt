@@ -74,7 +74,7 @@ fun TimelineScreen(userComponent: UserComponent) {
         isFloatingActionButtonDocked = true,
         floatingActionButton = {
             val scope = rememberCoroutineScope()
-            if (!state.isVisible) {
+            if (!state.isVisible || !replying) {
                 FAB(MaterialTheme.colorScheme) {
                     replying = true
                     scope.launch {
@@ -115,7 +115,9 @@ fun TimelineScreen(userComponent: UserComponent) {
                             FeedType.Home,
                             items = model.homeStatuses?.collectAsLazyPagingItems(),
                             state
-                        )
+                        ) {
+                            replying = it
+                        }
                     }
 
                     FeedType.Local -> {
@@ -124,7 +126,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             FeedType.Local,
                             model.localStatuses?.collectAsLazyPagingItems(),
                             state
-                        )
+                        ) { replying = it }
                     }
 
                     FeedType.Federated -> {
@@ -133,7 +135,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             FeedType.Federated,
                             model.federatedStatuses?.collectAsLazyPagingItems(),
                             state
-                        )
+                        ) { replying = it }
                     }
 
                     FeedType.Trending -> {
@@ -142,7 +144,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             FeedType.Trending,
                             model.trendingStatuses?.collectAsLazyPagingItems(),
                             state
-                        )
+                        ) { replying = it }
                     }
                 }
             }
@@ -208,7 +210,8 @@ private fun timelineScreen(
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<StatusDB>?,
-    state: ModalBottomSheetState
+    state: ModalBottomSheetState,
+    isReplying: (Boolean) -> Unit
 ) {
     LaunchedEffect(key1 = tabToLoad) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad))
@@ -248,7 +251,9 @@ private fun timelineScreen(
                             .BoostMessage(it)
                     )
                 },
-                state)
+                state,
+                isReplying
+            )
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -262,12 +267,13 @@ fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
     replyToStatus: (String, String, String) -> Unit,
     boostStatus: (String) -> Unit,
-    state: ModalBottomSheetState
+    state: ModalBottomSheetState,
+    isReplying: (Boolean) -> Unit
 ) {
     LazyColumn {
         items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
             it?.mapStatus()?.let { ui ->
-                TimelineCard(ui, replyToStatus, boostStatus,state)
+                TimelineCard(ui, replyToStatus, boostStatus, state, isReplying)
             }
         }
     }
