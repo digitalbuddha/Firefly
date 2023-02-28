@@ -10,22 +10,22 @@ interface UserApi {
     suspend fun getHomeTimeline(
         @Header("Authorization") authHeader: String?,
         @Query("limit") limit: String = "40",
-        @Query("max_id") since:String?
+        @Query("max_id") since: String?
     ): List<Status>
 
     @GET("api/v1/timelines/public")
     suspend fun getLocalTimeline(
         @Header("Authorization") authHeader: String?,
-        @Query("local") localOnly:Boolean = true,
+        @Query("local") localOnly: Boolean = true,
         @Query("limit") limit: String = "40",
-        @Query("max_id") since:String?,
+        @Query("max_id") since: String?,
     ): List<Status>
 
     @GET("/api/v1/trends/statuses")
     suspend fun getTrending(
         @Header("Authorization") authHeader: String?,
         @Query("limit") limit: String = "40",
-        @Query("offset") offset:String?,
+        @Query("offset") offset: String?,
     ): List<Status>
 
     @POST("/api/v1/statuses")
@@ -35,7 +35,13 @@ interface UserApi {
         @Field("in_reply_to_id") replyStatusId: String? = null,
         @Field("status") content: String,
         @Field("visibility") visibility: String,
-        ): Status
+    ): Status
+
+    @POST("/api/v1/statuses/{id}/reblog")
+    suspend fun boostStatus(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
 
     @GET("api/v1/accounts/verify_credentials")
     suspend fun accountVerifyCredentials(

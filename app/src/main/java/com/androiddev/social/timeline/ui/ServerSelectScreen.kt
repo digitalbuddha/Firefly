@@ -17,8 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.NavHostController
 import com.androiddev.social.theme.*
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +27,6 @@ import kotlinx.coroutines.launch
 fun ServerSelectScreen(
     scope: CoroutineScope,
     navController: NavHostController,
-    dataStore: DataStore<Preferences>,
     needToSelectServer: Boolean
 ) {
 
@@ -50,30 +47,33 @@ fun ServerSelectScreen(
                     )
                     .fillMaxWidth(1f)
                     .clip(RoundedCornerShape(8.dp))
-                    .height((screenHeight * .5f).dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center
 
 
             ) {
+
+
                 if (needToSelectServer) {
                     Text(
                         color = colorScheme.onSurface, modifier = Modifier.padding(
-                            PaddingSize1
+                            PaddingSize2
                         ), text = "Welcome!", style = MaterialTheme.typography.headlineLarge
                     )
                     Text(
                         color = colorScheme.onSurface,
                         modifier = Modifier.padding(
-                            PaddingSize1
+                           horizontal =  PaddingSize2,
+                            vertical = PaddingSize1
                         ),
                         text = "Which Server should we connect to?",
                         style = MaterialTheme.typography.headlineMedium
                     )
 
                     TextField(modifier = Modifier
-                        .fillMaxWidth()
                         .wrapContentHeight()
-                        .wrapContentWidth(),
+                        .fillMaxWidth(.99f)
+                        .padding(top = PaddingSize8, start = PaddingSize1, end = PaddingSize1),
                         textStyle = LocalTextStyle.current.copy(
                             //                                        textAlign = TextAlign.Cewn
                         ),
@@ -106,7 +106,8 @@ fun ServerSelectScreen(
                         ExtendedFloatingActionButton(backgroundColor = colorScheme.primary,
                             modifier = Modifier
                                 .fillMaxWidth(.7f)
-                                .align(Alignment.Center),
+                                .align(Alignment.Center)
+                                .padding(PaddingSize5),
                             text = {
                                 Text("Continue to Server")
                             },
@@ -121,3 +122,4 @@ fun ServerSelectScreen(
         }
     }
 }
+

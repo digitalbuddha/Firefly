@@ -43,6 +43,7 @@ data class UI(
     val tags: List<Tag>,
     val contentEmojis: List<Emoji>?,
     val accountEmojis: List<Emoji>?,
+    val boostedEmojis: List<Emoji>?,
     val boostedAvatar: String?,
     val remoteId:String
 )

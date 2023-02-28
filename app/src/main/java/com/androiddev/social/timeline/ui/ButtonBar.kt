@@ -2,7 +2,11 @@ package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -17,7 +21,8 @@ import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 
 @Composable
-fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> Unit, ){
+fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null,  onBoost: () -> Unit, onReply: () -> Unit,
+             ){
     val iconSize = PaddingSize3
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
@@ -41,7 +46,7 @@ fun ButtonBar(replyCount: Int? = null, boostCount: Int? = null, onReply: () -> U
         OutlinedButton(
             contentPadding =  PaddingValues(PaddingSize1, PaddingSize1),
             border = BorderStroke(ThickSm, Color.Transparent),
-            onClick = {  }
+            onClick = { onBoost() }
         ) {
             Image(
                 modifier = Modifier.size(iconSize),

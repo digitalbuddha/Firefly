@@ -1,6 +1,5 @@
 package com.androiddev.social.timeline.ui
 
-import android.text.Spanned
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -33,15 +32,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.androiddev.social.R
 import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.data.LinkListener
-import com.androiddev.social.timeline.data.setClickableText
 import com.androiddev.social.timeline.ui.model.UI
-import com.androiddev.social.timeline.ui.model.parseAsMastodonHtml
-import com.androiddev.social.timeline.ui.model.toAnnotatedString
+import com.androiddev.social.ui.util.emojiText
 import me.saket.swipe.SwipeAction
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -> Boolean) {
+fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -> Unit,
+                               boostStatus: (String) -> Unit) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
 //        endActions = listOf(reply(), replyAll()),
@@ -58,7 +56,7 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
             )
     ) {
         DirectMessage(ui.directMessage)
-        Boosted(ui.boostedBy, ui.boostedAvatar)
+        Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis)
         UserInfo(ui)
         Row(
             Modifier
@@ -66,29 +64,11 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
                 .wrapContentHeight()
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val parseAsMastodonHtml: Spanned = ui.content.parseAsMastodonHtml()
-                println(parseAsMastodonHtml)
-                val prettyText = setClickableText(
-                    parseAsMastodonHtml,
-                    ui.mentions,
-                    ui.tags,
-                    empty
-                )
-                val uriHandler = LocalUriHandler.current
-
-                val mapping by remember(ui) { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
-                val linkColor = colorScheme.primary
-                val text by remember(ui) {
-                    mutableStateOf(
-                        prettyText.toAnnotatedString(
-                            linkColor,
-                            ui.contentEmojis,
-                            mapping
-                        )
-                    )
-                }
+                val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
                 var clicked by remember(ui) { mutableStateOf(false) }
                 var showReply by remember(ui) { mutableStateOf(false) }
+
+                val uriHandler = LocalUriHandler.current
 
                 ClickableText(
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -136,7 +116,9 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
 
                 AnimatedVisibility(visible = clicked) {
                     Column {
-                        ButtonBar(ui.replyCount, ui.boostCount) {
+                        ButtonBar(ui.replyCount, ui.boostCount, onBoost = {
+                          boostStatus(ui.remoteId)
+                        }) {
                             showReply = !showReply
                         }
                     }
@@ -144,14 +126,12 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
                 AnimatedVisibility(visible = showReply) {
                     var mentions = ui.mentions.map { mention -> mention.username }.toMutableList()
 
-                    if (mentions.isEmpty()) mentions.add(ui.userName)
+                    mentions.add(ui.userName)
                     mentions = mentions.map { "@${it}" }.toMutableList()
                     UserInput(
                         connection = nestedScrollConnection,
                         onMessageSent = { it, visibility ->
-
                             replyToStatus(it, visibility, ui.remoteId)
-
                         },
                         defaultVisiblity = "Direct",
                         participants = mentions.joinToString(" ")
@@ -165,6 +145,8 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
         }
     }
 }
+
+
 
 
 @Composable

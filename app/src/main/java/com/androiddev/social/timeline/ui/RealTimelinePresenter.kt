@@ -79,6 +79,7 @@ class RealTimelinePresenter @Inject constructor(
                             federatedStatuses = flow.cachedIn(scope)
                         )
                     }
+
                     FeedType.Trending -> {
                         val remoteMediator =
                             timelineRemoteMediators.filterIsInstance<TrendingRemoteMediator>()
@@ -118,6 +119,26 @@ class RealTimelinePresenter @Inject constructor(
                     }
                 }
             }
+
+            is BoostMessage -> {
+                val result = kotlin.runCatching {
+                    api.boostStatus(
+                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                        id = event.statusId
+                    )
+                }
+                when {
+                    result.isSuccess -> {
+                        withContext(Dispatchers.IO) {
+                            statusDao.insertAll(
+                                listOf(
+                                    result.getOrThrow().toStatusDb(FeedType.Home)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -129,10 +150,13 @@ abstract class TimelinePresenter :
     ) {
     sealed interface HomeEvent
     data class Load(val feedType: FeedType) : HomeEvent
-    data class PostMessage(val content: String,
-                           val visibility:String,
-                           val replyStatusId:String? = null
+    data class PostMessage(
+        val content: String,
+        val visibility: String,
+        val replyStatusId: String? = null
     ) : HomeEvent
+
+    data class BoostMessage(val statusId: String) : HomeEvent
 
     data class HomeModel(
         val loading: Boolean,

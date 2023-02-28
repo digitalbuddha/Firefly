@@ -23,7 +23,7 @@ import com.androiddev.social.R
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun FAB(colorScheme: ColorScheme, onClick: () -> Unit) {
+fun FAB(colorScheme: ColorScheme, modifier: Modifier = Modifier, onClick: () -> Unit, ) {
     var clicked by remember { mutableStateOf(false) }
 
     val size: Float by animateFloatAsState(
@@ -43,7 +43,7 @@ fun FAB(colorScheme: ColorScheme, onClick: () -> Unit) {
     LargeFloatingActionButton(
         shape = shape,
         containerColor = colorScheme.primary,
-        modifier = Modifier
+        modifier = modifier
             .offset(y = 30.dp)
             .clip(shape)
             .size((90 * size).dp),

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import com.androiddev.social.R
 import com.androiddev.social.theme.PaddingSize3
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DirectMessage(directMessage: Boolean) {
@@ -38,7 +39,9 @@ fun DirectMessage(directMessage: Boolean) {
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),
                 onClick = { /* Do something! */ },
-                label = { Text("Private Message", style = MaterialTheme.typography.labelLarge) },
+                label = {
+                    Text("Private Message", style = MaterialTheme.typography.labelLarge)
+                },
                 leadingIcon = {
                     Image(
                         modifier = Modifier.height(PaddingSize3),

@@ -97,10 +97,12 @@ fun TimelineScreen(userComponent: UserComponent) {
                         }
                     }
                     UserInput(
-                        modifier = Modifier.padding(bottom = 0.dp), onMessageSent = { it, visibility ->
+                        modifier = Modifier.padding(bottom = 0.dp),
+                        onMessageSent = { it, visibility ->
                             homePresenter.handle(TimelinePresenter.PostMessage(it, visibility))
                             done = true
-                        }, participants = ""
+                        },
+                        participants = ""
                     )
                 }) {
                 val model = homePresenter.model
@@ -228,13 +230,19 @@ private fun timelineScreen(
                 items.refresh()
             }
             TimelineRows(
-                items
-            ) { content, visiblity, replyToId ->
-                events.tryEmit(
-                    TimelinePresenter
-                        .PostMessage(content, visiblity, replyToId)
-                )
-            }
+                items,
+                replyToStatus = { content, visiblity, replyToId ->
+                    events.tryEmit(
+                        TimelinePresenter
+                            .PostMessage(content, visiblity, replyToId)
+                    )
+                },
+                {
+                    events.tryEmit(
+                        TimelinePresenter
+                            .BoostMessage(it)
+                    )
+                })
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -245,12 +253,13 @@ private fun timelineScreen(
 @Composable
 fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
-    replyToStatus: (String, String, String) -> Boolean
+    replyToStatus: (String, String, String) -> Unit,
+    boostStatus: (String) -> Unit
 ) {
     LazyColumn {
         items(items = ui, key = { it.originalId }) {
             it?.mapStatus()?.let { ui ->
-                TimelineCard(ui, replyToStatus)
+                TimelineCard(ui, replyToStatus, boostStatus)
             }
         }
     }

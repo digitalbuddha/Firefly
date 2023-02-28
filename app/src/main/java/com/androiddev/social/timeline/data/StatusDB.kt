@@ -28,6 +28,7 @@ data class StatusDB(
     val reblogsCount: Int?,
     val emoji: List<Emoji>,
     val accountEmojis: List<Emoji>,
+    val boostedEmojis: List<Emoji>,
     val mentions: List<Mention>,
     val tags: List<Tag>,
     val boostedBy: String?, //displayName
@@ -52,7 +53,7 @@ interface StatusDao {
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 7)
+@Database(entities = [StatusDB::class], version = 8)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
