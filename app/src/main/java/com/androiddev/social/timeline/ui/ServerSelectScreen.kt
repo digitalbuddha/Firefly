@@ -105,7 +105,7 @@ fun ServerSelectScreen(
                     ) {
                         ExtendedFloatingActionButton(backgroundColor = colorScheme.primary,
                             modifier = Modifier
-                                .fillMaxWidth(.7f)
+                                .wrapContentWidth()
                                 .align(Alignment.Center)
                                 .padding(PaddingSize5),
                             text = {

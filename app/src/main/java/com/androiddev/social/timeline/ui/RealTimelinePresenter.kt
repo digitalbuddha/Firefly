@@ -130,6 +130,9 @@ class RealTimelinePresenter @Inject constructor(
                 when {
                     result.isSuccess -> {
                         withContext(Dispatchers.IO) {
+                            result.getOrThrow().reblog?.let {
+                                statusDao.insertAll(listOf(it.toStatusDb()))
+                            }
                             statusDao.insertAll(
                                 listOf(
                                     result.getOrThrow().toStatusDb(FeedType.Home)

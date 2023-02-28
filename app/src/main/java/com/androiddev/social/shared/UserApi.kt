@@ -43,6 +43,12 @@ interface UserApi {
         @Path("id") id: String,
     ): Status
 
+    @POST("/api/v1/statuses/{id}/favourite")
+    suspend fun favoriteStatus(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
+
     @GET("api/v1/accounts/verify_credentials")
     suspend fun accountVerifyCredentials(
         @Header("Authorization") authHeader: String?,

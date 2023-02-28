@@ -66,20 +66,15 @@ fun Navigator(
                 } else {
                     navController.navigate("login/$loggedInAccount")
                 }
-
-
             }
-
 
             // Image
             Box(
                 contentAlignment = Alignment.Center,
-
                 modifier = Modifier.fillMaxSize()
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-
                     modifier = Modifier.wrapContentSize(Alignment.Center)
                 ) {
                     FAB(
@@ -88,7 +83,6 @@ fun Navigator(
                         modifier = Modifier.offset(y= (-40).dp).scale(scale.value)
                     )
                 }
-
             }
         }
 

@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -34,6 +35,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
@@ -72,11 +75,10 @@ enum class EmojiStickerSelector {
 //    UserInput(onMessageSent = {})
 //}
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UserInput(
     connection: NestedScrollConnection? = null,
-
     modifier: Modifier = Modifier,
     onMessageSent: (String, String) -> Unit,
     resetScroll: () -> Unit = {},
@@ -85,11 +87,10 @@ fun UserInput(
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Intercept back navigation if there's a InputSelector visible
-    if (currentInputSelector != InputSelector.NONE) {
-//        BackPressHandler(onBackPressed = dismissKeyboard)
-    }
+
 
     var textState by remember { mutableStateOf(TextFieldValue(participants)) }
 
@@ -102,15 +103,21 @@ fun UserInput(
         color = Color.Transparent,
         modifier = modifier
     ) {
+        val focusRequester = remember { FocusRequester() }
+        val focusManager = LocalFocusManager.current
         Column(
             modifier = modifier
+                .focusRequester(focusRequester)
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f))
         ) {
+
             UserInputText(
                 textFieldValue = textState,
-                onTextChanged = { it: TextFieldValue, selected-> textState = it; visibility = selected},
+                onTextChanged = { it: TextFieldValue, selected ->
+                    textState = it; visibility = selected
+                },
                 // Only show the keyboard if there's no input selector and text field has focus
                 keyboardShown = currentInputSelector == InputSelector.NONE && textFieldFocusState,
                 // Close extended selector if text field receives focus
@@ -122,10 +129,13 @@ fun UserInput(
                     textFieldFocusState = focused
                 },
                 focusState = textFieldFocusState,
-                defaultVisiblity = visibility)
+                defaultVisiblity = visibility
+            )
+
             UserInputSelector(
                 onSelectorChange = { currentInputSelector = it },
                 sendMessageEnabled = textState.text.isNotBlank(),
+
                 onMessageSent = {
                     onMessageSent(textState.text, visibility)
                     // Reset text field and close keyboard
@@ -133,6 +143,7 @@ fun UserInput(
                     // Move scroll to bottom
                     resetScroll()
                     dismissKeyboard()
+                    keyboardController?.hide()
                 },
                 currentInputSelector = currentInputSelector
             )
@@ -414,7 +425,8 @@ private fun UserInputText(
                     BasicTextField(
                         value = textFieldValue,
                         onValueChange = {
-                            onTextChanged(it, visibility) },
+                            onTextChanged(it, visibility)
+                        },
                         modifier = Modifier
                             .wrapContentWidth()
                             .wrapContentHeight()
@@ -448,7 +460,7 @@ private fun UserInputText(
                     }
                 }
 
-                Visibility(visibility) {selected-> visibility = selected }
+                Visibility(visibility) { selected -> visibility = selected }
             }
         }
     }

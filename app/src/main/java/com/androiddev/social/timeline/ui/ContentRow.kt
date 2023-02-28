@@ -5,15 +5,28 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -30,16 +43,25 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import com.androiddev.social.R
-import com.androiddev.social.theme.*
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize10
+import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSize6
+import com.androiddev.social.theme.PaddingSize7
+import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import me.saket.swipe.SwipeAction
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -> Unit,
-                               boostStatus: (String) -> Unit) {
+fun LazyItemScope.TimelineCard(
+    ui: UI, replyToStatus: (String, String, String) -> Unit,
+    boostStatus: (String) -> Unit,
+    state: ModalBottomSheetState
+) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
 //        endActions = listOf(reply(), replyAll()),
@@ -67,6 +89,16 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
                 val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
                 var clicked by remember(ui) { mutableStateOf(false) }
                 var showReply by remember(ui) { mutableStateOf(false) }
+
+                if (clicked) {
+                    LaunchedEffect(Unit) {
+                        state.show()
+                    }
+                } else {
+                    LaunchedEffect(Unit) {
+                        state.hide()
+                    }
+                }
 
                 val uriHandler = LocalUriHandler.current
 
@@ -117,7 +149,7 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
                 AnimatedVisibility(visible = clicked) {
                     Column {
                         ButtonBar(ui.replyCount, ui.boostCount, onBoost = {
-                          boostStatus(ui.remoteId)
+                            boostStatus(ui.remoteId)
                         }) {
                             showReply = !showReply
                         }
@@ -145,8 +177,6 @@ fun LazyItemScope.TimelineCard(ui: UI, replyToStatus: (String, String, String) -
         }
     }
 }
-
-
 
 
 @Composable

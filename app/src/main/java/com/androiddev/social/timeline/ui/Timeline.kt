@@ -96,6 +96,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                             state.hide()
                         }
                     }
+                    val shouldCloseDrawer = false
                     UserInput(
                         modifier = Modifier.padding(bottom = 0.dp),
                         onMessageSent = { it, visibility ->
@@ -112,8 +113,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                         timelineScreen(
                             homePresenter.events,
                             FeedType.Home,
-                            items = model.homeStatuses?.collectAsLazyPagingItems()
-
+                            items = model.homeStatuses?.collectAsLazyPagingItems(),
+                            state
                         )
                     }
 
@@ -121,7 +122,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                         timelineScreen(
                             homePresenter.events,
                             FeedType.Local,
-                            model.localStatuses?.collectAsLazyPagingItems()
+                            model.localStatuses?.collectAsLazyPagingItems(),
+                            state
                         )
                     }
 
@@ -129,7 +131,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                         timelineScreen(
                             homePresenter.events,
                             FeedType.Federated,
-                            model.federatedStatuses?.collectAsLazyPagingItems()
+                            model.federatedStatuses?.collectAsLazyPagingItems(),
+                            state
                         )
                     }
 
@@ -137,7 +140,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                         timelineScreen(
                             homePresenter.events,
                             FeedType.Trending,
-                            model.trendingStatuses?.collectAsLazyPagingItems()
+                            model.trendingStatuses?.collectAsLazyPagingItems(),
+                            state
                         )
                     }
                 }
@@ -203,7 +207,8 @@ fun TimelineScreen(userComponent: UserComponent) {
 private fun timelineScreen(
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     tabToLoad: FeedType,
-    items: LazyPagingItems<StatusDB>?
+    items: LazyPagingItems<StatusDB>?,
+    state: ModalBottomSheetState
 ) {
     LaunchedEffect(key1 = tabToLoad) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad))
@@ -242,7 +247,8 @@ private fun timelineScreen(
                         TimelinePresenter
                             .BoostMessage(it)
                     )
-                })
+                },
+                state)
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -250,16 +256,18 @@ private fun timelineScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
     replyToStatus: (String, String, String) -> Unit,
-    boostStatus: (String) -> Unit
+    boostStatus: (String) -> Unit,
+    state: ModalBottomSheetState
 ) {
     LazyColumn {
-        items(items = ui, key = { it.originalId }) {
+        items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
             it?.mapStatus()?.let { ui ->
-                TimelineCard(ui, replyToStatus, boostStatus)
+                TimelineCard(ui, replyToStatus, boostStatus,state)
             }
         }
     }
