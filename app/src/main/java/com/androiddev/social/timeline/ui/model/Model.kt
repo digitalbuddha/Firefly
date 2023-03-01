@@ -33,7 +33,7 @@ data class UI(
     val content: String = "",
     val replyCount: Int = 0,
     val boostCount: Int = 0,
-    val favoriteCount: Int = 3,
+    val favoriteCount: Int = 0,
     val timePosted: String = "3m",
     val boostedBy: String? = null,
     val directMessage: Boolean = false,

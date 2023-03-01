@@ -49,6 +49,9 @@ interface StatusDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(users: List<StatusDB>)
 
+    @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
+    fun update(replyCount:Int, statusId:String)
+
     @Query("DELETE FROM status")
     fun delete()
 }

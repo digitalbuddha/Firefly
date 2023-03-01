@@ -67,7 +67,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                         modifier = Modifier.height(PaddingSize8),
                         contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
                         elevation = BottomBarElevation,
-                        backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+                        backgroundColor = MaterialTheme.colorScheme.surface,
                     ) {
                         BottomBar()
                     }
@@ -108,7 +108,8 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 done = true
                             },
                             participants = "",
-                            statusId = ""
+                            statusId = "",
+                            showReplies = false
                         )
                     }) {
                     val model = homePresenter.model
@@ -245,16 +246,22 @@ private fun timelineScreen(
             }
             TimelineRows(
                 items,
-                replyToStatus = { content, visiblity, replyToId ->
+                replyToStatus = { content, visiblity, replyToId, replyCount ->
                     events.tryEmit(
                         TimelinePresenter
-                            .PostMessage(content, visiblity, replyToId)
+                            .PostMessage(content, visiblity, replyToId, replyCount = replyCount)
                     )
                 },
                 {
                     events.tryEmit(
                         TimelinePresenter
                             .BoostMessage(it)
+                    )
+                },
+                {
+                    events.tryEmit(
+                        TimelinePresenter
+                            .FavoriteMessage(it)
                     )
                 },
                 state,
@@ -271,15 +278,16 @@ private fun timelineScreen(
 @Composable
 fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
-    replyToStatus: (String, String, String) -> Unit,
+    replyToStatus: (String, String, String, Int) -> Unit,
     boostStatus: (String) -> Unit,
+    favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState,
     isReplying: (Boolean) -> Unit
 ) {
     LazyColumn {
         items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
             it?.mapStatus()?.let { ui ->
-                TimelineCard(ui, replyToStatus, boostStatus, state, isReplying)
+                TimelineCard(ui, replyToStatus, boostStatus, favoriteStatus, state, isReplying)
             }
         }
     }

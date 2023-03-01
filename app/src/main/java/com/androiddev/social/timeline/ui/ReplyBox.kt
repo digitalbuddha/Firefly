@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -86,7 +85,8 @@ fun UserInput(
     onMessageSent: (String, String) -> Unit,
     resetScroll: () -> Unit = {},
     defaultVisiblity: String = "Public",
-    participants: String = " "
+    participants: String = " ",
+    showReplies: Boolean
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
@@ -107,7 +107,6 @@ fun UserInput(
         modifier = modifier
     ) {
         val focusRequester = remember { FocusRequester() }
-        val focusManager = LocalFocusManager.current
         Column(
             modifier = modifier
                 .focusRequester(focusRequester)
@@ -149,7 +148,8 @@ fun UserInput(
                     keyboardController?.hide()
                 },
                 currentInputSelector = currentInputSelector,
-                statusId = statusId
+                statusId = statusId,
+                showReplies = showReplies
             )
             SelectorExpanded(
                 currentSelector = currentInputSelector,
@@ -256,7 +256,8 @@ private fun UserInputSelector(
     onMessageSent: () -> Unit,
     currentInputSelector: InputSelector,
     modifier: Modifier = Modifier,
-    statusId: String
+    statusId: String,
+    showReplies: Boolean
 ) {
     Row(
         modifier = modifier
@@ -277,13 +278,15 @@ private fun UserInputSelector(
             selected = currentInputSelector == InputSelector.PICTURE,
             description = "Photo"
         )
+//        AnimatedVisibility(visible = showReplies) {
+//            InputSelectorButton(
+//                onClick = { onSelectorChange(InputSelector.REPLIES) },
+//                icon = ImageVector.vectorResource(R.drawable.reply_all),
+//                selected = currentInputSelector == InputSelector.REPLIES,
+//                description = "Replies"
+//            )
+//        }
 
-        InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.REPLIES) },
-            icon = ImageVector.vectorResource(R.drawable.reply_all),
-            selected = currentInputSelector == InputSelector.REPLIES,
-            description = "Replies"
-        )
 
 
         val border = if (!sendMessageEnabled) {
@@ -299,9 +302,8 @@ private fun UserInputSelector(
         val disabledContentColor = colorScheme.primary.copy(alpha = .4f)
 
         val buttonColors = ButtonDefaults.buttonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
             disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .4f),
-            disabledContentColor = disabledContentColor,
+            disabledContentColor = colorScheme.tertiary,
 //            containerColor = MaterialTheme.colorScheme.tertiary
         )
         var clicked by remember { mutableStateOf(false) }
@@ -318,7 +320,7 @@ private fun UserInputSelector(
 
         Button(
             modifier = Modifier
-                .padding(end = 10.dp, top = PaddingSize0_5, bottom = PaddingSize0_5)
+                .padding(end = 20.dp, top = 8.dp, bottom = 2.dp)
                 .wrapContentSize(),
             elevation = ButtonDefaults.buttonElevation(
                 defaultElevation = PaddingSize3,
@@ -332,7 +334,6 @@ private fun UserInputSelector(
                     delay(500)
                     onMessageSent()
                 }
-
             },
             colors = buttonColors,
             border = border,
@@ -342,12 +343,13 @@ private fun UserInputSelector(
             Row(Modifier.padding(4.dp)) {
                 Image(
                     modifier = Modifier
-                        .size(32.dp)
-                        .scale(2 * imageSize)
+                        .size(24.dp)
+                        .scale(2f * imageSize)
                         .rotate(imageSize * -45f)
                         .offset(y = (0).dp, x = (2).dp)
                         .rotate(50f)
-                        .padding(start = PaddingSize0_5, end = 6.dp),
+                        .padding(start = 2.dp, end = 2.dp)
+                    ,
                     painter = painterResource(R.drawable.horn),
                     contentDescription = "",
                     colorFilter = ColorFilter.tint(colorScheme.background),
@@ -387,7 +389,9 @@ private fun InputSelectorButton(
         Icon(
             icon,
             tint = tint,
-            modifier = Modifier.padding(0.dp).size(24.dp),
+            modifier = Modifier
+                .padding(0.dp)
+                .size(24.dp),
             contentDescription = description
         )
     }
@@ -424,7 +428,7 @@ private fun UserInputText(
         horizontalArrangement = Arrangement.End
     ) {
         Surface {
-            Row(modifier = Modifier.background(colorScheme.tertiary.copy(alpha = .9f))) {
+            Row(modifier = Modifier.background(colorScheme.onTertiaryContainer.copy(alpha = .9f))) {
 
                 var visibility by remember { mutableStateOf(defaultVisiblity) }
 
@@ -443,7 +447,7 @@ private fun UserInputText(
                             onTextChanged(it, visibility)
                         },
                         modifier = Modifier
-                            .wrapContentWidth()
+                            .fillMaxWidth()
                             .wrapContentHeight()
                             .padding(start = PaddingSize1, bottom = PaddingSize2)
                             .align(Alignment.TopStart)
@@ -467,7 +471,8 @@ private fun UserInputText(
                         Text(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = PaddingSize3, bottom = PaddingSize2),
+                                .padding(start = PaddingSize3, bottom = PaddingSize2)
+                                .wrapContentWidth(),
                             text = "Be Heard",
                             maxLines = 1,
                             style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)

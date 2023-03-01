@@ -50,7 +50,7 @@ fun ContentImage(url: String = "https://placekitten.com/302/302", clicked: Boole
             },
         alignment = Alignment.Center,
         model = url,
-        contentScale = ContentScale.Inside,
+        contentScale = ContentScale.FillWidth,
         contentDescription = "Translated description of what the image contains"
     )
 }

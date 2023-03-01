@@ -1,17 +1,22 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -27,7 +32,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
@@ -39,56 +43,43 @@ import social.androiddev.R
 
 @Composable
 fun ButtonBar(
-    replyCount: Int? = null, boostCount: Int? = null, onBoost: () -> Unit, onReply: () -> Unit,
+    statusId: String,
+    replyCount: Int? = null,
+    boostCount: Int? = null,
+    favoriteCount: Int? = null,
+    onBoost: () -> Unit,
+    onFavorite: () -> Unit,
+    onReply: () -> Unit,
 ) {
-    val iconSize = PaddingSize3
-
-    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
-            border = BorderStroke(ThickSm, Color.Transparent),
-            onClick = onReply
-        ) {
-            Image(
-                modifier = Modifier.size(iconSize),
-                painter = painterResource(R.drawable.reply),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-            )
-            replyCount?.let {
-                Text(
-                    text = " $it"
+    var showingReplies by remember { mutableStateOf(false) }
+    Column {
+        Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                border = BorderStroke(ThickSm, Color.Transparent),
+                onClick = onReply
+            ) {
+                Image(
+                    modifier = Modifier.size(PaddingSize3),
+                    painter = painterResource(R.drawable.reply),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                 )
             }
+
+            val icon = R.drawable.rocket3
+            springyButton(onBoost, icon, boostCount)
+            springyButton(onFavorite, R.drawable.star, favoriteCount)
+            springyButton(
+                onClick = {
+                    showingReplies = !showingReplies
+
+                },
+                icon = R.drawable.reply_all, count = replyCount
+            )
         }
-
-        val icon = R.drawable.rocket3
-        springyButton(onBoost, iconSize, icon, boostCount)
-        OutlinedButton(
-            contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
-            border = BorderStroke(ThickSm, Color.Transparent),
-            onClick = { }
-        ) {
-            Image(
-                modifier = Modifier.size(iconSize),
-                painter = painterResource(R.drawable.bookmark_48px),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-
-                )
-        }
-        OutlinedButton(
-            contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
-            border = BorderStroke(ThickSm, Color.Transparent),
-            onClick = { }
-        ) {
-            Image(
-                modifier = Modifier.size(iconSize),
-                painter = painterResource(R.drawable.share),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-
-                )
+        AnimatedVisibility(visible = showingReplies) {
+            Conversation(statusId = statusId)
         }
     }
 }
@@ -96,10 +87,11 @@ fun ButtonBar(
 @Composable
 private fun springyButton(
     onClick: () -> Unit,
-    iconSize: Dp,
     icon: Int,
     count: Int?
 ) {
+    val iconSize = PaddingSize3
+
     var clicked by remember { mutableStateOf(false) }
     var localCount by remember { mutableStateOf(count) }
 
@@ -120,7 +112,7 @@ private fun springyButton(
             clicked = !clicked
             scope.launch {
                 delay(500)
-                if (count!! + 1 >= localCount!!) localCount = count + 1
+//                if (count != null && count + 1 >= localCount!!) localCount = count + 1
                 onClick()
             }
         }

@@ -24,6 +24,7 @@ import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.theme.*
 import com.squareup.anvil.annotations.ContributesTo
+import javax.inject.Provider
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +38,7 @@ interface AuthOptionalInjector {
 interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
     fun homePresenter(): TimelinePresenter
-    fun conversationPresenter(): ConversationPresenter
+    fun conversationPresenter(): Provider<ConversationPresenter>
 }
 
 @ExperimentalTextApi

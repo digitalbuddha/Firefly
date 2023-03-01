@@ -118,7 +118,7 @@ fun StatusDB.mapStatus(): UI {
             }
 
             else -> {
-                "years ago"
+                "now"
             }
         }
     return UI(

@@ -57,8 +57,9 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
-    ui: UI, replyToStatus: (String, String, String) -> Unit,
+    ui: UI, replyToStatus: (String, String, String, Int) -> Unit,
     boostStatus: (String) -> Unit,
+    favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
     isReplying: (Boolean) -> Unit
 ) {
@@ -142,35 +143,43 @@ fun TimelineCard(
                         }
                     }
                 }
-
-                AnimatedVisibility(visible = clicked) {
-                    Column {
-                        ButtonBar(ui.replyCount, ui.boostCount, onBoost = {
-                            boostStatus(ui.remoteId)
-                        }) {
-                            showReply = !showReply
-                            isReplying(showReply)
-
-                        }
-                    }
-                }
                 AnimatedVisibility(visible = showReply) {
                     var mentions = ui.mentions.map { mention -> mention.username }.toMutableList()
 
                     mentions.add(ui.userName)
                     mentions = mentions.map { "@${it}" }.toMutableList()
-                    Column {
+                    Column(modifier = Modifier.padding(top = PaddingSize2)) {
                         UserInput(
                             ui.remoteId,
                             connection = nestedScrollConnection,
                             onMessageSent = { it, visibility ->
-                                replyToStatus(it, visibility, ui.remoteId)
+                                replyToStatus(it, visibility, ui.remoteId, ui.replyCount)
                             },
                             defaultVisiblity = "Direct",
-                            participants = mentions.joinToString(" ")
+                            participants = mentions.joinToString(" "),
+                            showReplies = true
                         )
                     }
                 }
+                AnimatedVisibility(visible = clicked) {
+                    Column {
+                        ButtonBar(
+                            ui.remoteId,
+                            ui.replyCount,
+                            ui.boostCount,
+                            ui.favoriteCount,
+                            onBoost = {
+                                boostStatus(ui.remoteId)
+                            },
+                            onFavorite = {
+                                favoriteStatus(ui.remoteId)
+                            }) {
+                            showReply = !showReply
+                            isReplying(showReply)
+                        }
+                    }
+                }
+
                 Divider(
                     Modifier.padding(top = PaddingSize2),
                     color = Color.Gray.copy(alpha = .5f)

@@ -12,14 +12,14 @@ import javax.inject.Inject
 
 abstract class ConversationPresenter :
     Presenter<ConversationPresenter.ConversationEvent, ConversationPresenter.ConversationModel, ConversationPresenter.ConversationEffect>(
-        ConversationModel(emptyList())
+        ConversationModel(emptyMap())
     ) {
     sealed interface ConversationEvent
 
     data class Load(val statusId: String) : ConversationEvent
 
     data class ConversationModel(
-        val statuses: List<Status>
+        val statuses: Map<String,List<Status>>
     )
 
     sealed interface ConversationEffect
@@ -33,6 +33,7 @@ class RealConversationPresenter @Inject constructor(
 ) :
     ConversationPresenter() {
 
+
     override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope) {
         when (event) {
             is Load -> {
@@ -40,7 +41,9 @@ class RealConversationPresenter @Inject constructor(
                 val conversation = kotlin.runCatching { api.conversation(event.statusId) }
                 if (conversation.isSuccess) {
                     val statuses = conversation.getOrThrow()
-                    model = model.copy(statuses = statuses.descendants + statuses.ancestors)
+                    val new = model.statuses.toMutableMap()
+                    new[event.statusId] = statuses.descendants + statuses.ancestors
+                    model = model.copy(statuses = new)
                 }
             }
         }
