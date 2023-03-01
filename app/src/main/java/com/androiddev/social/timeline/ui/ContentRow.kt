@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Divider
@@ -57,10 +56,10 @@ import social.androiddev.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun LazyItemScope.TimelineCard(
+fun TimelineCard(
     ui: UI, replyToStatus: (String, String, String) -> Unit,
     boostStatus: (String) -> Unit,
-    state: ModalBottomSheetState,
+    state: ModalBottomSheetState?,
     isReplying: (Boolean) -> Unit
 ) {
 //    SwipeableActionsBox(
@@ -92,7 +91,7 @@ fun LazyItemScope.TimelineCard(
                 var showReply by remember(ui) { mutableStateOf(false) }
                 if (clicked) {
                     LaunchedEffect(Unit) {
-                        state.hide()
+                        state?.hide()
                     }
                 }
 
@@ -150,6 +149,8 @@ fun LazyItemScope.TimelineCard(
                             boostStatus(ui.remoteId)
                         }) {
                             showReply = !showReply
+                            isReplying(showReply)
+
                         }
                     }
                 }
@@ -158,14 +159,17 @@ fun LazyItemScope.TimelineCard(
 
                     mentions.add(ui.userName)
                     mentions = mentions.map { "@${it}" }.toMutableList()
-                    UserInput(
-                        connection = nestedScrollConnection,
-                        onMessageSent = { it, visibility ->
-                            replyToStatus(it, visibility, ui.remoteId)
-                        },
-                        defaultVisiblity = "Direct",
-                        participants = mentions.joinToString(" ")
-                    )
+                    Column {
+                        UserInput(
+                            ui.remoteId,
+                            connection = nestedScrollConnection,
+                            onMessageSent = { it, visibility ->
+                                replyToStatus(it, visibility, ui.remoteId)
+                            },
+                            defaultVisiblity = "Direct",
+                            participants = mentions.joinToString(" ")
+                        )
+                    }
                 }
                 Divider(
                     Modifier.padding(top = PaddingSize2),

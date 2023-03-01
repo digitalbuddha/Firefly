@@ -46,11 +46,11 @@ fun Navigator(
 
             LaunchedEffect(Unit) {
                 val result = scale.animateTo(
-                    targetValue = 0f,
+                    targetValue = 0.001f,
                     animationSpec = tween(
                         durationMillis = 800,
                         easing = {
-                            OvershootInterpolator(2000f).getInterpolation(it)
+                            OvershootInterpolator(20000f).getInterpolation(it)
                         })
                 )
                 val accounts: Map<Preferences.Key<*>, Any>? =

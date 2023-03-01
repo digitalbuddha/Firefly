@@ -94,6 +94,7 @@ dependencies {
     implementation(libs.androidx.nav.compose)
     api(libs.atomicfu)
     implementation("app.cash.sqldelight:android-driver:2.0.0-alpha05")
+    implementation "com.airbnb.android:lottie-compose:6.0.0"
 
     testImplementation(libs.coroutines.test)
     testImplementation(libs.junit)

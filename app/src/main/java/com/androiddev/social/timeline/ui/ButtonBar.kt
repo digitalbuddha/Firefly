@@ -43,8 +43,6 @@ fun ButtonBar(
 ) {
     val iconSize = PaddingSize3
 
-
-
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
@@ -59,7 +57,6 @@ fun ButtonBar(
             )
             replyCount?.let {
                 Text(
-//                    color = MaterialTheme.color??Scheme.onSurface,
                     text = " $it"
                 )
             }

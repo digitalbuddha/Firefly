@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -50,15 +51,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import social.androiddev.R
 import com.androiddev.social.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import social.androiddev.R
 
 enum class InputSelector {
     NONE,
     MAP,
-    DM,
+    REPLIES,
     EMOJI,
     PHONE,
     PICTURE
@@ -75,9 +76,11 @@ enum class EmojiStickerSelector {
 //    UserInput(onMessageSent = {})
 //}
 
+@ExperimentalMaterialApi
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UserInput(
+    statusId: String,
     connection: NestedScrollConnection? = null,
     modifier: Modifier = Modifier,
     onMessageSent: (String, String) -> Unit,
@@ -129,7 +132,7 @@ fun UserInput(
                     textFieldFocusState = focused
                 },
                 focusState = textFieldFocusState,
-                defaultVisiblity = visibility
+                defaultVisiblity = visibility,
             )
 
             UserInputSelector(
@@ -145,13 +148,15 @@ fun UserInput(
                     dismissKeyboard()
                     keyboardController?.hide()
                 },
-                currentInputSelector = currentInputSelector
+                currentInputSelector = currentInputSelector,
+                statusId = statusId
             )
             SelectorExpanded(
+                currentSelector = currentInputSelector,
                 onCloseRequested = dismissKeyboard,
                 onTextAdded = { textState = textState.addText(it) },
-                currentSelector = currentInputSelector,
-                connection = connection
+                connection = connection,
+                statusId = statusId
             )
         }
     }
@@ -171,12 +176,14 @@ private fun TextFieldValue.addText(newString: String): TextFieldValue {
     return this.copy(text = newText, selection = newSelection)
 }
 
+@ExperimentalMaterialApi
 @Composable
 private fun SelectorExpanded(
     currentSelector: InputSelector,
     onCloseRequested: () -> Unit,
     onTextAdded: (String) -> Unit,
-    connection: NestedScrollConnection?
+    connection: NestedScrollConnection?,
+    statusId: String
 ) {
     if (currentSelector == InputSelector.NONE) return
 
@@ -192,7 +199,7 @@ private fun SelectorExpanded(
     Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
-//            InputSelector.DM -> NotAvailablePopup(onCloseRequested)
+            InputSelector.REPLIES -> Conversation(statusId = statusId)
             InputSelector.PICTURE -> PhotoPickerResultComposable()
 //            InputSelector.MAP -> FunctionalityNotAvailablePanel()
 //            InputSelector.PHONE -> FunctionalityNotAvailablePanel()
@@ -248,7 +255,8 @@ private fun UserInputSelector(
     sendMessageEnabled: Boolean,
     onMessageSent: () -> Unit,
     currentInputSelector: InputSelector,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    statusId: String
 ) {
     Row(
         modifier = modifier
@@ -268,6 +276,13 @@ private fun UserInputSelector(
             icon = ImageVector.vectorResource(R.drawable.photo),
             selected = currentInputSelector == InputSelector.PICTURE,
             description = "Photo"
+        )
+
+        InputSelectorButton(
+            onClick = { onSelectorChange(InputSelector.REPLIES) },
+            icon = ImageVector.vectorResource(R.drawable.reply_all),
+            selected = currentInputSelector == InputSelector.REPLIES,
+            description = "Replies"
         )
 
 
@@ -372,7 +387,7 @@ private fun InputSelectorButton(
         Icon(
             icon,
             tint = tint,
-            modifier = Modifier.padding(0.dp),
+            modifier = Modifier.padding(0.dp).size(24.dp),
             contentDescription = description
         )
     }
@@ -395,7 +410,7 @@ private fun UserInputText(
     keyboardShown: Boolean,
     onTextFieldFocused: (Boolean) -> Unit,
     focusState: Boolean,
-    defaultVisiblity: String,
+    defaultVisiblity: String
 ) {
     val a11ylabel = "description"
     Row(
@@ -430,7 +445,7 @@ private fun UserInputText(
                         modifier = Modifier
                             .wrapContentWidth()
                             .wrapContentHeight()
-                            .padding(start = PaddingSize4, bottom = PaddingSize2)
+                            .padding(start = PaddingSize1, bottom = PaddingSize2)
                             .align(Alignment.TopStart)
                             .onFocusChanged { state ->
                                 if (lastFocusState != state.isFocused) {
@@ -440,7 +455,7 @@ private fun UserInputText(
                             },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = keyboardType,
-                            imeAction = ImeAction.Send
+                            imeAction = ImeAction.None
                         ),
                         maxLines = 10,
                         cursorBrush = SolidColor(LocalContentColor.current),

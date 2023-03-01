@@ -2,6 +2,7 @@ package com.androiddev.social.shared
 
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.Status
+import kotlinx.serialization.Serializable
 import retrofit2.http.*
 
 
@@ -37,8 +38,15 @@ interface UserApi {
         @Field("visibility") visibility: String,
     ): Status
 
-    @POST("/api/v1/statuses/{id}/reblog")
-    suspend fun boostStatus(
+    @Serializable
+    data class Conversation(val ancestors: List<Status>, val descendants: List<Status>)
+
+    @GET("api/v1/statuses/{id}/context")
+    suspend fun conversation(
+        @Path("id") statusId: String
+    ): Conversation
+
+    fun boostStatus(
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
     ): Status

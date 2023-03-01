@@ -33,173 +33,179 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
+val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun TimelineScreen(userComponent: UserComponent) {
     val context = LocalContext.current
     val component =
         retain { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
-    val homePresenter = component.homePresenter()
-    val avatarPresenter = component.avatarPresenter()
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(key1 = "start") {
-        homePresenter.start(scope)
-    }
-    LaunchedEffect(key1 = "start") {
-        avatarPresenter.start()
-    }
-    val state = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-    )
-    var replying by remember { mutableStateOf(false) }
-    var tabToLoad: FeedType by remember { mutableStateOf(FeedType.Home) }
-    if (!state.isVisible) replying = false
+    CompositionLocalProvider(LocalAuthComponent provides component) {
 
-    Scaffold(
-        backgroundColor = Color.Transparent,
-        bottomBar = {
-            AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
-                BottomAppBar(
-                    modifier = Modifier.height(PaddingSize8),
-                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
-                    elevation = BottomBarElevation,
-                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
-                ) {
-                    BottomBar()
-                }
-            }
-
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        isFloatingActionButtonDocked = true,
-        floatingActionButton = {
-            val scope = rememberCoroutineScope()
-            if (!state.isVisible || !replying) {
-                FAB(MaterialTheme.colorScheme) {
-                    replying = true
-                    scope.launch {
-                        state.show()
-                    }
-                }
-            }
-        }) { padding ->
-        Box {
-            ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
-                alpha = .5f
-            ),
-                sheetElevation = PaddingSize2,
-                sheetState = state,
-                sheetContent = {
-                    var done by remember { mutableStateOf(false) }
-                    if (done) {
-                        LaunchedEffect(Unit) {
-                            state.hide()
-                        }
-                    }
-                    val shouldCloseDrawer = false
-                    UserInput(
-                        modifier = Modifier.padding(bottom = 0.dp),
-                        onMessageSent = { it, visibility ->
-                            homePresenter.handle(TimelinePresenter.PostMessage(it, visibility))
-                            done = true
-                        },
-                        participants = ""
-                    )
-                }) {
-                val model = homePresenter.model
-
-                when (tabToLoad) {
-                    FeedType.Home -> {
-                        timelineScreen(
-                            homePresenter.events,
-                            FeedType.Home,
-                            items = model.homeStatuses?.collectAsLazyPagingItems(),
-                            state
-                        ) {
-                            replying = it
-                        }
-                    }
-
-                    FeedType.Local -> {
-                        timelineScreen(
-                            homePresenter.events,
-                            FeedType.Local,
-                            model.localStatuses?.collectAsLazyPagingItems(),
-                            state
-                        ) { replying = it }
-                    }
-
-                    FeedType.Federated -> {
-                        timelineScreen(
-                            homePresenter.events,
-                            FeedType.Federated,
-                            model.federatedStatuses?.collectAsLazyPagingItems(),
-                            state
-                        ) { replying = it }
-                    }
-
-                    FeedType.Trending -> {
-                        timelineScreen(
-                            homePresenter.events,
-                            FeedType.Trending,
-                            model.trendingStatuses?.collectAsLazyPagingItems(),
-                            state
-                        ) { replying = it }
-                    }
-                }
-            }
+        val homePresenter = component.homePresenter()
+        val avatarPresenter = component.avatarPresenter()
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(key1 = "start") {
+            homePresenter.start(scope)
         }
-        TopAppBar(modifier = Modifier
-            .height(60.dp)
-            .background(Color.Transparent),
+        LaunchedEffect(key1 = "start") {
+            avatarPresenter.start()
+        }
+        val state = rememberModalBottomSheetState(
+            initialValue = ModalBottomSheetValue.Hidden,
+        )
+        var replying by remember { mutableStateOf(false) }
+        var tabToLoad: FeedType by remember { mutableStateOf(FeedType.Home) }
+        if (!state.isVisible) replying = false
+
+        Scaffold(
             backgroundColor = Color.Transparent,
-
-            title = {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    LaunchedEffect(key1 = "avatar") {
-                        avatarPresenter.start()
+            bottomBar = {
+                AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
+                    BottomAppBar(
+                        modifier = Modifier.height(PaddingSize8),
+                        contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                        elevation = BottomBarElevation,
+                        backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+                    ) {
+                        BottomBar()
                     }
-                    LaunchedEffect(key1 = "avatar") {
-                        avatarPresenter.events.tryEmit(AvatarPresenter.Load)
-                    }
+                }
 
-                    Box {
-                        Profile(
-                            account = avatarPresenter.model.account
+            },
+            floatingActionButtonPosition = FabPosition.Center,
+            isFloatingActionButtonDocked = true,
+            floatingActionButton = {
+                val scope = rememberCoroutineScope()
+                if (!replying) {
+                    FAB(MaterialTheme.colorScheme) {
+                        replying = true
+                        scope.launch {
+                            state.show()
+                        }
+                    }
+                }
+            }) { padding ->
+            Box {
+                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
+                    alpha = .5f
+                ),
+                    sheetElevation = PaddingSize2,
+                    sheetState = state,
+                    sheetContent = {
+                        var done by remember { mutableStateOf(false) }
+                        if (done) {
+                            LaunchedEffect(Unit) {
+                                state.hide()
+                            }
+                        }
+                        val shouldCloseDrawer = false
+                        UserInput(
+                            modifier = Modifier.padding(bottom = 0.dp),
+                            onMessageSent = { it, visibility ->
+                                homePresenter.handle(TimelinePresenter.PostMessage(it, visibility))
+                                done = true
+                            },
+                            participants = "",
+                            statusId = ""
                         )
+                    }) {
+                    val model = homePresenter.model
+
+                    when (tabToLoad) {
+                        FeedType.Home -> {
+                            timelineScreen(
+                                homePresenter.events,
+                                FeedType.Home,
+                                items = model.homeStatuses?.collectAsLazyPagingItems(),
+                                state
+                            ) {
+                                replying = it
+                            }
+                        }
+
+                        FeedType.Local -> {
+                            timelineScreen(
+                                homePresenter.events,
+                                FeedType.Local,
+                                model.localStatuses?.collectAsLazyPagingItems(),
+                                state
+                            ) { replying = it }
+                        }
+
+                        FeedType.Federated -> {
+                            timelineScreen(
+                                homePresenter.events,
+                                FeedType.Federated,
+                                model.federatedStatuses?.collectAsLazyPagingItems(),
+                                state
+                            ) { replying = it }
+                        }
+
+                        FeedType.Trending -> {
+                            timelineScreen(
+                                homePresenter.events,
+                                FeedType.Trending,
+                                model.trendingStatuses?.collectAsLazyPagingItems(),
+                                state
+                            ) { replying = it }
+                        }
                     }
-                    Box(Modifier.align(Alignment.CenterVertically)) {
-                        TabSelector { it ->
-                            tabToLoad = when (it) {
-                                FeedType.Home.type -> {
-                                    FeedType.Home
-                                }
+                }
+            }
+            TopAppBar(modifier = Modifier
+                .height(60.dp)
+                .background(Color.Transparent),
+                backgroundColor = Color.Transparent,
 
-                                FeedType.Local.type -> {
-                                    FeedType.Local
-                                }
+                title = {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        LaunchedEffect(key1 = "avatar") {
+                            avatarPresenter.start()
+                        }
+                        LaunchedEffect(key1 = "avatar") {
+                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+                        }
 
-                                FeedType.Federated.type -> {
-                                    FeedType.Federated
-                                }
+                        Box {
+                            Profile(
+                                account = avatarPresenter.model.account
+                            )
+                        }
+                        Box(Modifier.align(Alignment.CenterVertically)) {
+                            TabSelector { it ->
+                                tabToLoad = when (it) {
+                                    FeedType.Home.type -> {
+                                        FeedType.Home
+                                    }
 
-                                FeedType.Trending.type -> {
-                                    FeedType.Trending
-                                }
+                                    FeedType.Local.type -> {
+                                        FeedType.Local
+                                    }
 
-                                else -> {
-                                    FeedType.Home
+                                    FeedType.Federated.type -> {
+                                        FeedType.Federated
+                                    }
+
+                                    FeedType.Trending.type -> {
+                                        FeedType.Trending
+                                    }
+
+                                    else -> {
+                                        FeedType.Home
+                                    }
                                 }
                             }
                         }
+                        NotifIcon()
                     }
-                    NotifIcon()
-                }
-            })
+                })
+        }
     }
 }
 

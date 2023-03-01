@@ -37,6 +37,7 @@ interface AuthOptionalInjector {
 interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
     fun homePresenter(): TimelinePresenter
+    fun conversationPresenter(): ConversationPresenter
 }
 
 @ExperimentalTextApi
