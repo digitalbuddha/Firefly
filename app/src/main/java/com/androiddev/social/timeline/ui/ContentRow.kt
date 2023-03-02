@@ -49,7 +49,11 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.LinkListener
+import com.androiddev.social.timeline.data.Status
+import com.androiddev.social.timeline.data.mapStatus
+import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import me.saket.swipe.SwipeAction
@@ -58,11 +62,14 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
+
     ui: UI, replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
-    isReplying: (Boolean) -> Unit
+    isReplying: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+        .background(colorScheme.surface.copy(alpha = .99f)),
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
@@ -70,8 +77,7 @@ fun TimelineCard(
 ////        modifier = Modifier.animateItemPlacement()
 //    ) {
     Column(
-        Modifier
-            .background(colorScheme.surface.copy(alpha = .99f))
+        modifier
             .padding(
                 bottom = PaddingSize2,
                 start = PaddingSize2,
@@ -87,6 +93,8 @@ fun TimelineCard(
                 .padding(bottom = PaddingSizeNone)
                 .wrapContentHeight()
         ) {
+            var showingReplies by remember { mutableStateOf(false) }
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
                 var clicked by remember(ui) { mutableStateOf(false) }
@@ -97,8 +105,27 @@ fun TimelineCard(
                     }
                 }
 
-                val uriHandler = LocalUriHandler.current
 
+                val uriHandler = LocalUriHandler.current
+                AnimatedVisibility (showingReplies) {
+                    val provider = LocalAuthComponent.current.conversationPresenter().get()
+                    var presenter by remember { mutableStateOf(provider) }
+                    val submitPresenter = LocalAuthComponent.current.submitPresenter()
+                    val beforeStatus: Map<String, List<Status>> =
+                        presenter.model.before
+
+                    val before: MutableList<UI>? =
+                        beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+                            ?.toMutableList()
+                    before?.lastOrNull()?.let {
+                        card(
+                            Modifier.background(colorScheme.background.copy(alpha = .5f)),
+                            it,
+                            submitPresenter.events
+                        )
+                    }
+
+                }
                 ClickableText(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = colorScheme.onSurface,
@@ -123,6 +150,7 @@ fun TimelineCard(
                     },
                     inlineContent = mapping
                 )
+
                 ui.imageUrl?.let { ContentImage(it) { clicked = !clicked } }
                 val toolbarHeight = PaddingSize6
                 val toolbarHeightPx =
@@ -151,7 +179,7 @@ fun TimelineCard(
                     mentions = mentions.map { "@${it}" }.toMutableList()
                     Column(modifier = Modifier.padding(top = PaddingSize2)) {
                         UserInput(
-                            ui.remoteId,
+                            ui,
                             connection = nestedScrollConnection,
                             onMessageSent = { it, visibility, uris ->
                                 replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
@@ -164,10 +192,9 @@ fun TimelineCard(
                 }
                 AnimatedVisibility(visible = clicked) {
                     Column {
-                        var showingReplies by remember { mutableStateOf(false) }
 
                         ButtonBar(
-                            ui.remoteId,
+                            ui,
                             ui.replyCount,
                             ui.boostCount,
                             ui.favoriteCount,
@@ -181,7 +208,8 @@ fun TimelineCard(
                             onShowReplies = {
                                 showingReplies = !showingReplies
 
-                            }, onReply = {
+                            },
+                            onReply = {
                                 showReply = !showReply
                                 isReplying(showReply)
                             })

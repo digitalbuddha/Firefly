@@ -118,7 +118,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 done = true
                             },
                             participants = "",
-                            statusId = "",
+                            status = null,
                             showReplies = false
                         )
                     }) {

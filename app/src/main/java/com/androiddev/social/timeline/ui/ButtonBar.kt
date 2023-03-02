@@ -37,13 +37,14 @@ import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
+import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import social.androiddev.R
 
 @Composable
 fun ButtonBar(
-    statusId: String,
+    status: UI,
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
@@ -71,15 +72,28 @@ fun ButtonBar(
             val icon = R.drawable.rocket3
             springyButton(onBoost, icon, boostCount)
             springyButton(onFavorite, R.drawable.star, favoriteCount)
-            springyButton(
-                onClick = {
-                    onShowReplies()
-                },
-                icon = R.drawable.reply_all, count = replyCount
-            )
+            OutlinedButton(
+                contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                border = BorderStroke(ThickSm, Color.Transparent),
+                onClick = { onShowReplies() }
+            ) {
+                Image(
+                    modifier = Modifier.size(PaddingSize3),
+                    painter = painterResource(R.drawable.chat),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                )
+                replyCount?.let {
+                    Text(
+                        text = " $it"
+                    )
+                }
+            }
+
+
         }
         AnimatedVisibility(visible = showReply) {
-            Conversation(statusId = statusId)
+            Conversation(status = status)
         }
     }
 }
@@ -124,7 +138,7 @@ private fun springyButton(
                 .scale(1 * imageSize)
                 .rotate(imageSize * -45f)
                 .offset(y = (1 * imageSize).dp, x = (2 * imageSize).dp)
-                .rotate(50f),
+                .rotate(45f),
             painter = painterResource(icon),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),

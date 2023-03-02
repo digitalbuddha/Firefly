@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.androiddev.social.theme.*
+import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import social.androiddev.R
@@ -82,7 +83,7 @@ enum class EmojiStickerSelector {
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UserInput(
-    statusId: String,
+    status: UI?,
     connection: NestedScrollConnection? = null,
     modifier: Modifier = Modifier,
     onMessageSent: (String, String, Set<Uri>) -> Unit,
@@ -153,7 +154,7 @@ fun UserInput(
                     keyboardController?.hide()
                 },
                 currentInputSelector = currentInputSelector,
-                statusId = statusId,
+                status = status,
                 showReplies = showReplies
             )
             SelectorExpanded(
@@ -162,8 +163,8 @@ fun UserInput(
                 onClearSelector = { currentInputSelector = InputSelector.NONE },
                 onTextAdded = { textState = textState.addText(it) },
                 connection = connection,
-                statusId = statusId,
-                uris = uris
+                uris = uris,
+                status = status
             )
             Row(
                 horizontalArrangement = Arrangement.Start,
@@ -216,8 +217,8 @@ private fun SelectorExpanded(
     onClearSelector: () -> Unit,
     onTextAdded: (String) -> Unit,
     connection: NestedScrollConnection?,
-    statusId: String,
-    uris: SnapshotStateList<Uri>
+    uris: SnapshotStateList<Uri>,
+    status: UI?
 ) {
     val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
@@ -234,7 +235,8 @@ private fun SelectorExpanded(
     Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
-            InputSelector.REPLIES -> Conversation(statusId = statusId)
+            InputSelector.REPLIES  ->
+                status?.let { Conversation(status = it) }
             InputSelector.PICTURE -> PhotoPickerResultComposable(uris) {
                 onClearSelector()
             }
@@ -301,7 +303,7 @@ private fun UserInputSelector(
     onMessageSent: () -> Unit,
     currentInputSelector: InputSelector,
     modifier: Modifier = Modifier,
-    statusId: String,
+    status: UI?,
     showReplies: Boolean
 ) {
     Row(
