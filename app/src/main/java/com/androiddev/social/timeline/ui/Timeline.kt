@@ -38,7 +38,7 @@ val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No co
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun TimelineScreen(userComponent: UserComponent) {
+fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
     val context = LocalContext.current
     val component =
         retain { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
@@ -189,7 +189,8 @@ fun TimelineScreen(userComponent: UserComponent) {
 
                         Box {
                             Profile(
-                                account = avatarPresenter.model.account
+                                account = avatarPresenter.model.account,
+                                onChangeTheme = onChangeTheme
                             )
                         }
                         Box(Modifier.align(Alignment.CenterVertically)) {

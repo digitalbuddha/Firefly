@@ -70,8 +70,8 @@ fun ButtonBar(
             }
 
             val icon = R.drawable.rocket3
-            springyButton(onBoost, icon, boostCount)
-            springyButton(onFavorite, R.drawable.star, favoriteCount)
+            SpringyButton(onBoost, icon, boostCount)
+            SpringyButton(onFavorite, R.drawable.star, favoriteCount)
             OutlinedButton(
                 contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
                 border = BorderStroke(ThickSm, Color.Transparent),
@@ -97,7 +97,7 @@ fun ButtonBar(
 }
 
 @Composable
-private fun springyButton(
+private fun SpringyButton(
     onClick: () -> Unit,
     icon: Int,
     count: Int?

@@ -17,22 +17,24 @@ import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Replies() {
+fun Parent(
+    onClick: () -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
     ) {
         AssistChip(
-                border = AssistChipDefaults.assistChipBorder(borderColor =  Color.Transparent),
+            border = AssistChipDefaults.assistChipBorder(borderColor = Color.Transparent),
             colors = AssistChipDefaults.assistChipColors(
-                containerColor = colorScheme.outline.copy(alpha = .1f),
-               labelColor = colorScheme.primary
+                containerColor = colorScheme.tertiaryContainer.copy(alpha = .3f),
+                labelColor = colorScheme.primary
             ),
-            shape = RoundedCornerShape(0, 0, 0, 0),
-            onClick = { /* Do something! */ },
+            shape = RoundedCornerShape(50, 50, 50, 50),
+            onClick = onClick,
             label = {
-                Text("Replies", style = MaterialTheme.typography.labelMedium)
+                Text("Show Parent", style = MaterialTheme.typography.labelMedium)
             },
         )
     }

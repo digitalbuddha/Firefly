@@ -1,28 +1,39 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
+import social.androiddev.R
 
 @Composable
 fun Profile(
-    onProfileClick: () -> Unit = {}, onSettingsClicked: () -> Unit = {}, account: Account?
+    onProfileClick: () -> Unit = {}, onChangeTheme: () -> Unit = {}, account: Account?
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
-        account?.let { AvatarImage(url = it.avatar) }
+    Row(modifier = Modifier) {
+        account?.let { AvatarImage(url = it.avatar,onClick = { expanded = true}) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -39,7 +50,7 @@ fun Profile(
             }, text = {
                 Row {
                     account?.let { it ->
-                        AvatarImage(url = it.avatar)
+                        AvatarImage(url = it.avatar, onClick = { expanded = true})
                         val emojis = account.emojis
 
 
@@ -66,14 +77,17 @@ fun Profile(
 
             DropdownMenuItem(onClick = {
                 expanded = false
-                onSettingsClicked()
+                onChangeTheme()
             }, text = {
                 Row {
-                    Icon(
-                        Icons.Outlined.Settings, contentDescription = "Localized description"
+                    Image(
+                        modifier = Modifier.size(PaddingSize3),
+                        painter = painterResource(R.drawable.theme),
+                        contentDescription = "",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
                     Text(
-                        "Settings",
+                        "Switch Theme",
                         modifier = Modifier
                             .padding(PaddingSize0_5)
                             .align(Alignment.CenterVertically)

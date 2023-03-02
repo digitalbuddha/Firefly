@@ -62,7 +62,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            EbonyTheme {
+            var isDynamicTheme by remember { mutableStateOf(true) }
+            EbonyTheme(isDynamicColor = isDynamicTheme) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -72,15 +73,15 @@ class MainActivity : ComponentActivity() {
                             )
                         )
                 ) {
-
                     val scope = rememberCoroutineScope()
                     val navController = rememberNavController()
-                    Navigator(navController, scope)
+                    Navigator(navController, scope) {
+                        isDynamicTheme = !isDynamicTheme
+                    }
                 }
             }
         }
     }
-
 
 
     fun noAuthComponent() =

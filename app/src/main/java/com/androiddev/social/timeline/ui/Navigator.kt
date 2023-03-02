@@ -37,7 +37,8 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun Navigator(
     navController: NavHostController,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    onChangeTheme: () -> Unit
 ) {
     NavHost(navController = navController, startDestination = "splash") {
         composable("splash") {
@@ -124,7 +125,7 @@ fun Navigator(
 
             val userManager =
                 ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
-            TimelineScreen(userManager.userComponentFor(accessTokenRequest = accessTokenRequest))
+            TimelineScreen(userManager.userComponentFor(accessTokenRequest = accessTokenRequest), onChangeTheme)
         }
 
     }

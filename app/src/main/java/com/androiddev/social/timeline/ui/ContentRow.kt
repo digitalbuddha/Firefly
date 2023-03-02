@@ -85,25 +85,30 @@ fun TimelineCard(
                 top = PaddingSize2
             )
     ) {
+        val provider = LocalAuthComponent.current.conversationPresenter().get()
+        var presenter by remember { mutableStateOf(provider) }
+        val submitPresenter = LocalAuthComponent.current.submitPresenter()
+        val beforeStatus: Map<String, List<Status>> =
+            presenter.model.before
+
+        val before: MutableList<UI> =
+            beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+                ?.toMutableList()?: mutableListOf()
         var showingReplies by remember { mutableStateOf(false) }
-        AnimatedVisibility(showingReplies) {
-            val provider = LocalAuthComponent.current.conversationPresenter().get()
-            var presenter by remember { mutableStateOf(provider) }
-            val submitPresenter = LocalAuthComponent.current.submitPresenter()
-            val beforeStatus: Map<String, List<Status>> =
-                presenter.model.before
+        AnimatedVisibility(showingReplies && before.size > 0) {
+            var showParent by remember { mutableStateOf(false) }
 
-            val before: MutableList<UI>? =
-                beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-                    ?.toMutableList()
-            before?.lastOrNull()?.let {
-                card(
-                    Modifier.background(colorScheme.background.copy(alpha = .5f)),
-                    it,
-                    submitPresenter.events
-                )
+            if(!showParent)
+                Parent { showParent = true }
+            AnimatedVisibility(showParent) {
+                before.lastOrNull()?.let {
+                    card(
+                        Modifier.background(colorScheme.tertiaryContainer.copy(alpha = .1f)),
+                        it,
+                        submitPresenter.events
+                    )
+                }
             }
-
         }
         DirectMessage(ui.directMessage)
         Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis)
