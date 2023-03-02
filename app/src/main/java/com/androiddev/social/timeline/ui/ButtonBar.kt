@@ -50,8 +50,9 @@ fun ButtonBar(
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
+    showReply: Boolean,
+    onShowReplies: () -> Unit,
 ) {
-    var showingReplies by remember { mutableStateOf(false) }
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
@@ -72,13 +73,12 @@ fun ButtonBar(
             springyButton(onFavorite, R.drawable.star, favoriteCount)
             springyButton(
                 onClick = {
-                    showingReplies = !showingReplies
-
+                    onShowReplies()
                 },
                 icon = R.drawable.reply_all, count = replyCount
             )
         }
-        AnimatedVisibility(visible = showingReplies) {
+        AnimatedVisibility(visible = showReply) {
             Conversation(statusId = statusId)
         }
     }

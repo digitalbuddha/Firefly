@@ -43,11 +43,11 @@ class RealConversationPresenter @Inject constructor(
                 if (conversation.isSuccess) {
                     val statuses = conversation.getOrThrow()
                     val before = model.before.toMutableMap()
-                    before[event.statusId] = statuses.descendants
+                    before[event.statusId] = statuses.ancestors
                     model = model.copy(before = before)
 
                     val after = model.after.toMutableMap()
-                    after[event.statusId] = statuses.ancestors
+                    after[event.statusId] = statuses.descendants
                     model = model.copy(after = after)
                 }
             }

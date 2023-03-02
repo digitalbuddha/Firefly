@@ -164,6 +164,8 @@ fun TimelineCard(
                 }
                 AnimatedVisibility(visible = clicked) {
                     Column {
+                        var showingReplies by remember { mutableStateOf(false) }
+
                         ButtonBar(
                             ui.remoteId,
                             ui.replyCount,
@@ -174,10 +176,15 @@ fun TimelineCard(
                             },
                             onFavorite = {
                                 favoriteStatus(ui.remoteId)
-                            }) {
-                            showReply = !showReply
-                            isReplying(showReply)
-                        }
+                            },
+                            showReply = showingReplies,
+                            onShowReplies = {
+                                showingReplies = !showingReplies
+
+                            }, onReply = {
+                                showReply = !showReply
+                                isReplying(showReply)
+                            })
                     }
                 }
 
