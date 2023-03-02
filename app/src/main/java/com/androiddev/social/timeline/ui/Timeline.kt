@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -44,6 +45,7 @@ fun TimelineScreen(userComponent: UserComponent) {
     CompositionLocalProvider(LocalAuthComponent provides component) {
 
         val homePresenter = component.homePresenter()
+        val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
         val scope = rememberCoroutineScope()
         LaunchedEffect(key1 = "start") {
@@ -51,6 +53,9 @@ fun TimelineScreen(userComponent: UserComponent) {
         }
         LaunchedEffect(key1 = "start") {
             avatarPresenter.start()
+        }
+        LaunchedEffect(key1 = "start") {
+            submitPresenter.start()
         }
         val state = rememberModalBottomSheetState(
             initialValue = ModalBottomSheetValue.Hidden,
@@ -100,11 +105,16 @@ fun TimelineScreen(userComponent: UserComponent) {
                                 state.hide()
                             }
                         }
-                        val shouldCloseDrawer = false
                         UserInput(
                             modifier = Modifier.padding(bottom = 0.dp),
-                            onMessageSent = { it, visibility ->
-                                homePresenter.handle(TimelinePresenter.PostMessage(it, visibility))
+                            onMessageSent = { it, visibility, uris->
+                                submitPresenter.handle(
+                                    SubmitPresenter.PostMessage(
+                                        content = it,
+                                        visibility = visibility,
+                                        uris = uris
+                                    )
+                                )
                                 done = true
                             },
                             participants = "",
@@ -118,6 +128,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                         FeedType.Home -> {
                             timelineScreen(
                                 homePresenter.events,
+                                submitPresenter.events,
                                 FeedType.Home,
                                 items = model.homeStatuses?.collectAsLazyPagingItems(),
                                 state
@@ -129,6 +140,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                         FeedType.Local -> {
                             timelineScreen(
                                 homePresenter.events,
+                                submitPresenter.events,
                                 FeedType.Local,
                                 model.localStatuses?.collectAsLazyPagingItems(),
                                 state
@@ -138,6 +150,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                         FeedType.Federated -> {
                             timelineScreen(
                                 homePresenter.events,
+                                submitPresenter.events,
                                 FeedType.Federated,
                                 model.federatedStatuses?.collectAsLazyPagingItems(),
                                 state
@@ -147,6 +160,7 @@ fun TimelineScreen(userComponent: UserComponent) {
                         FeedType.Trending -> {
                             timelineScreen(
                                 homePresenter.events,
+                                submitPresenter.events,
                                 FeedType.Trending,
                                 model.trendingStatuses?.collectAsLazyPagingItems(),
                                 state
@@ -215,6 +229,7 @@ fun TimelineScreen(userComponent: UserComponent) {
 @Composable
 private fun timelineScreen(
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
+    submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<StatusDB>?,
     state: ModalBottomSheetState,
@@ -246,10 +261,15 @@ private fun timelineScreen(
             }
             TimelineRows(
                 items,
-                replyToStatus = { content, visiblity, replyToId, replyCount ->
-                    events.tryEmit(
-                        TimelinePresenter
-                            .PostMessage(content, visiblity, replyToId, replyCount = replyCount)
+                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                    submitEvents.tryEmit(
+                        SubmitPresenter.PostMessage(
+                            content = content,
+                            visibility = visiblity,
+                            replyStatusId = replyToId,
+                            replyCount = replyCount,
+                            uris = uris
+                        )
                     )
                 },
                 {
@@ -278,7 +298,7 @@ private fun timelineScreen(
 @Composable
 fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
-    replyToStatus: (String, String, String, Int) -> Unit,
+    replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState,

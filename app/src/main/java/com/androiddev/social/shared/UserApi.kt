@@ -1,8 +1,10 @@
 package com.androiddev.social.shared
 
 import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Status
 import kotlinx.serialization.Serializable
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 
@@ -29,14 +31,13 @@ interface UserApi {
         @Query("offset") offset: String?,
     ): List<Status>
 
+
+
     @POST("/api/v1/statuses")
-    @FormUrlEncoded
     suspend fun newStatus(
         @Header("Authorization") authHeader: String?,
-        @Field("in_reply_to_id") replyStatusId: String? = null,
-        @Field("status") content: String,
-        @Field("visibility") visibility: String,
-    ): Status
+        @Body status: NewStatus,
+        ): Status
 
     @Serializable
     data class Conversation(val ancestors: List<Status>, val descendants: List<Status>)
@@ -61,6 +62,19 @@ interface UserApi {
     suspend fun accountVerifyCredentials(
         @Header("Authorization") authHeader: String?,
     ): Account
+
+    @Serializable data class UploadIds(
+        val id: String
+    )
+
+    @Multipart
+    @POST("api/v2/media")
+    suspend fun upload(
+        @Header("Authorization") authHeader: String?,
+        @Part file: MultipartBody.Part,
+        @Part description: MultipartBody.Part? = null,
+        @Part focus: MultipartBody.Part? = null
+    ): UploadIds
 
 }
 

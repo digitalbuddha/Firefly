@@ -12,14 +12,15 @@ import javax.inject.Inject
 
 abstract class ConversationPresenter :
     Presenter<ConversationPresenter.ConversationEvent, ConversationPresenter.ConversationModel, ConversationPresenter.ConversationEffect>(
-        ConversationModel(emptyMap())
+        ConversationModel(emptyMap(), emptyMap())
     ) {
     sealed interface ConversationEvent
 
     data class Load(val statusId: String) : ConversationEvent
 
     data class ConversationModel(
-        val statuses: Map<String,List<Status>>
+        val before: Map<String, List<Status>>,
+        val after: Map<String, List<Status>>
     )
 
     sealed interface ConversationEffect
@@ -41,9 +42,13 @@ class RealConversationPresenter @Inject constructor(
                 val conversation = kotlin.runCatching { api.conversation(event.statusId) }
                 if (conversation.isSuccess) {
                     val statuses = conversation.getOrThrow()
-                    val new = model.statuses.toMutableMap()
-                    new[event.statusId] = statuses.descendants + statuses.ancestors
-                    model = model.copy(statuses = new)
+                    val before = model.before.toMutableMap()
+                    before[event.statusId] = statuses.descendants
+                    model = model.copy(before = before)
+
+                    val after = model.after.toMutableMap()
+                    after[event.statusId] = statuses.ancestors
+                    model = model.copy(after = after)
                 }
             }
         }

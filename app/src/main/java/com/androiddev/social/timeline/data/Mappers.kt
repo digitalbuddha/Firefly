@@ -110,13 +110,12 @@ fun StatusDB.mapStatus(): UI {
             }
 
             minutes == 1 -> {
-                "1 minute ago"
+                "1 min ago"
             }
 
             minutes > 1 -> {
-                "$minutes minutes ago"
+                "$minutes min ago"
             }
-
             else -> {
                 "now"
             }

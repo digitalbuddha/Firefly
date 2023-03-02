@@ -98,27 +98,7 @@ class RealTimelinePresenter @Inject constructor(
                 }
             }
 
-            is PostMessage -> {
-                val result = kotlin.runCatching {
-                    api.newStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        content = event.content,
-                        visibility = event.visibility.toLowerCase(),
-                        replyStatusId = event.replyStatusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            event.replyStatusId?.let {
-                                statusDao.update(
-                                    event.replyCount + 1, it
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+
 
             is FavoriteMessage -> {
                 val result = kotlin.runCatching {
@@ -171,12 +151,7 @@ abstract class TimelinePresenter :
     ) {
     sealed interface HomeEvent
     data class Load(val feedType: FeedType) : HomeEvent
-    data class PostMessage(
-        val content: String,
-        val visibility: String,
-        val replyStatusId: String? = null,
-        val replyCount: Int = 0
-    ) : HomeEvent
+
 
     data class BoostMessage(val statusId: String) : HomeEvent
     data class FavoriteMessage(val statusId: String) : HomeEvent

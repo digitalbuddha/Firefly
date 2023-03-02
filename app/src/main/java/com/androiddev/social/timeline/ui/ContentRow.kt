@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -57,7 +58,7 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
-    ui: UI, replyToStatus: (String, String, String, Int) -> Unit,
+    ui: UI, replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
@@ -122,7 +123,7 @@ fun TimelineCard(
                     },
                     inlineContent = mapping
                 )
-                ui.imageUrl?.let { ContentImage(it, clicked) { clicked = !clicked } }
+                ui.imageUrl?.let { ContentImage(it) { clicked = !clicked } }
                 val toolbarHeight = PaddingSize6
                 val toolbarHeightPx =
                     with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
@@ -152,8 +153,8 @@ fun TimelineCard(
                         UserInput(
                             ui.remoteId,
                             connection = nestedScrollConnection,
-                            onMessageSent = { it, visibility ->
-                                replyToStatus(it, visibility, ui.remoteId, ui.replyCount)
+                            onMessageSent = { it, visibility, uris ->
+                                replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
                             },
                             defaultVisiblity = "Direct",
                             participants = mentions.joinToString(" "),

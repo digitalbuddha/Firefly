@@ -20,14 +20,16 @@ import com.androiddev.social.theme.PaddingSize4
 @Composable
 fun AvatarImage(
     size: Dp = PaddingSize4,
-    url: String? = "https://placekitten.com/300/300"
+    url: String? = "https://placekitten.com/300/300",
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Box() {
         AsyncImage(
-            modifier = Modifier
+            modifier = modifier
                 .clip(CircleShape)
-                .size(size)
-            ,
+                .clickable { onClick() }
+                .size(size),
             alignment = Alignment.CenterStart,
             model = url,
             contentScale = ContentScale.FillBounds,
@@ -38,16 +40,18 @@ fun AvatarImage(
 }
 
 @Composable
-fun ContentImage(url: String = "https://placekitten.com/302/302", clicked: Boolean, onClick: () -> Unit) {
+fun ContentImage(
+    url: String = "https://placekitten.com/302/302",
+    modifier: Modifier = Modifier,
+            onClick: () -> Unit = {},
+) {
 
     AsyncImage(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .padding(0.dp)
-            .clickable {
-                      onClick
-            },
+            .clickable { onClick() },
         alignment = Alignment.Center,
         model = url,
         contentScale = ContentScale.FillWidth,

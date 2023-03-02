@@ -20,6 +20,7 @@ import com.androiddev.social.timeline.data.toStatusDb
 fun Conversation(statusId: String) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
+    val submitPresenter = LocalAuthComponent.current.submitPresenter()
 
     LaunchedEffect(key1 = statusId) {
         presenter.start()
@@ -27,22 +28,31 @@ fun Conversation(statusId: String) {
     LaunchedEffect(key1 = statusId) {
         presenter.handle(ConversationPresenter.Load(statusId))
     }
-
+    //replies only not parents
     val statuses: Map<String, List<Status>> =
-        presenter.model.statuses
+        presenter.model.after
+
     val myModel: List<Status>? = statuses[statusId]
     Column(modifier = Modifier.animateContentSize()) {
         myModel?.forEach { status ->
             TimelineCard(
                 ui = status.toStatusDb(FeedType.Home).mapStatus(),
-                replyToStatus = { _, _, _, _ -> },
+                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                    submitPresenter.events.tryEmit(
+                        SubmitPresenter.PostMessage(
+                            content = content,
+                            visibility = visiblity,
+                            replyStatusId = replyToId,
+                            replyCount = replyCount,
+                            uris = uris
+                        )
+                    )
+                },
                 boostStatus = {},
                 favoriteStatus = {},
                 state = null,
                 isReplying = { false },
-
                 )
         }
     }
-
 }

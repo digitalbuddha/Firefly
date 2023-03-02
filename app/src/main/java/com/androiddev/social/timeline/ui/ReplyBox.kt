@@ -2,10 +2,10 @@ package com.androiddev.social.timeline.ui
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.Companion.isPhotoPickerAvailable
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.androiddev.social.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -82,7 +85,7 @@ fun UserInput(
     statusId: String,
     connection: NestedScrollConnection? = null,
     modifier: Modifier = Modifier,
-    onMessageSent: (String, String) -> Unit,
+    onMessageSent: (String, String, Set<Uri>) -> Unit,
     resetScroll: () -> Unit = {},
     defaultVisiblity: String = "Public",
     participants: String = " ",
@@ -107,12 +110,14 @@ fun UserInput(
         modifier = modifier
     ) {
         val focusRequester = remember { FocusRequester() }
+        val uris = remember { mutableStateListOf<Uri>() }
+
         Column(
             modifier = modifier
                 .focusRequester(focusRequester)
                 .padding(PaddingSizeNone)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f))
+                .background(colorScheme.surface.copy(alpha = .9f))
         ) {
 
             UserInputText(
@@ -139,7 +144,7 @@ fun UserInput(
                 sendMessageEnabled = textState.text.isNotBlank(),
 
                 onMessageSent = {
-                    onMessageSent(textState.text, visibility)
+                    onMessageSent(textState.text, visibility, uris.toSet())
                     // Reset text field and close keyboard
                     textState = TextFieldValue()
                     // Move scroll to bottom
@@ -154,10 +159,37 @@ fun UserInput(
             SelectorExpanded(
                 currentSelector = currentInputSelector,
                 onCloseRequested = dismissKeyboard,
+                onClearSelector = { currentInputSelector = InputSelector.NONE },
                 onTextAdded = { textState = textState.addText(it) },
                 connection = connection,
-                statusId = statusId
+                statusId = statusId,
+                uris = uris
             )
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colorScheme.surface)
+                    .padding(
+                        PaddingSize0_5
+                    )
+            ) {
+                uris.forEach {
+                    Box {
+                        AsyncImage(
+                            modifier = modifier
+                                .padding(PaddingSize0_5)
+                                .clickable { uris.remove(it) }
+                                .size(80.dp),
+                            alignment = Alignment.CenterStart,
+                            model = it.toString(),
+                            contentScale = ContentScale.FillBounds,
+                            contentDescription = "Translated description of what the image contains"
+                        )
+                    }
+
+                }
+            }
         }
     }
 }
@@ -181,10 +213,13 @@ private fun TextFieldValue.addText(newString: String): TextFieldValue {
 private fun SelectorExpanded(
     currentSelector: InputSelector,
     onCloseRequested: () -> Unit,
+    onClearSelector: () -> Unit,
     onTextAdded: (String) -> Unit,
     connection: NestedScrollConnection?,
-    statusId: String
+    statusId: String,
+    uris: SnapshotStateList<Uri>
 ) {
+    val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
 
     // Request focus to force the TextField to lose it
@@ -200,7 +235,9 @@ private fun SelectorExpanded(
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.REPLIES -> Conversation(statusId = statusId)
-            InputSelector.PICTURE -> PhotoPickerResultComposable()
+            InputSelector.PICTURE -> PhotoPickerResultComposable(uris) {
+                onClearSelector()
+            }
 //            InputSelector.MAP -> FunctionalityNotAvailablePanel()
 //            InputSelector.PHONE -> FunctionalityNotAvailablePanel()
             else -> {
@@ -224,29 +261,37 @@ fun FunctionalityNotAvailablePanel() {
 }
 
 @Composable
-fun PhotoPickerResultComposable() {
-    var result by rememberSaveable { mutableStateOf<Uri?>(null) }
+fun PhotoPickerResultComposable(uris: SnapshotStateList<Uri>, clearFocus: () -> Unit) {
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            result = it.data?.data
+            it.data?.data?.let { it1 -> uris.add(it1) }
+            clearFocus()
         }
-    LaunchedEffect(key1 = Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
-                type = "image/*"
-                // only videos
-                type = "video/*"
-            }
-            launcher.launch(intent)
-        }
-    }
-}
 
-@Composable
-fun OpenPhotoPicker(openLauncher: () -> Unit) {
-    OutlinedButton(onClick = openLauncher) {
-        Text("Open photo picker")
+    LaunchedEffect(key1 = Unit) {
+        val intent: Intent
+        val usePhotoPicker = isPhotoPickerAvailable()
+        if (usePhotoPicker) {
+            intent = Intent(MediaStore.ACTION_PICK_IMAGES)
+            intent.putExtra(
+                MediaStore.EXTRA_PICK_IMAGES_MAX,
+                4
+            )
+        } else {
+            intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "*/*"
+        }
+
+        if (!usePhotoPicker) {
+            // If photo picker is being used these are the default mimetypes.
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
+        }
+
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        launcher.launch(intent)
     }
+
 }
 
 @Composable
@@ -286,7 +331,6 @@ private fun UserInputSelector(
 //                description = "Replies"
 //            )
 //        }
-
 
 
         val border = if (!sendMessageEnabled) {
@@ -348,8 +392,7 @@ private fun UserInputSelector(
                         .rotate(imageSize * -45f)
                         .offset(y = (0).dp, x = (2).dp)
                         .rotate(50f)
-                        .padding(start = 2.dp, end = 2.dp)
-                    ,
+                        .padding(start = 2.dp, end = 2.dp),
                     painter = painterResource(R.drawable.horn),
                     contentDescription = "",
                     colorFilter = ColorFilter.tint(colorScheme.background),

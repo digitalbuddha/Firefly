@@ -48,7 +48,7 @@ fun Navigator(
                 val result = scale.animateTo(
                     targetValue = 0.001f,
                     animationSpec = tween(
-                        durationMillis = 800,
+                        durationMillis = 600,
                         easing = {
                             OvershootInterpolator(20000f).getInterpolation(it)
                         })
