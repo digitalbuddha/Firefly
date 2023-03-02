@@ -40,8 +40,8 @@ fun Conversation(status: UI) {
 
     Column(modifier = Modifier) {
         if (!after.isNullOrEmpty()) {
-            Replies()
-            after.forEach { inner ->
+//            Replies()
+            after.take(10).forEach { inner ->
                 if (status == inner) {
                     card(
                         Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),

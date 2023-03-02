@@ -89,8 +89,6 @@ fun ButtonBar(
                     )
                 }
             }
-
-
         }
         AnimatedVisibility(visible = showReply) {
             Conversation(status = status)

@@ -28,14 +28,14 @@ fun FAB(colorScheme: ColorScheme, modifier: Modifier = Modifier, onClick: () -> 
 
     val size: Float by animateFloatAsState(
         if (clicked) 0f else 1f,
-        animationSpec = TweenSpec(durationMillis = 150)
+        animationSpec = TweenSpec(durationMillis = 150), label = ""
     )
     val imageSize: Float by animateFloatAsState(
         if (clicked) 1.2f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioHighBouncy,
             stiffness = Spring.StiffnessMedium // with medium speed
-        )
+        ), label = ""
     )
 
     val shape = CircleShape

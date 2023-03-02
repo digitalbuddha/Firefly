@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -23,17 +24,15 @@ fun Replies() {
             .fillMaxWidth()
     ) {
         AssistChip(
-//                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
+                border = AssistChipDefaults.assistChipBorder(borderColor =  Color.Transparent),
             colors = AssistChipDefaults.assistChipColors(
-                containerColor = colorScheme.primary,
-                leadingIconContentColor = colorScheme.secondary.copy(
-                    alpha = .5f
-                ), labelColor = colorScheme.onPrimary
+                containerColor = colorScheme.outline.copy(alpha = .1f),
+               labelColor = colorScheme.primary
             ),
-            shape = RoundedCornerShape(50, 50, 50, 50),
+            shape = RoundedCornerShape(0, 0, 0, 0),
             onClick = { /* Do something! */ },
             label = {
-                Text("Replies", style = MaterialTheme.typography.labelLarge)
+                Text("Replies", style = MaterialTheme.typography.labelMedium)
             },
         )
     }

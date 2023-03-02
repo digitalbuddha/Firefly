@@ -85,6 +85,26 @@ fun TimelineCard(
                 top = PaddingSize2
             )
     ) {
+        var showingReplies by remember { mutableStateOf(false) }
+        AnimatedVisibility(showingReplies) {
+            val provider = LocalAuthComponent.current.conversationPresenter().get()
+            var presenter by remember { mutableStateOf(provider) }
+            val submitPresenter = LocalAuthComponent.current.submitPresenter()
+            val beforeStatus: Map<String, List<Status>> =
+                presenter.model.before
+
+            val before: MutableList<UI>? =
+                beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+                    ?.toMutableList()
+            before?.lastOrNull()?.let {
+                card(
+                    Modifier.background(colorScheme.background.copy(alpha = .5f)),
+                    it,
+                    submitPresenter.events
+                )
+            }
+
+        }
         DirectMessage(ui.directMessage)
         Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis)
         UserInfo(ui)
@@ -93,7 +113,6 @@ fun TimelineCard(
                 .padding(bottom = PaddingSizeNone)
                 .wrapContentHeight()
         ) {
-            var showingReplies by remember { mutableStateOf(false) }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
@@ -107,25 +126,7 @@ fun TimelineCard(
 
 
                 val uriHandler = LocalUriHandler.current
-                AnimatedVisibility (showingReplies) {
-                    val provider = LocalAuthComponent.current.conversationPresenter().get()
-                    var presenter by remember { mutableStateOf(provider) }
-                    val submitPresenter = LocalAuthComponent.current.submitPresenter()
-                    val beforeStatus: Map<String, List<Status>> =
-                        presenter.model.before
 
-                    val before: MutableList<UI>? =
-                        beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-                            ?.toMutableList()
-                    before?.lastOrNull()?.let {
-                        card(
-                            Modifier.background(colorScheme.background.copy(alpha = .5f)),
-                            it,
-                            submitPresenter.events
-                        )
-                    }
-
-                }
                 ClickableText(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = colorScheme.onSurface,
@@ -136,7 +137,7 @@ fun TimelineCard(
                     onClick = {
                         clicked = !clicked
                         if (!clicked && showReply) showReply = false
-                        isReplying(clicked)
+
 
                         text.getStringAnnotations(
                             tag = "URL", start = it,
