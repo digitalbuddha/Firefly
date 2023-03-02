@@ -47,7 +47,6 @@ fun Profile(
                     MaterialTheme.colorScheme.surface.copy(alpha = .9f)
                 )
         ) {
-
             DropdownMenuItem(onClick = {
                 expanded = false
                 onProfileClick()
