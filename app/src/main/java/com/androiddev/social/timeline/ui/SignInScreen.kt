@@ -21,12 +21,12 @@ fun SignInScreen(
     server: String
 ) {
     val current = LocalContext.current
-    val component = retain { NoAuthComponent(current) } as AuthOptionalInjector
+    val component = retain(key=server) { NoAuthComponent(current) } as AuthOptionalInjector
     val signInPresenter = component.signInPresenter()
     val accessToken = signInPresenter.model.accessTokenRequest?.copy(domain = server)
 
     if (accessToken != null)
-        LaunchedEffect("signIn") {
+        LaunchedEffect(server) {
             val domain = URLEncoder.encode(accessToken.domain, StandardCharsets.UTF_8.toString())
             val clientId =
                 URLEncoder.encode(accessToken.clientId, StandardCharsets.UTF_8.toString())
@@ -39,10 +39,10 @@ fun SignInScreen(
                 popUpTo(0)
             }
         }
-    LaunchedEffect("signIn") {
+    LaunchedEffect(server) {
         signInPresenter.start()
     }
-    LaunchedEffect("signIn") {
+    LaunchedEffect(server) {
         if (accessToken != null) {
             val domain = URLEncoder.encode(accessToken.domain, StandardCharsets.UTF_8.toString())
             val clientId =

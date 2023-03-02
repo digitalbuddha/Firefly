@@ -29,11 +29,15 @@ import social.androiddev.R
 
 @Composable
 fun Profile(
-    onProfileClick: () -> Unit = {}, onChangeTheme: () -> Unit = {}, account: Account?
+    onProfileClick: () -> Unit = {},
+    onChangeTheme: () -> Unit = {},
+    onNewAccount: () -> Unit = {},
+    account: Account?
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     Row(modifier = Modifier) {
-        account?.let { AvatarImage(url = it.avatar,onClick = { expanded = true}) }
+        AvatarImage(url = account?.avatar, onClick = { expanded = true })
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -50,7 +54,7 @@ fun Profile(
             }, text = {
                 Row {
                     account?.let { it ->
-                        AvatarImage(url = it.avatar, onClick = { expanded = true})
+                        AvatarImage(url = it.avatar, onClick = { expanded = true })
                         val emojis = account.emojis
 
 
@@ -73,6 +77,7 @@ fun Profile(
 
             })
 
+
             Divider(thickness = ThickSm, color = Color.Gray)
 
             DropdownMenuItem(onClick = {
@@ -94,7 +99,8 @@ fun Profile(
                     )
                 }
             })
+
         }
     }
-}
 
+}

@@ -61,12 +61,12 @@ fun Navigator(
 
                 val value: String? = accounts?.keys?.firstOrNull()?.name
                 val loggedInAccount: String? = value?.removePrefix(USER_KEY_PREFIX)
-               if(result.endState.isFinished)
-                if (loggedInAccount == null) {
-                    navController.navigate("selectServer")
-                } else {
-                    navController.navigate("login/$loggedInAccount")
-                }
+                if (result.endState.isFinished)
+                    if (loggedInAccount == null) {
+                        navController.navigate("selectServer")
+                    } else {
+                        navController.navigate("login/$loggedInAccount")
+                    }
             }
 
             // Image
@@ -81,7 +81,9 @@ fun Navigator(
                     FAB(
                         colorScheme = MaterialTheme.colorScheme,
                         onClick = {},
-                        modifier = Modifier.offset(y= (-40).dp).scale(scale.value)
+                        modifier = Modifier
+                            .offset(y = (-40).dp)
+                            .scale(scale.value)
                     )
                 }
             }
@@ -93,7 +95,6 @@ fun Navigator(
 
 
             LaunchedEffect(Unit) {
-
                 val accounts: Map<Preferences.Key<*>, Any>? =
                     current.dataStore.data.map { preferences ->
                         preferences.asMap()
@@ -108,7 +109,11 @@ fun Navigator(
                 }
             }
             ServerSelectScreen(scope, navController, needToSelectServer)
+        }
 
+        composable("addLogin") {
+
+            ServerSelectScreen(scope, navController, true)
         }
         composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
@@ -125,7 +130,12 @@ fun Navigator(
 
             val userManager =
                 ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
-            TimelineScreen(userManager.userComponentFor(accessTokenRequest = accessTokenRequest), onChangeTheme)
+            TimelineScreen(
+                accessTokenRequest,
+                userManager.userComponentFor(accessTokenRequest = accessTokenRequest),
+                onChangeTheme,
+                onNewAccount = { navController.navigate("addLogin") }
+            )
         }
 
     }

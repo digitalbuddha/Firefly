@@ -4,7 +4,7 @@ package com.androiddev.social.auth.ui
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.androiddev.social.AppScope
+import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.*
 import com.androiddev.social.shared.Api
@@ -44,8 +44,8 @@ abstract class SignInPresenter :
     abstract fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope): Boolean
 }
 
-@ContributesBinding(AppScope::class, boundType = SignInPresenter::class)
-@SingleIn(AppScope::class)
+@ContributesBinding(AuthOptionalScope::class, boundType = SignInPresenter::class)
+@SingleIn(AuthOptionalScope::class)
 class RealSignInPresenter @Inject constructor(
     val appTokenRepository: AppTokenRepository,
     val api: Api,

@@ -16,32 +16,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.Preferences
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.UserComponent
+import com.androiddev.social.auth.data.AccessTokenRequest
+import com.androiddev.social.auth.data.USER_KEY_PREFIX
 import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
+import com.androiddev.social.timeline.data.dataStore
 import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
-    val context = LocalContext.current
+fun TimelineScreen(
+    accessTokenRequest: AccessTokenRequest,
+    userComponent: UserComponent,
+    onChangeTheme: () -> Unit,
+    onNewAccount: () -> Unit
+) {
     val component =
-        retain { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+        retain(
+            key = accessTokenRequest.domain ?: ""
+        ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     CompositionLocalProvider(LocalAuthComponent provides component) {
 
         val homePresenter = component.homePresenter()
@@ -107,7 +119,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
                         }
                         UserInput(
                             modifier = Modifier.padding(bottom = 0.dp),
-                            onMessageSent = { it, visibility, uris->
+                            onMessageSent = { it, visibility, uris ->
                                 submitPresenter.handle(
                                     SubmitPresenter.PostMessage(
                                         content = it,
@@ -127,6 +139,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
                     when (tabToLoad) {
                         FeedType.Home -> {
                             timelineScreen(
+                                accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
                                 FeedType.Home,
@@ -139,6 +152,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
 
                         FeedType.Local -> {
                             timelineScreen(
+                                accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
                                 FeedType.Local,
@@ -149,6 +163,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
 
                         FeedType.Federated -> {
                             timelineScreen(
+                                accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
                                 FeedType.Federated,
@@ -159,6 +174,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
 
                         FeedType.Trending -> {
                             timelineScreen(
+                                accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
                                 FeedType.Trending,
@@ -184,15 +200,32 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
                             avatarPresenter.start()
                         }
                         LaunchedEffect(key1 = "avatar") {
-                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
                         }
+                        val current = LocalContext.current
 
+
+                        LaunchedEffect(key1 = "avatar") {
+                            val accounts: Map<Preferences.Key<*>, Any>? =
+                                current.dataStore.data.map { preferences ->
+                                    preferences.asMap()
+                                }.firstOrNull()
+
+                            val tokens: List<String> =
+                                accounts
+                                    ?.keys
+                                    ?.map { it.name.removePrefix(USER_KEY_PREFIX) }
+                                    ?: emptyList()
+                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+
+                        }
                         Box {
                             Profile(
                                 account = avatarPresenter.model.account,
-                                onChangeTheme = onChangeTheme
+                                onChangeTheme = onChangeTheme,
+                                onNewAccount = onNewAccount
                             )
                         }
+
                         Box(Modifier.align(Alignment.CenterVertically)) {
                             TabSelector { it ->
                                 tabToLoad = when (it) {
@@ -229,6 +262,7 @@ fun TimelineScreen(userComponent: UserComponent,  onChangeTheme: () -> Unit ) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineScreen(
+    domain: String?,
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
@@ -236,7 +270,7 @@ private fun timelineScreen(
     state: ModalBottomSheetState,
     isReplying: (Boolean) -> Unit
 ) {
-    LaunchedEffect(key1 = tabToLoad) {
+    LaunchedEffect(key1 = tabToLoad, key2 = domain) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad))
     }
 
@@ -253,7 +287,7 @@ private fun timelineScreen(
             .fillMaxSize()
     ) {
         items?.let {
-            LaunchedEffect(key1 = tabToLoad) {
+            LaunchedEffect(key1 = tabToLoad, key2 = domain) {
                 //very unexact way to run after the first append/prepend ran
                 //otherwise infinite scroll never calls append on first launch
                 // and I have no idea why
