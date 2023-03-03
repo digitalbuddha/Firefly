@@ -3,7 +3,8 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -13,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.mapStatus
@@ -37,19 +40,23 @@ fun Conversation(status: UI) {
         presenter.model.after
     val after: List<UI>? =
         afterStatus[status.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+    val configuration = LocalConfiguration.current
 
-    Column(modifier = Modifier) {
+    val screenHeight = configuration.screenHeightDp
+    LazyColumn(modifier = Modifier.heightIn(1.dp, max = (screenHeight*.8).dp)) {
         if (!after.isNullOrEmpty()) {
 //            Replies()
             after.take(10).forEach { inner ->
-                if (status == inner) {
-                    card(
-                        Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),
-                        inner,
-                        submitPresenter.events
-                    )
-                } else {
-                    card(Modifier, inner, submitPresenter.events)
+                item {
+                    if (status == inner) {
+                        card(
+                            Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),
+                            inner,
+                            submitPresenter.events
+                        )
+                    } else {
+                        card(Modifier, inner, submitPresenter.events)
+                    }
                 }
             }
         }

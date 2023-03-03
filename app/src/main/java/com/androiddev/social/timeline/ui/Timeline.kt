@@ -324,6 +324,7 @@ fun TimelineRows(
     isReplying: (Boolean) -> Unit
 ) {
     LazyColumn {
+
         items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
             it?.mapStatus()?.let { ui ->
                 TimelineCard(ui, replyToStatus, boostStatus, favoriteStatus, state, isReplying)
