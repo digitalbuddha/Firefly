@@ -29,15 +29,20 @@ import social.androiddev.R
 
 @Composable
 fun Profile(
-    onProfileClick: () -> Unit = {},
+    onProfileClick: (account: Account) -> Unit = {},
     onChangeTheme: () -> Unit = {},
     onNewAccount: () -> Unit = {},
-    account: Account?
+    model: AvatarPresenter.AvatarModel
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier) {
-        AvatarImage(url = account?.avatar, onClick = { expanded = true })
+
+        val url: String? = model.accounts?.firstOrNull()?.avatar
+        if (url != null) {
+            AvatarImage(url = url, onClick = { expanded = true })
+        }
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -47,34 +52,36 @@ fun Profile(
                     MaterialTheme.colorScheme.surface.copy(alpha = .9f)
                 )
         ) {
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onProfileClick()
-            }, text = {
-                Row {
-                    account?.let { it ->
-                        AvatarImage(url = it.avatar, onClick = { expanded = true })
-                        val emojis = account.emojis
+            model.accounts?.forEach { account: Account ->
+                DropdownMenuItem(onClick = {
+                    expanded = false
+                    onProfileClick(account)
+                }, text = {
+                    Row {
+                        account.let {
+                            AvatarImage(url = it.avatar, onClick = { expanded = true })
+                            val emojis = account.emojis
 
 
-                        val unformatted = account.displayName
-                        val (inlineContentMap, text) = inlineEmojis(
-                            unformatted,
-                            emojis
-                        )
+                            val unformatted = account.displayName
+                            val (inlineContentMap, text) = inlineEmojis(
+                                unformatted,
+                                emojis
+                            )
 
-                        Text(
-                            modifier = Modifier
-                                .padding(PaddingSize0_5)
-                                .align(Alignment.CenterVertically),
-                            text = text,
-                            inlineContent = inlineContentMap
-                        )
+                            Text(
+                                modifier = Modifier
+                                    .padding(PaddingSize0_5)
+                                    .align(Alignment.CenterVertically),
+                                text = text,
+                                inlineContent = inlineContentMap
+                            )
+                        }
                     }
 
-                }
+                })
+            }
 
-            })
 
 
             Divider(thickness = ThickSm, color = Color.Gray)
@@ -92,6 +99,25 @@ fun Profile(
                     )
                     Text(
                         "Switch Theme",
+                        modifier = Modifier
+                            .padding(PaddingSize0_5)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+            })
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onNewAccount()
+            }, text = {
+                Row {
+                    Image(
+                        modifier = Modifier.size(PaddingSize3),
+                        painter = painterResource(R.drawable.theme),
+                        contentDescription = "",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    )
+                    Text(
+                        "Add User/Server",
                         modifier = Modifier
                             .padding(PaddingSize0_5)
                             .align(Alignment.CenterVertically)

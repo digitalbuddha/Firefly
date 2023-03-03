@@ -32,12 +32,11 @@ interface UserApi {
     ): List<Status>
 
 
-
     @POST("/api/v1/statuses")
     suspend fun newStatus(
         @Header("Authorization") authHeader: String?,
         @Body status: NewStatus,
-        ): Status
+    ): Status
 
     @Serializable
     data class Conversation(val ancestors: List<Status>, val descendants: List<Status>)
@@ -63,7 +62,8 @@ interface UserApi {
         @Header("Authorization") authHeader: String?,
     ): Account
 
-    @Serializable data class UploadIds(
+    @Serializable
+    data class UploadIds(
         val id: String
     )
 

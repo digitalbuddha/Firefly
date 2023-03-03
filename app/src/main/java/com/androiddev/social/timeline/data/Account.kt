@@ -1,4 +1,3 @@
-
 package com.androiddev.social.timeline.data
 
 import kotlinx.serialization.SerialName
@@ -40,7 +39,10 @@ data class Account(
     @SerialName("source") val source: Source? = null,
     @SerialName("suspended") val suspended: Boolean? = null,
     @SerialName("mute_expires_at") val muteExpiresAt: String? = null,
-)
+
+    val domain: String?=null,
+
+    )
 
 @Serializable
 data class Source(

@@ -51,8 +51,8 @@ class RealOauthRepository @Inject constructor(
         return userTokenStore.get(accessTokenRequest.domain!!)
     }
 
-    suspend fun fetcher(): Token =
-        api.createAccessToken(
+    suspend fun fetcher(): Token {
+        return api.createAccessToken(
             domain = "https://${accessTokenRequest.domain}/oauth/token",
             clientId = accessTokenRequest.clientId,
             clientSecret = accessTokenRequest.clientSecret,
@@ -61,5 +61,6 @@ class RealOauthRepository @Inject constructor(
             code = accessTokenRequest.code,
             scope = "read write follow push"
         )
+    }
 }
 

@@ -37,10 +37,10 @@ class UserModule {
 
     @Provides
     @SingleIn(UserScope::class)
-    fun provideDB(applicationContext: Application): AppDatabase =
+    fun provideDB(applicationContext: Application, accessTokenRequest: AccessTokenRequest): AppDatabase =
         Room.databaseBuilder(
             applicationContext,
-            AppDatabase::class.java, "database-name"
+            AppDatabase::class.java, accessTokenRequest.domain
         )
             .fallbackToDestructiveMigration()
             .build()

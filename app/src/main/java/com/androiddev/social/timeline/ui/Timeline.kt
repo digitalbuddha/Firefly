@@ -14,9 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -24,20 +22,17 @@ import androidx.paging.compose.items
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
-import com.androiddev.social.auth.data.USER_KEY_PREFIX
 import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
-import com.androiddev.social.timeline.data.dataStore
 import com.androiddev.social.timeline.data.mapStatus
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
@@ -48,7 +43,8 @@ fun TimelineScreen(
     accessTokenRequest: AccessTokenRequest,
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
-    onNewAccount: () -> Unit
+    onNewAccount: () -> Unit,
+    onProfileSelected: (account: Account) -> Unit
 ) {
     val component =
         retain(
@@ -60,13 +56,13 @@ fun TimelineScreen(
         val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
         val scope = rememberCoroutineScope()
-        LaunchedEffect(key1 = "start") {
+        LaunchedEffect(key1 = accessTokenRequest) {
             homePresenter.start(scope)
         }
-        LaunchedEffect(key1 = "start") {
+        LaunchedEffect(key1 = accessTokenRequest) {
             avatarPresenter.start()
         }
-        LaunchedEffect(key1 = "start") {
+        LaunchedEffect(key1 = accessTokenRequest) {
             submitPresenter.start()
         }
         val state = rememberModalBottomSheetState(
@@ -196,33 +192,21 @@ fun TimelineScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        LaunchedEffect(key1 = "avatar") {
+                        LaunchedEffect(key1 = accessTokenRequest.domain) {
                             avatarPresenter.start()
                         }
-                        LaunchedEffect(key1 = "avatar") {
-                        }
-                        val current = LocalContext.current
 
 
-                        LaunchedEffect(key1 = "avatar") {
-                            val accounts: Map<Preferences.Key<*>, Any>? =
-                                current.dataStore.data.map { preferences ->
-                                    preferences.asMap()
-                                }.firstOrNull()
 
-                            val tokens: List<String> =
-                                accounts
-                                    ?.keys
-                                    ?.map { it.name.removePrefix(USER_KEY_PREFIX) }
-                                    ?: emptyList()
+                        LaunchedEffect(key1 = accessTokenRequest.domain) {
                             avatarPresenter.events.tryEmit(AvatarPresenter.Load)
-
                         }
                         Box {
                             Profile(
-                                account = avatarPresenter.model.account,
+                                model = avatarPresenter.model,
                                 onChangeTheme = onChangeTheme,
-                                onNewAccount = onNewAccount
+                                onNewAccount = onNewAccount,
+                                onProfileClick = onProfileSelected
                             )
                         }
 

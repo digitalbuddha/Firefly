@@ -24,7 +24,7 @@ abstract class SignInPresenter :
         SignInModel(false)
     ) {
     sealed interface SignInEvent
-    data class SetServer(val domain: String) : SignInEvent
+    data class SignIn(val domain: String) : SignInEvent
 
 
     data class SignInModel(
@@ -41,7 +41,7 @@ abstract class SignInPresenter :
 
     sealed interface SignInEffect
 
-    abstract fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope): Boolean
+    abstract fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope, server: String): Boolean
 }
 
 @ContributesBinding(AuthOptionalScope::class, boundType = SignInPresenter::class)
@@ -59,7 +59,7 @@ class RealSignInPresenter @Inject constructor(
 
     override suspend fun eventHandler(event: SignInEvent, scope: CoroutineScope) {
         when (event) {
-            is SetServer -> {
+            is SignIn -> {
                 val params = ApplicationBody(baseUrl = event.domain)
                 val result: Result<NewOauthApplication> = kotlin.runCatching {
                     appTokenRepository.getAppToken(
@@ -119,7 +119,7 @@ class RealSignInPresenter @Inject constructor(
     }
 
 
-    override fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope): Boolean {
+    override fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope, server: String): Boolean {
         model = model.copy(oauthAuthorizeUrl = "")
         val uri = URI(url)
         val query = uri.query
@@ -143,6 +143,7 @@ class RealSignInPresenter @Inject constructor(
                         clientId = model.clientId,
                         clientSecret = model.clientSecret,
                         redirectUri = model.redirectUri,
+                        domain = server
                     )
                     model = model.copy(accessTokenRequest = accessTokenRequest)
                 }

@@ -5,6 +5,8 @@ package com.androiddev.social
 
 import android.app.Application
 import com.androiddev.social.auth.data.AccessTokenRequest
+import com.androiddev.social.auth.data.OauthRepository
+import com.androiddev.social.shared.UserApi
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi
@@ -63,6 +65,8 @@ interface UserComponent  {
             @BindsInstance accessTokenRequest: AccessTokenRequest
         ): UserComponent
     }
+    fun oauthRepository():OauthRepository
+    fun api():UserApi
 }
 
 @ContributesTo(AppScope::class)

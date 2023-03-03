@@ -9,6 +9,7 @@ import javax.inject.Inject
 
 interface UserManager {
     fun userComponentFor(accessTokenRequest: AccessTokenRequest): UserComponent
+    fun userComponentFor(domain: String): UserComponent?
 }
 
 @ContributesTo(AppScope::class)
@@ -27,5 +28,9 @@ class RealUserManager @Inject constructor(val app: EbonyApp) : UserManager {
             (app.component as UserParentComponent).createUserComponent()
                 .userComponent(accessTokenRequest = accessTokenRequest)
         }
+    }
+
+    override fun userComponentFor(domain:String): UserComponent? {
+        return cache.getIfPresent(domain)
     }
 }

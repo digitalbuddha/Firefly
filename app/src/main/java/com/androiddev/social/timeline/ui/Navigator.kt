@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -33,6 +32,7 @@ import com.androiddev.social.timeline.data.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @Composable
 fun Navigator(
@@ -55,12 +55,10 @@ fun Navigator(
                         })
                 )
                 val accounts: Map<Preferences.Key<*>, Any>? =
-                    current.dataStore.data.map { preferences ->
-                        preferences.asMap()
-                    }.firstOrNull()
+                    current.getAccounts()
 
-                val value: String? = accounts?.keys?.firstOrNull()?.name
-                val loggedInAccount: String? = value?.removePrefix(USER_KEY_PREFIX)
+                val firstAccount: String? = accounts?.keys?.firstOrNull()?.name
+                val loggedInAccount: String? = firstAccount?.removePrefix(USER_KEY_PREFIX)
                 if (result.endState.isFinished)
                     if (loggedInAccount == null) {
                         navController.navigate("selectServer")
@@ -90,31 +88,14 @@ fun Navigator(
         }
 
         composable("selectServer") {
-            val current: Context = LocalContext.current
-            var needToSelectServer by remember { mutableStateOf(false) }
-
-
-            LaunchedEffect(Unit) {
-                val accounts: Map<Preferences.Key<*>, Any>? =
-                    current.dataStore.data.map { preferences ->
-                        preferences.asMap()
-                    }.firstOrNull()
-
-                val value: String? = accounts?.keys?.firstOrNull()?.name
-                val loggedInAccount: String? = value?.removePrefix(USER_KEY_PREFIX)
-                if (loggedInAccount == null) {
-                    needToSelectServer = true
-                } else {
-                    navController.navigate("login/$loggedInAccount")
+            ServerSelectScreen { server ->
+                scope.launch {
+                    navController.navigate("login/$server")
                 }
             }
-            ServerSelectScreen(scope, navController, needToSelectServer)
+
         }
 
-        composable("addLogin") {
-
-            ServerSelectScreen(scope, navController, true)
-        }
         composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
             SignInScreen(navController, scope, server)
@@ -130,13 +111,27 @@ fun Navigator(
 
             val userManager =
                 ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
+            val userComponent by remember(accessTokenRequest) {
+                mutableStateOf(
+                    userManager.userComponentFor(
+                        accessTokenRequest = accessTokenRequest
+                    )
+                )
+            }
             TimelineScreen(
                 accessTokenRequest,
-                userManager.userComponentFor(accessTokenRequest = accessTokenRequest),
+                userComponent,
                 onChangeTheme,
-                onNewAccount = { navController.navigate("addLogin") }
+                onNewAccount = { navController.navigate("selectServer") },
+                onProfileSelected = { account ->
+                    navController.navigate("login/${account.domain}")
+                }
             )
         }
-
     }
 }
+
+suspend fun Context.getAccounts(): Map<Preferences.Key<*>, Any>? =
+    dataStore.data.map { preferences ->
+        preferences.asMap()
+    }.firstOrNull()

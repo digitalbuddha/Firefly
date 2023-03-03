@@ -20,29 +20,16 @@ fun SignInScreen(
     scope: CoroutineScope,
     server: String
 ) {
-    val current = LocalContext.current
-    val component = retain(key=server) { NoAuthComponent(current) } as AuthOptionalInjector
+    val context = LocalContext.current
+    val component = retain(key = server) { NoAuthComponent(context) } as AuthOptionalInjector
     val signInPresenter = component.signInPresenter()
-    val accessToken = signInPresenter.model.accessTokenRequest?.copy(domain = server)
+    //TODO MIKE: check if we need to put the domain here manually
+    val accessToken = signInPresenter.model.accessTokenRequest//?.copy(domain = server)
 
-    if (accessToken != null)
-        LaunchedEffect(server) {
-            val domain = URLEncoder.encode(accessToken.domain, StandardCharsets.UTF_8.toString())
-            val clientId =
-                URLEncoder.encode(accessToken.clientId, StandardCharsets.UTF_8.toString())
-            val clientSecret =
-                URLEncoder.encode(accessToken.clientSecret, StandardCharsets.UTF_8.toString())
-            val redirectUri =
-                URLEncoder.encode(accessToken.redirectUri, StandardCharsets.UTF_8.toString())
-            val code = URLEncoder.encode(accessToken.code, StandardCharsets.UTF_8.toString())
-            navController.navigate("timeline/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
-                popUpTo(0)
-            }
-        }
     LaunchedEffect(server) {
         signInPresenter.start()
     }
-    LaunchedEffect(server) {
+    LaunchedEffect(server, accessToken) {
         if (accessToken != null) {
             val domain = URLEncoder.encode(accessToken.domain, StandardCharsets.UTF_8.toString())
             val clientId =
@@ -56,7 +43,7 @@ fun SignInScreen(
                 popUpTo(0)
             }
         } else {
-            signInPresenter.handle(SignInPresenter.SetServer(server))
+            signInPresenter.handle(SignInPresenter.SignIn(server))
         }
     }
     SignInContent(
@@ -69,7 +56,7 @@ fun SignInScreen(
 
         },
         shouldCancelLoadingUrl = {
-            signInPresenter.shouldCancelLoadingUrl(it, scope)
+            signInPresenter.shouldCancelLoadingUrl(it, scope, server)
         }
 
     )
