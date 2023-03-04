@@ -101,13 +101,8 @@ fun TimelineCard(
             if(!showParent)
                 Parent { showParent = true }
             AnimatedVisibility(showParent) {
-                before.lastOrNull()?.let {
-                    card(
-                        Modifier.background(colorScheme.tertiaryContainer.copy(alpha = .1f)),
-                        it,
-                        submitPresenter.events
-                    )
-                }
+//                InnerLazyColumn(before)
+                InnerLazyColumn(before)
             }
         }
         DirectMessage(ui.directMessage)

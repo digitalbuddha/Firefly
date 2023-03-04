@@ -1,0 +1,28 @@
+{
+  ConstraintSets: {
+    start: {
+      my_image: {
+        width: 40,
+        height: 40,
+        start: ['parent', 'start', 16]
+      },
+      my_divider: {
+        start: ['my_image', 'end', 16],
+        top: ['my_image', 'top'],
+        bottom: ['my_image', 'bottom']
+      }
+    },
+    end: {
+      my_image: {
+        width: 40,
+        height: 40,
+        end: ['parent', 'end', 16]
+      },
+      my_divider: {
+        end: ['my_image', 'start', 16],
+        top: ['my_image', 'top'],
+        bottom: ['my_image', 'bottom']
+      }
+    }
+  }
+}

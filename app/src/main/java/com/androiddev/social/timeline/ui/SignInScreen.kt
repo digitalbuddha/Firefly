@@ -39,7 +39,7 @@ fun SignInScreen(
             val redirectUri =
                 URLEncoder.encode(accessToken.redirectUri, StandardCharsets.UTF_8.toString())
             val code = URLEncoder.encode(accessToken.code, StandardCharsets.UTF_8.toString())
-            navController.navigate("timeline/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
+            navController.navigate("home/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
                 popUpTo(0)
             }
         } else {

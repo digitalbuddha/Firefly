@@ -236,7 +236,7 @@ private fun SelectorExpanded(
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.REPLIES  ->
-                status?.let { Conversation(status = it) }
+                status?.let { After(status = it) }
             InputSelector.PICTURE -> PhotoPickerResultComposable(uris) {
                 onClearSelector()
             }

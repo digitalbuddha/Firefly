@@ -1,9 +1,6 @@
 package com.androiddev.social.auth.data
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.shared.Api
@@ -22,21 +19,37 @@ val USER_KEY_PREFIX = "USER_TOKEN_FOR_"
 @ContributesBinding(UserScope::class)
 @SingleIn(UserScope::class)
 class RealOauthRepository @Inject constructor(
-    private val accessTokenRequest: AccessTokenRequest,
+    val accessTokenRequest: AccessTokenRequest,
     val api: Api,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<LoggedInAccounts>
 ) : OauthRepository {
 
     private val sourceOfTruth = SourceOfTruth.of<String, Token, String>(
         reader = {
-            dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey(USER_KEY_PREFIX + accessTokenRequest.domain)]
+            dataStore.data.map {
+                val server = it.servers[accessTokenRequest.domain]
+                val currentUser =
+                    server?.users?.get(accessTokenRequest.code)
+                currentUser?.accessToken
             }
         },
         writer = { _, token ->
-            dataStore.edit {
-                it[stringPreferencesKey(USER_KEY_PREFIX + accessTokenRequest.domain)] =
-                    token.accessToken
+            dataStore.updateData {
+                val server = it.servers[accessTokenRequest.domain]!!
+                val users = server.users.toMutableMap()
+                val user = users.getOrDefault(
+                    accessTokenRequest.code,
+                    User(accessToken = token.accessToken, accessTokenRequest = accessTokenRequest)
+                )
+
+
+                users[accessTokenRequest.code] = user.copy(accessToken = token.accessToken)
+
+                val serverResult = server.copy(users = users)
+                val servers = it.servers.toMutableMap()
+                servers[accessTokenRequest.domain!!] = serverResult
+
+                it.copy(servers = servers)
             }
         }
     )

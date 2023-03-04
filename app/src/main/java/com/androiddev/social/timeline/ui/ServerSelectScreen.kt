@@ -64,7 +64,7 @@ fun ServerSelectScreen(
                         //                                        textAlign = TextAlign.Cewn
                     ),
                     colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = colorScheme.onSecondaryContainer,
+                        backgroundColor = colorScheme.primary,
                         cursorColor = Color.Black,
                         disabledLabelColor = colorScheme.onSecondaryContainer,
                         focusedIndicatorColor = Color.Transparent,

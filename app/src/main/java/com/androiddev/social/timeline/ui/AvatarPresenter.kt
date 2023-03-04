@@ -3,8 +3,8 @@ package com.androiddev.social.timeline.ui
 import android.app.Application
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
+import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.OauthRepository
-import com.androiddev.social.auth.data.USER_KEY_PREFIX
 import com.androiddev.social.auth.data.UserManager
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Account
@@ -35,7 +35,8 @@ class RealAvatarPresenter @Inject constructor(
     val api: UserApi,
     val application: Application,
     val oauthRepository: OauthRepository,
-    val userManager: UserManager
+    val userManager: UserManager,
+    val accessTokenRequest: AccessTokenRequest
 ) :
     AvatarPresenter() {
 
@@ -43,26 +44,29 @@ class RealAvatarPresenter @Inject constructor(
         when (event) {
             is Load -> {
                 val touch = oauthRepository.getCurrent()//touch it to make sure we save it
-                val accountTokens = application.baseContext.getAccounts()
-                val accounts = accountTokens?.entries?.map { current ->
-                    val token = " Bearer ${current.value}"
-                    val domain = current
-                        .key
-                        .name
-                        .removePrefix(USER_KEY_PREFIX)
+                val accountTokens: List<AccessTokenRequest> = application.baseContext.getAccounts()
+                val accounts = accountTokens.map { accountTokenRequest ->
                     val account: Result<Account?> =
                         kotlin.runCatching {
-                            userManager.userComponentFor(domain = domain)?.api()
-                                ?.accountVerifyCredentials(token)
+                            val userComponent =
+                                userManager.userComponentFor(accessTokenRequest = accountTokenRequest)
+                            val credentials = userComponent.api()
+                                .accountVerifyCredentials(
+                                    " Bearer ${
+                                        userComponent.oauthRepository().getCurrent()
+                                    }"
+                                )
+                            credentials
                         }
 
                     account.getOrNull()
                         ?.copy(
-                            domain = domain
+                            domain = accountTokenRequest.domain
                         )
-                }?.filterNotNull()
+                }.filterNotNull()
 
-                model = model.copy(accounts = accounts)
+                model =
+                    model.copy(accounts = accounts.sortedBy { if (it.domain == accessTokenRequest.domain) 0 else 1 })
 
             }
         }

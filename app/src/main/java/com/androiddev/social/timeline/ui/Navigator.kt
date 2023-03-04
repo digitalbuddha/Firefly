@@ -1,38 +1,43 @@
 package com.androiddev.social.timeline.ui
 
 import android.content.Context
-import android.view.animation.OvershootInterpolator
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.isFinished
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.EbonyApp
+import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
-import com.androiddev.social.auth.data.USER_KEY_PREFIX
 import com.androiddev.social.auth.data.UserManagerProvider
 import com.androiddev.social.timeline.data.dataStore
+import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+
+@Composable
+fun getUserComponent(accessTokenRequest: AccessTokenRequest): UserComponent {
+    val userManager =
+        ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
+    return userManager.userComponentFor(
+        accessTokenRequest = accessTokenRequest
+    )
+}
+
+@Composable
+fun getUserComponent(code: String): UserComponent {
+    val userManager =
+        ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
+    return userManager.userComponentFor(
+        code = code
+    )
+}
 
 @Composable
 fun Navigator(
@@ -40,52 +45,49 @@ fun Navigator(
     scope: CoroutineScope,
     onChangeTheme: () -> Unit
 ) {
+
+
     NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") {
-            val scale = remember { Animatable(0f) }
-            val current: Context = LocalContext.current
-
-            LaunchedEffect(Unit) {
-                val result = scale.animateTo(
-                    targetValue = 0.001f,
-                    animationSpec = tween(
-                        durationMillis = 600,
-                        easing = {
-                            OvershootInterpolator(20000f).getInterpolation(it)
-                        })
-                )
-                val accounts: Map<Preferences.Key<*>, Any>? =
-                    current.getAccounts()
-
-                val firstAccount: String? = accounts?.keys?.firstOrNull()?.name
-                val loggedInAccount: String? = firstAccount?.removePrefix(USER_KEY_PREFIX)
-                if (result.endState.isFinished)
-                    if (loggedInAccount == null) {
-                        navController.navigate("selectServer")
-                    } else {
-                        navController.navigate("login/$loggedInAccount")
-                    }
-            }
-
-            // Image
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.wrapContentSize(Alignment.Center)
-                ) {
-                    FAB(
-                        colorScheme = MaterialTheme.colorScheme,
-                        onClick = {},
-                        modifier = Modifier
-                            .offset(y = (-40).dp)
-                            .scale(scale.value)
+        navigation(
+            startDestination = "timeline",
+            route = "home/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}"
+        ) {
+            composable("timeline") {
+                val accessTokenRequest = accessTokenRequest(it)
+                val userComponent = getUserComponent(accessTokenRequest = accessTokenRequest)
+                CompositionLocalProvider(LocalUserComponent provides userComponent) {
+                    TimelineScreen(
+                        accessTokenRequest,
+                        userComponent,
+                        onChangeTheme,
+                        onNewAccount = { navController.navigate("selectServer") },
+                        onProfileSelected = { account ->
+                            navController.navigate("login/${account.domain}")
+                        },
+                        goToMentions = {
+                            navController.navigate("mentions/${it.arguments?.getString("code")}")
+                        }
                     )
                 }
             }
+            composable("mentions/{code}") {
+                val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
+                CompositionLocalProvider(LocalUserComponent provides userComponent) {
+                    val userComponent: UserComponent = LocalUserComponent.current
+
+                    val component = retain(
+                        key = userComponent.request().domain ?: ""
+                    ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+                    CompositionLocalProvider(LocalAuthComponent provides component) {
+                        MentionsScreen()
+                    }
+                }
+            }
         }
+        composable("splash") {
+            SplashScreen(navController)
+        }
+
 
         composable("selectServer") {
             ServerSelectScreen { server ->
@@ -96,42 +98,33 @@ fun Navigator(
 
         }
 
+
+
         composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
             SignInScreen(navController, scope, server)
         }
-        composable("timeline/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}") {
-            val accessTokenRequest = AccessTokenRequest(
-                code = it.arguments?.getString("code")!!,
-                clientId = it.arguments?.getString("clientId")!!,
-                clientSecret = it.arguments?.getString("clientSecret")!!,
-                redirectUri = it.arguments?.getString("redirectUri")!!,
-                domain = it.arguments?.getString("server")!!
-            )
+    }
+}
 
-            val userManager =
-                ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
-            val userComponent by remember(accessTokenRequest) {
-                mutableStateOf(
-                    userManager.userComponentFor(
-                        accessTokenRequest = accessTokenRequest
-                    )
-                )
+
+suspend fun Context.getAccounts(): List<AccessTokenRequest> {
+    return buildList {
+        val current = dataStore.data.first()
+        current.servers.values.forEach {
+            it.users.values.forEach {
+                add(it.accessTokenRequest)
             }
-            TimelineScreen(
-                accessTokenRequest,
-                userComponent,
-                onChangeTheme,
-                onNewAccount = { navController.navigate("selectServer") },
-                onProfileSelected = { account ->
-                    navController.navigate("login/${account.domain}")
-                }
-            )
         }
     }
 }
 
-suspend fun Context.getAccounts(): Map<Preferences.Key<*>, Any>? =
-    dataStore.data.map { preferences ->
-        preferences.asMap()
-    }.firstOrNull()
+@Composable
+fun accessTokenRequest(it: NavBackStackEntry) = AccessTokenRequest(
+    code = it.arguments?.getString("code")!!,
+    clientId = it.arguments?.getString("clientId")!!,
+    clientSecret = it.arguments?.getString("clientSecret")!!,
+    redirectUri = it.arguments?.getString("redirectUri")!!,
+    domain = it.arguments?.getString("server")!!
+)
+

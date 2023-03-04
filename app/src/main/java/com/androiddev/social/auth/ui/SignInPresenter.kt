@@ -1,9 +1,6 @@
-
 package com.androiddev.social.auth.ui
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.*
@@ -13,6 +10,7 @@ import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.net.URI
 import java.net.URLEncoder
@@ -49,7 +47,7 @@ abstract class SignInPresenter :
 class RealSignInPresenter @Inject constructor(
     val appTokenRepository: AppTokenRepository,
     val api: Api,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<LoggedInAccounts>
 ) : SignInPresenter() {
 
     init {
@@ -72,22 +70,16 @@ class RealSignInPresenter @Inject constructor(
                     )
                 }
                 if (result.isSuccess) {
-                    val value = result.getOrThrow()
-                    val userKey = dataStore.data.map { preferences ->
-                        preferences[stringPreferencesKey(USER_KEY_PREFIX + event.domain)]
-                    }.first()
-                    if (userKey != null)
-                       model= model.copy(
-                        accessTokenRequest = AccessTokenRequest(
-                            //since we already have a token in datastore we don't need to get a new code
-                            code = "STUBBEDCODE",
-                            clientId = value.clientId,
-                            clientSecret = value.clientSecret,
-                            redirectUri = value.redirectUri,
-                            domain = event.domain
-                        )
-                    )
-                    else {
+                    val value: NewOauthApplication = result.getOrThrow()
+                    val request: AccessTokenRequest? = dataStore.data.map {
+                        val server = it.servers[event.domain]
+                        val isAUserLoggedIn =
+                            server?.users?.values?.firstOrNull { it.accessToken!=null }
+                        isAUserLoggedIn?.accessTokenRequest
+                    }.firstOrNull()
+                    if (request != null) {
+                        model = model.copy(accessTokenRequest = request)
+                    } else {
                         model = model.copy(
                             redirectUri = value.redirectUri,
                             oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
@@ -119,7 +111,11 @@ class RealSignInPresenter @Inject constructor(
     }
 
 
-    override fun shouldCancelLoadingUrl(url: String, scope: CoroutineScope, server: String): Boolean {
+    override fun shouldCancelLoadingUrl(
+        url: String,
+        scope: CoroutineScope,
+        server: String
+    ): Boolean {
         model = model.copy(oauthAuthorizeUrl = "")
         val uri = URI(url)
         val query = uri.query
@@ -145,13 +141,30 @@ class RealSignInPresenter @Inject constructor(
                         redirectUri = model.redirectUri,
                         domain = server
                     )
-                    model = model.copy(accessTokenRequest = accessTokenRequest)
+                    saveNewAccessTokenRequest(accessTokenRequest)
                 }
                 true
             }
 
             else -> false
         }
+    }
+
+    suspend fun saveNewAccessTokenRequest(accessTokenRequest: AccessTokenRequest) {
+        val current: LoggedInAccounts = dataStore.data.first()
+        val servers = current.servers.toMutableMap()
+        val server: Server = servers.getOrDefault(
+            accessTokenRequest.domain,
+            defaultValue = Server(domain = accessTokenRequest.domain!!)
+        )
+        val users = server.users.toMutableMap()
+        users.put(accessTokenRequest.code,User(accessToken = null, accessTokenRequest = accessTokenRequest))
+        server.copy(users = users)
+
+
+        servers[accessTokenRequest.domain] = server
+        dataStore.updateData { it.copy(servers = servers) }
+        model = model.copy(accessTokenRequest = accessTokenRequest)
     }
 }
 

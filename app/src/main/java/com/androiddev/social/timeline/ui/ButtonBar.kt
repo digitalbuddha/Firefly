@@ -91,7 +91,7 @@ fun ButtonBar(
             }
         }
         AnimatedVisibility(visible = showReply) {
-            Conversation(status = status)
+            After(status = status)
         }
     }
 }

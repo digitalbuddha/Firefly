@@ -1,10 +1,11 @@
-package com.androiddev.social.timeline.ui
+package com.androiddev.social.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -21,29 +23,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import social.androiddev.R
-import com.androiddev.social.theme.PaddingSize0_5
-import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize3
 
 
+@ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
 @Composable
+@OptIn(ExperimentalAnimationApi::class)
 fun NotifIcon() {
+    var showSearch by remember { mutableStateOf(false) }
     IconButton(
-        onClick = {  }) {
+        onClick = { showSearch = true }) {
         Image(
             modifier = Modifier
-                .size(PaddingSize3),
-            painter = painterResource(R.drawable.notification),
+                .size(24.dp)
+                .rotate(-30f),
+            painter = painterResource(R.drawable.search),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-
         )
+        DropdownMenu(
+            offset = DpOffset(0.dp, 10.dp),
+            expanded = showSearch,
+            onDismissRequest = { showSearch = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = .5f)
+                )
+        ) {
+            var searchText by remember { mutableStateOf("Search") }
+            SearchBar(searchText, "Placeholder",
+                { searchText = it }, { searchText = "" })
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalMaterial3Api
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
@@ -64,7 +82,7 @@ fun SearchBar(
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = PaddingSize0_5)
+                    .padding(vertical = 2.dp)
                     .onFocusChanged { focusState ->
                         showClearButton = (focusState.isFocused)
                     }
@@ -109,7 +127,7 @@ fun SearchBar(
         }
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             IconButton(
-                modifier = Modifier.padding(PaddingSize1),
+                modifier = Modifier.padding(8.dp),
 
                 onClick = onImageOnly
             ) {
@@ -120,7 +138,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(PaddingSize1),
+                modifier = Modifier.padding(8.dp),
                 onClick = onLinksOnly
             ) {
                 Image(
@@ -130,7 +148,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(PaddingSize1),
+                modifier = Modifier.padding(8.dp),
                 onClick = onBoostedOnly
             ) {
                 Image(
@@ -140,7 +158,7 @@ fun SearchBar(
                 )
             }
             IconButton(
-                modifier = Modifier.padding(PaddingSize1),
+                modifier = Modifier.padding(8.dp),
                 onClick = onBoostedOnly
             ) {
                 Image(

@@ -1,5 +1,6 @@
 package com.androiddev.social.shared
 
+import com.androiddev.social.conversation.Conversation
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Status
@@ -18,7 +19,7 @@ interface UserApi {
 
     @GET("api/v1/timelines/public")
     suspend fun getLocalTimeline(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Query("local") localOnly: Boolean = true,
         @Query("limit") limit: String = "40",
         @Query("max_id") since: String?,
@@ -26,25 +27,32 @@ interface UserApi {
 
     @GET("/api/v1/trends/statuses")
     suspend fun getTrending(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Query("limit") limit: String = "40",
         @Query("offset") offset: String?,
     ): List<Status>
 
+    @GET("/api/v1/conversations")
+    suspend fun conversations(
+        @Header("Authorization") authHeader: String,
+        @Query("limit") limit: String = "40",
+    ): List<Conversation>
+
 
     @POST("/api/v1/statuses")
     suspend fun newStatus(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Body status: NewStatus,
     ): Status
 
     @Serializable
-    data class Conversation(val ancestors: List<Status>, val descendants: List<Status>)
+    data class StatusNode(val ancestors: List<Status>, val descendants: List<Status>)
 
     @GET("api/v1/statuses/{id}/context")
     suspend fun conversation(
+        @Header("Authorization") authHeader: String,
         @Path("id") statusId: String
-    ): Conversation
+    ): StatusNode
 
     fun boostStatus(
         @Header("Authorization") authHeader: String?,
@@ -77,4 +85,3 @@ interface UserApi {
     ): UploadIds
 
 }
-

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.androiddev.social.timeline.ui
 
 import android.net.Uri
@@ -8,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,12 +33,17 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
+import com.androiddev.social.ui.NotifIcon
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material3.placeholder
+import com.google.accompanist.placeholder.material3.shimmer
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
+val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -44,7 +52,8 @@ fun TimelineScreen(
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
     onNewAccount: () -> Unit,
-    onProfileSelected: (account: Account) -> Unit
+    onProfileSelected: (account: Account) -> Unit,
+    goToMentions: () -> Unit
 ) {
     val component =
         retain(
@@ -82,7 +91,9 @@ fun TimelineScreen(
                         elevation = BottomBarElevation,
                         backgroundColor = MaterialTheme.colorScheme.surface,
                     ) {
-                        BottomBar()
+                        BottomBar{
+                            goToMentions()
+                        }
                     }
                 }
 
@@ -324,10 +335,26 @@ fun TimelineRows(
     isReplying: (Boolean) -> Unit
 ) {
     LazyColumn {
+        if (ui.itemCount==0) {
+            items(5) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .padding(16.dp)
+                        .placeholder(
+                            visible = true,
+                            highlight = PlaceholderHighlight.shimmer(),
+                        )
+                ) {
 
-        items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
-            it?.mapStatus()?.let { ui ->
-                TimelineCard(ui, replyToStatus, boostStatus, favoriteStatus, state, isReplying)
+                }
+            }
+        } else {
+            items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
+                it?.mapStatus()?.let { ui ->
+                    TimelineCard(ui, replyToStatus, boostStatus, favoriteStatus, state, isReplying)
+                }
             }
         }
     }

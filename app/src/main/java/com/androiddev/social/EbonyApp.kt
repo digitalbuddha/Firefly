@@ -67,6 +67,7 @@ interface UserComponent  {
     }
     fun oauthRepository():OauthRepository
     fun api():UserApi
+    fun request():AccessTokenRequest
 }
 
 @ContributesTo(AppScope::class)

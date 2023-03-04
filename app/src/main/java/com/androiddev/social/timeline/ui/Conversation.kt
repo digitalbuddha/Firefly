@@ -25,10 +25,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun Conversation(status: UI) {
+fun After(status: UI) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
-    val submitPresenter = LocalAuthComponent.current.submitPresenter()
 
     LaunchedEffect(key1 = status) {
         presenter.start()
@@ -40,23 +39,47 @@ fun Conversation(status: UI) {
         presenter.model.after
     val after: List<UI>? =
         afterStatus[status.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+
+    InnerLazyColumn(after)
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun Before(status: UI) {
+    val provider = LocalAuthComponent.current.conversationPresenter().get()
+    var presenter by remember { mutableStateOf(provider) }
+
+    LaunchedEffect(key1 = status) {
+        presenter.start()
+    }
+    LaunchedEffect(key1 = status) {
+        presenter.handle(ConversationPresenter.Load(status.remoteId))
+    }
+    val afterStatus: Map<String, List<Status>> =
+        presenter.model.before
+    val after: List<UI>? =
+        afterStatus[status.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+
+    InnerLazyColumn(after)
+}
+
+@Composable
+fun InnerLazyColumn(
+    items: List<UI>?
+) {
+    val submitPresenter = LocalAuthComponent.current.submitPresenter()
     val configuration = LocalConfiguration.current
 
     val screenHeight = configuration.screenHeightDp
-    LazyColumn(modifier = Modifier.heightIn(1.dp, max = (screenHeight*.8).dp)) {
-        if (!after.isNullOrEmpty()) {
-//            Replies()
-            after.take(10).forEach { inner ->
+    LazyColumn(modifier = Modifier.heightIn(1.dp, max = (screenHeight * .8).dp)) {
+        if (!items.isNullOrEmpty()) {
+            items.take(10).forEach { inner ->
                 item {
-                    if (status == inner) {
-                        card(
-                            Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),
-                            inner,
-                            submitPresenter.events
-                        )
-                    } else {
-                        card(Modifier, inner, submitPresenter.events)
-                    }
+                    card(
+                        Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),
+                        inner,
+                        submitPresenter.events
+                    )
                 }
             }
         }

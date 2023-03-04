@@ -39,7 +39,12 @@ class RealConversationPresenter @Inject constructor(
         when (event) {
             is Load -> {
                 val token = " Bearer ${repository.getCurrent()}"
-                val conversation = kotlin.runCatching { api.conversation(event.statusId) }
+                val conversation = kotlin.runCatching {
+                    api.conversation(
+                        authHeader = "$token",
+                        statusId = event.statusId
+                    )
+                }
                 if (conversation.isSuccess) {
                     val statuses = conversation.getOrThrow()
                     val before = model.before.toMutableMap()

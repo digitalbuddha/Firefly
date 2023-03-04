@@ -1,7 +1,6 @@
 package com.androiddev.social.timeline.data
 
 import com.androiddev.social.AppScope
-import social.androiddev.BuildConfig
 import com.androiddev.social.SingleIn
 import com.androiddev.social.shared.Api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -13,6 +12,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import social.androiddev.BuildConfig
 import java.util.concurrent.TimeUnit
 
 @ContributesTo(AppScope::class)
@@ -32,7 +32,7 @@ class DataModule {
             .apply {
                 if (BuildConfig.DEBUG) {
                     addInterceptor(HttpLoggingInterceptor().apply {
-                        level = HttpLoggingInterceptor.Level.BASIC
+                        level = HttpLoggingInterceptor.Level.BODY
                     })
                 }
             }
