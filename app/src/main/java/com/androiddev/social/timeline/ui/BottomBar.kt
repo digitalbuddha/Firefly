@@ -22,7 +22,10 @@ import com.androiddev.social.theme.ThickSm
 import social.androiddev.R
 
 @Composable
-fun BottomBar(goToMentions: () -> Unit) {
+fun BottomBar(
+    goToMentions: () -> Unit,
+    goToNotifications: () -> Unit,
+) {
     val size = 24
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -37,7 +40,7 @@ fun BottomBar(goToMentions: () -> Unit) {
         ) {
             Image(
                 modifier = Modifier.size(size.dp),
-                painter = painterResource(R.drawable.at),
+                painter = painterResource(R.drawable.chat),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
             )
@@ -54,13 +57,13 @@ fun BottomBar(goToMentions: () -> Unit) {
         OutlinedButton(
             contentPadding = PaddingValues(PaddingSizeNone, PaddingSize1),
             border = BorderStroke(ThickSm, Color.Transparent),
-            onClick = { }
+            onClick = goToNotifications
         ) {
             Image(
                 modifier = Modifier
-                    .size(size.dp)
-                    .rotate(-30f),
-                painter = painterResource(R.drawable.search),
+                    .size(28.dp)
+                    .rotate(0f),
+                painter = painterResource(R.drawable.notification),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
             )

@@ -66,6 +66,9 @@ fun Navigator(
                         },
                         goToMentions = {
                             navController.navigate("mentions/${it.arguments?.getString("code")}")
+                        },
+                        goToNotifications = {
+                            navController.navigate("notifications/${it.arguments?.getString("code")}")
                         }
                     )
                 }
@@ -79,7 +82,20 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        MentionsScreen()
+                        MentionsScreen(navController)
+                    }
+                }
+            }
+            composable("notifications/{code}") {
+                val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
+                CompositionLocalProvider(LocalUserComponent provides userComponent) {
+                    val userComponent: UserComponent = LocalUserComponent.current
+
+                    val component = retain(
+                        key = userComponent.request().domain ?: ""
+                    ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+                    CompositionLocalProvider(LocalAuthComponent provides component) {
+                        NotificationsScreen(navController)
                     }
                 }
             }

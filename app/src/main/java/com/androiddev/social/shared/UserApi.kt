@@ -3,6 +3,7 @@ package com.androiddev.social.shared
 import com.androiddev.social.conversation.Conversation
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
+import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Status
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
@@ -37,6 +38,13 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("limit") limit: String = "40",
     ): List<Conversation>
+
+    @GET("/api/v1/notifications")
+    suspend fun notifications(
+        @Header("Authorization") authHeader: String,
+        @Query("offset") offset: String?,
+        @Query("limit") limit: String = "40",
+        ): List<Notification>
 
 
     @POST("/api/v1/statuses")

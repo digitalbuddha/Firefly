@@ -1,12 +1,20 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -20,24 +28,27 @@ import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.material3.shimmer
 
 @Composable
-fun MentionsScreen(navController: NavHostController) {
+fun NotificationsScreen(navController: NavHostController) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
-    val mentionsPresenter = component.mentionsPresenter()
+    val notificationPresenter = component.notificationPresenter()
     LaunchedEffect(key1 = userComponent.request()) {
-        mentionsPresenter.start()
+        notificationPresenter.start()
     }
     LaunchedEffect(key1 = userComponent.request()) {
-        component.mentionsPresenter().handle(MentionsPresenter.Load)
+        notificationPresenter.handle(NotificationPresenter.Load)
     }
-    val statuses = mentionsPresenter.model.statuses
+    val statuses = notificationPresenter.model.statuses
     LaunchedEffect(key1 = userComponent.request()) {
         component.submitPresenter().start()
     }
     BackBar(navController, "Notifications")
-
-    LazyColumn(Modifier.wrapContentHeight().padding(top=60.dp)) {
+    LazyColumn(
+        Modifier
+            .wrapContentHeight()
+            .padding(top = 60.dp)
+    ) {
         if (statuses.isEmpty()) {
             items(5) {
                 Box(
@@ -62,6 +73,32 @@ fun MentionsScreen(navController: NavHostController) {
                 )
             }
         }
+    }
+
+}
+
+@Composable
+ fun BackBar(navController: NavHostController, title:String) {
+    Column {
+        TopAppBar(
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(
+                alpha = .9f
+            ),
+            title = { Text(text = title, color = MaterialTheme.colorScheme.onSurface) },
+            navigationIcon = if (navController.previousBackStackEntry != null) {
+                {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "search"
+                        )
+                    }
+                }
+            } else {
+                null
+            }
+        )
     }
 }
 

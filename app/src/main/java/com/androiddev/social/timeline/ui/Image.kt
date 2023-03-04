@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.androiddev.social.theme.PaddingSize4
+import com.androiddev.social.ui.util.VideoPlayer
 
 @Composable
 fun AvatarImage(
@@ -29,14 +30,20 @@ fun AvatarImage(
 ) {
     Box() {
         AsyncImage(
+            model = url,
+            contentDescription = "Content",
+            imageLoader = LocalImageLoader.current,
             modifier = modifier
                 .clip(CircleShape)
                 .clickable { onClick() }
                 .size(size),
-            alignment = Alignment.CenterStart,
-            model = url,
-            contentScale = ContentScale.FillBounds,
-            contentDescription = "Translated description of what the image contains"
+            transform = AsyncImagePainter.DefaultTransform,
+            onState = { },
+            alignment = Alignment.Center,
+            contentScale = ContentScale.FillWidth,
+            alpha = DefaultAlpha,
+            colorFilter = null,
+            filterQuality = DrawScope.DefaultFilterQuality
         )
     }
 
@@ -46,24 +53,28 @@ fun AvatarImage(
 fun ContentImage(
     url: String = "https://placekitten.com/302/302",
     modifier: Modifier = Modifier,
-            onClick: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
-    AsyncImage(
-        model = url,
-        contentDescription = "Content",
-        imageLoader = LocalImageLoader.current,
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .padding(0.dp)
-            .clickable { onClick() },
-        transform = AsyncImagePainter.DefaultTransform,
-        onState = { },
-        alignment = Alignment.Center,
-        contentScale = ContentScale.FillWidth,
-        alpha = DefaultAlpha,
-        colorFilter = null,
-        filterQuality = DrawScope.DefaultFilterQuality
-    )
+    if (url.contains(".mp4")) {
+        VideoPlayer(url)
+    } else {
+        AsyncImage(
+            model = url,
+            contentDescription = "Content",
+            imageLoader = LocalImageLoader.current,
+            modifier = modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .padding(0.dp)
+                .clickable { onClick() },
+            transform = AsyncImagePainter.DefaultTransform,
+            onState = { },
+            alignment = Alignment.Center,
+            contentScale = ContentScale.FillWidth,
+            alpha = DefaultAlpha,
+            colorFilter = null,
+            filterQuality = DrawScope.DefaultFilterQuality
+        )
+    }
 }
 

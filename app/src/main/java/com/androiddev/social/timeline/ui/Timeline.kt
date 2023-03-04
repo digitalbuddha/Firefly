@@ -34,7 +34,7 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.ui.NotifIcon
+import com.androiddev.social.ui.Search
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.material3.shimmer
@@ -55,7 +55,8 @@ fun TimelineScreen(
     onChangeTheme: () -> Unit,
     onNewAccount: () -> Unit,
     onProfileSelected: (account: Account) -> Unit,
-    goToMentions: () -> Unit
+    goToMentions: () -> Unit,
+    goToNotifications: () -> Unit
 ) {
     val component =
         retain(
@@ -93,9 +94,10 @@ fun TimelineScreen(
                         elevation = BottomBarElevation,
                         backgroundColor = MaterialTheme.colorScheme.surface,
                     ) {
-                        BottomBar{
-                            goToMentions()
-                        }
+                        BottomBar(
+                            goToMentions = goToMentions,
+                            goToNotifications = goToNotifications,
+                        )
                     }
                 }
 
@@ -248,7 +250,7 @@ fun TimelineScreen(
                                 }
                             }
                         }
-                        NotifIcon()
+                        Search()
                     }
                 })
         }
@@ -337,7 +339,7 @@ fun TimelineRows(
     isReplying: (Boolean) -> Unit
 ) {
     LazyColumn {
-        if (ui.itemCount==0) {
+        if (ui.itemCount == 0) {
             items(5) {
                 Box(
                     Modifier

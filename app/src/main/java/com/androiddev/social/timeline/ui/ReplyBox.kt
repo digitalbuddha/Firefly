@@ -34,6 +34,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
@@ -178,14 +180,20 @@ fun UserInput(
                 uris.forEach {
                     Box {
                         AsyncImage(
+                            model = it.toString(),
+                            contentDescription = "Content",
+                            imageLoader = LocalImageLoader.current,
                             modifier = modifier
                                 .padding(PaddingSize0_5)
                                 .clickable { uris.remove(it) }
                                 .size(80.dp),
-                            alignment = Alignment.CenterStart,
-                            model = it.toString(),
-                            contentScale = ContentScale.FillBounds,
-                            contentDescription = "Translated description of what the image contains"
+                            transform = AsyncImagePainter.DefaultTransform,
+                            onState = { },
+                            alignment = Alignment.Center,
+                            contentScale = ContentScale.FillWidth,
+                            alpha = androidx.compose.ui.graphics.DefaultAlpha,
+                            colorFilter = null,
+                            filterQuality = DrawScope.DefaultFilterQuality
                         )
                     }
 

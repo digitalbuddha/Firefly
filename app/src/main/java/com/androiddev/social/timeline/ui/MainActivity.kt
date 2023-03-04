@@ -44,6 +44,7 @@ interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
     fun homePresenter(): TimelinePresenter
     fun mentionsPresenter(): MentionsPresenter
+    fun notificationPresenter(): NotificationPresenter
     fun submitPresenter(): SubmitPresenter
     fun conversationPresenter(): Provider<ConversationPresenter>
 }

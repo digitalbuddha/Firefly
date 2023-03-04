@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -32,18 +31,18 @@ import social.androiddev.R
 @ExperimentalComposeUiApi
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
-fun NotifIcon() {
+fun Search() {
     var showSearch by remember { mutableStateOf(false) }
     IconButton(
         onClick = { showSearch = true }) {
-        Image(
-            modifier = Modifier
-                .size(24.dp)
-                .rotate(-30f),
-            painter = painterResource(R.drawable.search),
-            contentDescription = "",
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-        )
+//        Image(
+//            modifier = Modifier
+//                .size(24.dp)
+//                .rotate(-30f),
+//            painter = painterResource(R.drawable.search),
+//            contentDescription = "",
+//            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+//        )
         DropdownMenu(
             offset = DpOffset(0.dp, 10.dp),
             expanded = showSearch,
