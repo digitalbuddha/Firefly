@@ -3,6 +3,7 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
@@ -93,23 +94,27 @@ fun card(
     status: UI,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>
 ) {
-    TimelineCard(
-        modifier = modifier,
-        ui = status,
-        replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-            events.tryEmit(
-                SubmitPresenter.PostMessage(
-                    content = content,
-                    visibility = visiblity,
-                    replyStatusId = replyToId,
-                    replyCount = replyCount,
-                    uris = uris
+    Column {
+        TimelineCard(
+            modifier = modifier,
+            ui = status,
+            replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                events.tryEmit(
+                    SubmitPresenter.PostMessage(
+                        content = content,
+                        visibility = visiblity,
+                        replyStatusId = replyToId,
+                        replyCount = replyCount,
+                        uris = uris
+                    )
                 )
-            )
-        },
-        boostStatus = {},
-        favoriteStatus = {},
-        state = null,
-        isReplying = { false },
-    )
+            },
+            boostStatus = {},
+            favoriteStatus = {},
+            state = null,
+            isReplying = { false },
+            alwaysShowButtonBar = true
+        )
+    }
+
 }

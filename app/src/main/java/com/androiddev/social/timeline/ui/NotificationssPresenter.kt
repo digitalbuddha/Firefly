@@ -5,7 +5,6 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Notification
-import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +19,7 @@ abstract class NotificationPresenter :
     object Load : NotificationEvent
 
     data class NotificationModel(
-        val statuses: List<Status>
+        val statuses: List<Notification>
     )
 
     sealed interface NotificationEffect
@@ -42,9 +41,9 @@ class RealNotificationPresenter @Inject constructor(
                     kotlin.runCatching { api.notifications(authHeader = token, offset = null) }
                 if (notification.isSuccess) {
                     val conversations: List<Notification> = notification.getOrThrow()
-                    val statuses = conversations.map {
-                        it.status
-                    }.filterNotNull()
+                    val statuses = conversations.filter {
+                        it.status != null
+                    }
                     model = model.copy(statuses = statuses)
                 }
             }

@@ -10,10 +10,11 @@ data class Notification(
     val status: Status? = null,
     val account: Account,
     val created_at: Instant,
-    val realType:Type?=null
+    val realType: Type = Type.valueOf(type)
 )
 
-@Serializable enum class Type(val value: String) {
+@Serializable
+enum class Type(val value: String) {
     mention("mention"),
     status("status"),
     reblog("reblog"),

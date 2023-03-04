@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
@@ -27,7 +26,7 @@ import com.androiddev.social.ui.util.emojiText
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?) {
+fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?, drawable: Int) {
     boostedBy?.let {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -64,7 +63,7 @@ fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoj
                 trailingIcon = {
                     Image(
                         modifier = Modifier.height(PaddingSize3),
-                        painter = painterResource(R.drawable.rocket3),
+                        painter = painterResource(drawable),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(colorScheme.onPrimary.copy(alpha = .5f)),
                     )

@@ -35,7 +35,7 @@ fun MentionsScreen(navController: NavHostController) {
     LaunchedEffect(key1 = userComponent.request()) {
         component.submitPresenter().start()
     }
-    BackBar(navController, "Notifications")
+    BackBar(navController, "Mentions")
 
     LazyColumn(Modifier.wrapContentHeight().padding(top=60.dp)) {
         if (statuses.isEmpty()) {

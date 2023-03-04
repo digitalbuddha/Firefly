@@ -62,7 +62,7 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
-
+    alwaysShowButtonBar:Boolean = false,
     ui: UI, replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
@@ -106,7 +106,7 @@ fun TimelineCard(
             }
         }
         DirectMessage(ui.directMessage)
-        Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis)
+        Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis, R.drawable.rocket3)
         UserInfo(ui)
         Row(
             Modifier
@@ -191,7 +191,7 @@ fun TimelineCard(
                         )
                     }
                 }
-                AnimatedVisibility(visible = clicked) {
+                AnimatedVisibility(visible = clicked || alwaysShowButtonBar) {
                     Column {
 
                         ButtonBar(

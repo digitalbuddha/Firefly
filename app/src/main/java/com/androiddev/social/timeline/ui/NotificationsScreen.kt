@@ -21,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.material3.shimmer
+import social.androiddev.R
 
 @Composable
 fun NotificationsScreen(navController: NavHostController) {
@@ -66,11 +68,30 @@ fun NotificationsScreen(navController: NavHostController) {
             }
         } else {
             items(statuses) {
-                card(
-                    modifier = Modifier,
-                    status = it.toStatusDb(FeedType.Home).mapStatus(),
-                    events = component.submitPresenter().events
-                )
+                Column {
+                    if (it.realType == Type.favourite) {
+                        Boosted(
+                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName)+" favorited",
+                            boostedAvatar = it.account.avatar,
+                            boostedEmojis = it.account.emojis,
+                            drawable = R.drawable.star
+                        )
+                    }
+                    if (it.realType == Type.reblog) {
+                        Boosted(
+                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName)+" boosted",
+                            boostedAvatar = it.account.avatar,
+                            boostedEmojis = it.account.emojis,
+                            drawable = R.drawable.rocket3
+                        )
+                    }
+                    card(
+                        modifier = Modifier,
+                        status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
+                        events = component.submitPresenter().events
+                    )
+                }
+
             }
         }
     }
@@ -78,7 +99,7 @@ fun NotificationsScreen(navController: NavHostController) {
 }
 
 @Composable
- fun BackBar(navController: NavHostController, title:String) {
+fun BackBar(navController: NavHostController, title: String) {
     Column {
         TopAppBar(
             backgroundColor = MaterialTheme.colorScheme.surface.copy(

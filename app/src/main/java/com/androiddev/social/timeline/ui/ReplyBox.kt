@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -487,7 +488,7 @@ private fun UserInputText(
 
                 Box(
                     modifier = Modifier
-                        .wrapContentHeight()
+                        .heightIn(min=100.dp)
                         .fillMaxWidth(.75f)
                         .align(Alignment.Bottom)
 //                        .background(Color.Red)
@@ -502,7 +503,7 @@ private fun UserInputText(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .padding(start = PaddingSize1, bottom = PaddingSize2)
+                            .padding(start = PaddingSize1, bottom = PaddingSize2, top = PaddingSize2)
                             .align(Alignment.TopStart)
                             .onFocusChanged { state ->
                                 if (lastFocusState != state.isFocused) {
@@ -512,9 +513,11 @@ private fun UserInputText(
                             },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = keyboardType,
-                            imeAction = ImeAction.None
+                            imeAction = ImeAction.None,
+                            capitalization = KeyboardCapitalization.Sentences
                         ),
                         maxLines = 10,
+                        minLines = 2,
                         cursorBrush = SolidColor(LocalContentColor.current),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                     )
@@ -524,7 +527,7 @@ private fun UserInputText(
                         Text(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = PaddingSize3, bottom = PaddingSize2)
+                                .padding(start = PaddingSize3, bottom = PaddingSize2, top = PaddingSize2)
                                 .wrapContentWidth(),
                             text = "Be Heard",
                             maxLines = 1,

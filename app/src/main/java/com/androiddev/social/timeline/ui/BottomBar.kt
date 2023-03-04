@@ -40,7 +40,7 @@ fun BottomBar(
         ) {
             Image(
                 modifier = Modifier.size(size.dp),
-                painter = painterResource(R.drawable.chat),
+                painter = painterResource(R.drawable.at),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
             )
