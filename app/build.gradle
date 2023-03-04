@@ -129,5 +129,8 @@ dependencies {
     implementation("androidx.room:room-paging:$room_version")
     implementation "com.google.accompanist:accompanist-placeholder-material3:0.29.1-alpha"
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha07")
+    implementation("io.coil-kt:coil-gif:2.2.2")
+    implementation("io.coil-kt:coil-video:2.2.2")
+
 
 }

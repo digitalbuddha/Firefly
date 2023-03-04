@@ -28,7 +28,8 @@ class SplashActivity : Activity() {
         findViewById<MotionLayout>(R.id.motionLayout).setTransitionListener(object :
             MotionLayout.TransitionListener {
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
-                startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                startActivity(Intent(this@SplashActivity, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION))
             }
 
             override fun onTransitionChange(p0: MotionLayout?, p1: Int, p2: Int, p3: Float) {}

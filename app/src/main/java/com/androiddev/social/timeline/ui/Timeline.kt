@@ -22,6 +22,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
+import coil.ImageLoader
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
@@ -44,6 +45,7 @@ import kotlinx.coroutines.launch
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
 val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
+val LocalImageLoader = compositionLocalOf<ImageLoader> { error("No component found!") }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable

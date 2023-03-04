@@ -11,10 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.DefaultAlpha
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.androiddev.social.theme.PaddingSize4
 
 @Composable
@@ -45,17 +48,22 @@ fun ContentImage(
     modifier: Modifier = Modifier,
             onClick: () -> Unit = {},
 ) {
-
     AsyncImage(
+        model = url,
+        contentDescription = "Content",
+        imageLoader = LocalImageLoader.current,
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .padding(0.dp)
             .clickable { onClick() },
+        transform = AsyncImagePainter.DefaultTransform,
+        onState = { },
         alignment = Alignment.Center,
-        model = url,
         contentScale = ContentScale.FillWidth,
-        contentDescription = "Translated description of what the image contains"
+        alpha = DefaultAlpha,
+        colorFilter = null,
+        filterQuality = DrawScope.DefaultFilterQuality
     )
 }
 

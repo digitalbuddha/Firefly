@@ -3,6 +3,7 @@
 package com.androiddev.social.timeline.ui
 
 import android.annotation.SuppressLint
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +18,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.navigation.compose.rememberNavController
+import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.decode.VideoFrameDecoder
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.AuthRequiredScope
@@ -63,21 +68,35 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            var isDynamicTheme by remember { mutableStateOf(true) }
-            EbonyTheme(isDynamicColor = isDynamicTheme) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            colorScheme.surface.copy(
-                                alpha = .99f
+            val loader = ImageLoader.Builder(this)
+                .components {
+                    if (SDK_INT >= 28) {
+                        add(ImageDecoderDecoder.Factory())
+                    } else {
+                        add(GifDecoder.Factory())
+                    }
+                    add(VideoFrameDecoder.Factory())
+                }
+                .build()
+
+            CompositionLocalProvider(LocalImageLoader provides loader) {
+
+                var isDynamicTheme by remember { mutableStateOf(true) }
+                EbonyTheme(isDynamicColor = isDynamicTheme) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                colorScheme.surface.copy(
+                                    alpha = .99f
+                                )
                             )
-                        )
-                ) {
-                    val scope = rememberCoroutineScope()
-                    val navController = rememberNavController()
-                    Navigator(navController, scope) {
-                        isDynamicTheme = !isDynamicTheme
+                    ) {
+                        val scope = rememberCoroutineScope()
+                        val navController = rememberNavController()
+                        Navigator(navController, scope) {
+                            isDynamicTheme = !isDynamicTheme
+                        }
                     }
                 }
             }
