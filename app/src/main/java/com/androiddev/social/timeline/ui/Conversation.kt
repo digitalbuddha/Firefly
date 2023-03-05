@@ -80,7 +80,7 @@ fun InnerLazyColumn(
             items.take(10).forEach { inner ->
                 item {
                     card(
-                        Modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+                        Modifier.background(MaterialTheme.colorScheme.background),
                         inner,
                         submitPresenter.events,
                         goToConversation = goToConversation

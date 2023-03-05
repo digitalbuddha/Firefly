@@ -83,7 +83,9 @@ fun ConversationScreen(
             Parent(if (!showParent) "Show Full Thread" else "Show Replies Only") {
                 showParent = !showParent
             }
-        statuses.render(component.submitPresenter().events, goToConversation)
+        statuses.render(component.submitPresenter().events) {
+
+        }
 
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
@@ -122,7 +124,7 @@ private fun List<UI>.render(
         } else {
             items(statuses) {
                 card(
-                    modifier = Modifier.background(if (it.replyType == ReplyType.PARENT) colorScheme.surface else if (it.replyType == ReplyType.CHILD) colorScheme.surfaceVariant else Color.Transparent),
+                    modifier = Modifier.background(if (it.replyType == ReplyType.PARENT) colorScheme.surface else if (it.replyType == ReplyType.CHILD) colorScheme.background else Color.Transparent),
                     status = it,
                     events = mutableSharedFlow,
                     goToConversation = goToConversation

@@ -97,8 +97,8 @@ fun TimelineCard(
         AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
             var showParent by remember { mutableStateOf(false) }
 
-            if (!showParent)
-                Parent(if(showParent) "Show Full Thread" else "Show Replies Only") { showParent = true }
+//            if (!showParent)
+//                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
             AnimatedVisibility(showParent) {
                 InnerLazyColumn(before, goToConversation = goToConversation)
             }
