@@ -83,7 +83,8 @@ fun InnerLazyColumn(
                         Modifier.background(MaterialTheme.colorScheme.background),
                         inner,
                         submitPresenter.events,
-                        goToConversation = goToConversation
+                        goToConversation = goToConversation,
+                        showInlineReplies = true
                     )
                 }
             }
@@ -98,7 +99,9 @@ fun card(
     modifier: Modifier,
     status: UI,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
-    goToConversation: (String) -> Unit
+    showInlineReplies: Boolean,
+    goToConversation: (String) -> Unit,
+
 ) { AnimatedVisibility(true) {
     Column {
         TimelineCard(
@@ -120,6 +123,7 @@ fun card(
             state = null,
             isReplying = { false },
             alwaysShowButtonBar = true,
+            showInlineReplies = showInlineReplies,
             goToConversation = goToConversation
         )
     }

@@ -20,19 +20,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import social.androiddev.R
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
+import dev.marcellogalhardo.retained.compose.retain
+import social.androiddev.R
 
 @Composable
-fun TabSelector( onClick: (String) -> Unit) {
+fun TabSelector(onClick: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val items = listOf(
         "Home" to R.drawable.house,
@@ -40,19 +40,21 @@ fun TabSelector( onClick: (String) -> Unit) {
         "Federated" to R.drawable.world,
         "Trending" to R.drawable.star
     )
-    var selectedIndex by remember { mutableStateOf(0) }
+    val selectedIndex = retain(key = "") { TabPosition(0) }
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
         Image(
-            modifier =Modifier.size(PaddingSize4).align(CenterVertically),
-            painter = painterResource(items[selectedIndex].second),
+            modifier = Modifier
+                .size(PaddingSize4)
+                .align(CenterVertically),
+            painter = painterResource(items[selectedIndex.position].second),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
         )
         Text(
             modifier = Modifier.align(CenterVertically),
-            text = items[selectedIndex].first,
+            text = items[selectedIndex.position].first,
             color = MaterialTheme.colorScheme.secondary,
-            style =  MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall
         )
         Icon(
             imageVector = Icons.Outlined.ArrowDropDown,
@@ -71,12 +73,12 @@ fun TabSelector( onClick: (String) -> Unit) {
         ) {
             items.forEachIndexed { index, s ->
                 DropdownMenuItem(onClick = {
-                    selectedIndex = index
+                    selectedIndex.position = index
                     expanded = false
-                    onClick( items[selectedIndex].first)
+                    onClick(items[selectedIndex.position].first)
                 }, text = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Image(
@@ -95,3 +97,5 @@ fun TabSelector( onClick: (String) -> Unit) {
         }
     }
 }
+
+data class TabPosition(var position: Int)

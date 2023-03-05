@@ -68,6 +68,7 @@ fun TimelineCard(
     state: ModalBottomSheetState?,
     goToConversation: (String) -> Unit,
     isReplying: (Boolean) -> Unit,
+    showInlineReplies: Boolean,
     modifier: Modifier = Modifier,
 ) {
 //    SwipeableActionsBox(
@@ -198,6 +199,7 @@ fun TimelineCard(
                             ui.replyCount,
                             ui.boostCount,
                             ui.favoriteCount,
+                            showInlineReplies,
                             onBoost = {
                                 boostStatus(ui.remoteId)
                             },

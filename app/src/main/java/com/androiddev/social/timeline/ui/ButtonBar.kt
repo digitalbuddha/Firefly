@@ -48,12 +48,13 @@ fun ButtonBar(
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
+    showInlineReplies:Boolean,
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
     showReply: Boolean,
     onShowReplies: () -> Unit,
-    goToConversation:(String)->Unit
+    goToConversation: (String) -> Unit
 ) {
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
@@ -93,7 +94,7 @@ fun ButtonBar(
                 }
             }
         }
-        AnimatedVisibility(visible = showReply) {
+        AnimatedVisibility(visible = showReply && showInlineReplies) {
             After(status = status, goToConversation = goToConversation)
         }
     }

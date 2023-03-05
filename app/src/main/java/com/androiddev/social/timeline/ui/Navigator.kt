@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.EbonyApp
@@ -76,7 +78,10 @@ fun Navigator(
                     )
                 }
             }
-            composable("mentions/{code}") {
+            dialog(
+                "mentions/{code}",
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
                     val userComponent: UserComponent = LocalUserComponent.current
@@ -91,7 +96,10 @@ fun Navigator(
                     }
                 }
             }
-            composable("conversation/{code}/{statusId}") {
+            dialog(
+                "conversation/{code}/{statusId}",
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 val statusId = it.arguments?.getString("statusId")!!
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -103,13 +111,14 @@ fun Navigator(
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         ConversationScreen(
                             navController, statusId
-                        ) { statusid: String ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
-                        }
+                        )
                     }
                 }
             }
-            composable("notifications/{code}") {
+            dialog(
+                "notifications/{code}",
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
                     val userComponent: UserComponent = LocalUserComponent.current

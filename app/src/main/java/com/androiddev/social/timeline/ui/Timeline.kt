@@ -365,7 +365,7 @@ fun TimelineRows(
         } else {
             items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
                 it?.mapStatus()?.let { ui ->
-                    TimelineCard(false,ui, replyToStatus, boostStatus, favoriteStatus, state,goToConversation, isReplying, )
+                    TimelineCard(false,ui, replyToStatus, boostStatus, favoriteStatus, state,goToConversation, isReplying, false)
                 }
             }
         }

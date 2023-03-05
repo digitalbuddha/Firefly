@@ -36,8 +36,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
-    navController: NavHostController, statusId: String,
-    goToConversation: (String) -> Unit = {}
+    navController: NavHostController, statusId: String
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -76,16 +75,14 @@ fun ConversationScreen(
         Modifier
             .pullRefresh(pullRefreshState)
             .padding(top = 56.dp)
-            .background(Color.Transparent)
+            .background(colorScheme.background)
             .fillMaxSize()
     ) {
         if (before.isNotEmpty())
             Parent(if (!showParent) "Show Full Thread" else "Show Replies Only") {
                 showParent = !showParent
             }
-        statuses.render(component.submitPresenter().events) {
-
-        }
+        statuses.render(component.submitPresenter().events, goToNowhere, addPadding = before.isNotEmpty())
 
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
@@ -98,13 +95,14 @@ fun ConversationScreen(
 private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     goToConversation: (String) -> Unit,
+    addPadding: Boolean,
 
     ) {
     val statuses = this
     LazyColumn(
         Modifier
             .wrapContentHeight()
-            .padding(top = 40.dp)
+            .padding(top = if (addPadding) 40.dp else 0.dp)
     ) {
         if (statuses.isEmpty()) {
             items(3) {
@@ -127,6 +125,7 @@ private fun List<UI>.render(
                     modifier = Modifier.background(if (it.replyType == ReplyType.PARENT) colorScheme.surface else if (it.replyType == ReplyType.CHILD) colorScheme.background else Color.Transparent),
                     status = it,
                     events = mutableSharedFlow,
+                    showInlineReplies = true,
                     goToConversation = goToConversation
                 )
             }
@@ -134,4 +133,5 @@ private fun List<UI>.render(
     }
 }
 
+val goToNowhere: (String) -> Unit = { string -> string.length }
 
