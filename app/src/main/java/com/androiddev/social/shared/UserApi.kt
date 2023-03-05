@@ -53,6 +53,12 @@ interface UserApi {
         @Body status: NewStatus,
     ): Status
 
+    @GET("/api/v1/statuses/{id}")
+    suspend fun getStatus(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    ): Status
+
     @Serializable
     data class StatusNode(val ancestors: List<Status>, val descendants: List<Status>)
 

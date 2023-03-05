@@ -27,7 +27,7 @@ import com.google.accompanist.placeholder.material3.shimmer
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MentionsScreen(navController: NavHostController) {
+fun MentionsScreen(navController: NavHostController, goToConversation: (String) -> Unit) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
@@ -78,7 +78,8 @@ fun MentionsScreen(navController: NavHostController) {
                     card(
                         modifier = Modifier,
                         status = it.toStatusDb(FeedType.Home).mapStatus(),
-                        events = component.submitPresenter().events
+                        events = component.submitPresenter().events,
+                        goToConversation = goToConversation
                     )
                 }
             }

@@ -69,6 +69,9 @@ fun Navigator(
                         },
                         goToNotifications = {
                             navController.navigate("notifications/${it.arguments?.getString("code")}")
+                        },
+                        goToConversation = { statusid: String ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
                         }
                     )
                 }
@@ -82,7 +85,27 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        MentionsScreen(navController)
+                        MentionsScreen(navController, goToConversation = { statusId ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusId")
+                        })
+                    }
+                }
+            }
+            composable("conversation/{code}/{statusId}") {
+                val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
+                val statusId = it.arguments?.getString("statusId")!!
+                CompositionLocalProvider(LocalUserComponent provides userComponent) {
+                    val userComponent: UserComponent = LocalUserComponent.current
+
+                    val component = retain(
+                        key = userComponent.request().domain ?: ""
+                    ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+                    CompositionLocalProvider(LocalAuthComponent provides component) {
+                        ConversationScreen(
+                            navController, statusId
+                        ) { statusid: String ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
+                        }
                     }
                 }
             }
@@ -95,7 +118,9 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        NotificationsScreen(navController)
+                        NotificationsScreen(navController) { statusid: String ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
+                        }
                     }
                 }
             }

@@ -12,15 +12,14 @@ import javax.inject.Inject
 
 abstract class ConversationPresenter :
     Presenter<ConversationPresenter.ConversationEvent, ConversationPresenter.ConversationModel, ConversationPresenter.ConversationEffect>(
-        ConversationModel(emptyMap(), emptyMap())
+        ConversationModel(emptyMap())
     ) {
     sealed interface ConversationEvent
 
     data class Load(val statusId: String) : ConversationEvent
 
     data class ConversationModel(
-        val before: Map<String, List<Status>>,
-        val after: Map<String, List<Status>>
+        val conversations: Map<String, ConvoUI> = emptyMap(),
     )
 
     sealed interface ConversationEffect
@@ -47,14 +46,25 @@ class RealConversationPresenter @Inject constructor(
                 }
                 if (conversation.isSuccess) {
                     val statuses = conversation.getOrThrow()
-                    val before = model.before.toMutableMap()
-                    before[event.statusId] = statuses.ancestors
 
-                    val after = model.after.toMutableMap()
-                    after[event.statusId] = statuses.descendants
-                    model = model.copy(after = after, before = before)
+                    var currentConvo = model.conversations.getOrDefault(event.statusId, ConvoUI())
+                    currentConvo = currentConvo.copy(before = statuses.ancestors)
+                    currentConvo = currentConvo.copy(after = statuses.descendants)
+                    val status = kotlin.runCatching { api.getStatus(authHeader = token, id =event.statusId) }
+                    if (status.isSuccess) currentConvo =
+                        currentConvo.copy(status = status.getOrThrow())
+                    val conversations = model.conversations.toMutableMap()
+                    conversations.put(event.statusId, currentConvo)
+                    model = model.copy(conversations = conversations)
                 }
+
             }
         }
     }
 }
+
+data class ConvoUI(
+    val before: List<Status> = emptyList(),
+    val after: List<Status> = emptyList(),
+    val status: Status? = null
+)

@@ -53,6 +53,7 @@ fun ButtonBar(
     onReply: () -> Unit,
     showReply: Boolean,
     onShowReplies: () -> Unit,
+    goToConversation:(String)->Unit
 ) {
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
@@ -75,7 +76,9 @@ fun ButtonBar(
             OutlinedButton(
                 contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
                 border = BorderStroke(ThickSm, Color.Transparent),
-                onClick = { onShowReplies() }
+                onClick = {
+                    onShowReplies()
+                }
             ) {
                 Image(
                     modifier = Modifier.size(PaddingSize3),
@@ -91,7 +94,7 @@ fun ButtonBar(
             }
         }
         AnimatedVisibility(visible = showReply) {
-            After(status = status)
+            After(status = status, goToConversation = goToConversation)
         }
     }
 }

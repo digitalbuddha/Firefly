@@ -61,14 +61,14 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
-    alwaysShowButtonBar:Boolean = false,
+    alwaysShowButtonBar: Boolean = false,
     ui: UI, replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
+    goToConversation: (String) -> Unit,
     isReplying: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-    ,
+    modifier: Modifier = Modifier,
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
@@ -87,21 +87,20 @@ fun TimelineCard(
         val provider = LocalAuthComponent.current.conversationPresenter().get()
         var presenter by remember { mutableStateOf(provider) }
         val submitPresenter = LocalAuthComponent.current.submitPresenter()
-        val beforeStatus: Map<String, List<Status>> =
-            presenter.model.before
+        val beforeStatus: List<Status>? =
+            presenter.model.conversations[ui.remoteId]?.before
 
-        val before: MutableList<UI> =
-            beforeStatus[ui.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-                ?.toMutableList()?: mutableListOf()
+        val before: MutableList<UI>? =
+            beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+                ?.toMutableList()
         var showingReplies by remember { mutableStateOf(false) }
-        AnimatedVisibility(showingReplies && before.size > 0) {
+        AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
             var showParent by remember { mutableStateOf(false) }
 
-            if(!showParent)
-                Parent { showParent = true }
+            if (!showParent)
+                Parent(if(showParent) "Show Full Thread" else "Show Replies Only") { showParent = true }
             AnimatedVisibility(showParent) {
-//                InnerLazyColumn(before)
-                InnerLazyColumn(before)
+                InnerLazyColumn(before, goToConversation = goToConversation)
             }
         }
         DirectMessage(ui.directMessage)
@@ -186,7 +185,8 @@ fun TimelineCard(
                             },
                             defaultVisiblity = "Direct",
                             participants = mentions.joinToString(" "),
-                            showReplies = true
+                            showReplies = true,
+                            goToConversation = goToConversation
                         )
                     }
                 }
@@ -207,11 +207,14 @@ fun TimelineCard(
                             showReply = showingReplies,
                             onShowReplies = {
                                 showingReplies = !showingReplies
-
+                                goToConversation(ui.remoteId)
                             },
                             onReply = {
                                 showReply = !showReply
                                 isReplying(showReply)
+                            },
+                            goToConversation = {
+                                goToConversation(ui.remoteId)
                             })
                     }
                 }

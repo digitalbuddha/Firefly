@@ -42,7 +42,7 @@ fun AvatarImage(
             transform = AsyncImagePainter.DefaultTransform,
             onState = { },
             alignment = Alignment.Center,
-            contentScale = ContentScale.FillWidth,
+            contentScale = ContentScale.Fit,
             alpha = DefaultAlpha,
             colorFilter = null,
             filterQuality = DrawScope.DefaultFilterQuality

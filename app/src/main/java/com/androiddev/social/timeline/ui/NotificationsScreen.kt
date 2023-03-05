@@ -36,7 +36,7 @@ import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NotificationsScreen(navController: NavHostController) {
+fun NotificationsScreen(navController: NavHostController, goToConversation: (String) -> Unit) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
@@ -106,7 +106,8 @@ fun NotificationsScreen(navController: NavHostController) {
                         card(
                             modifier = Modifier,
                             status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
-                            events = component.submitPresenter().events
+                            events = component.submitPresenter().events,
+                            goToConversation = goToConversation
                         )
                     }
 

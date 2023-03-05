@@ -2,6 +2,7 @@
 
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
@@ -18,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI) {
+fun After(status: UI, goToConversation: (String) -> Unit) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -36,17 +36,18 @@ fun After(status: UI) {
     LaunchedEffect(key1 = status) {
         presenter.handle(ConversationPresenter.Load(status.remoteId))
     }
-    val afterStatus: Map<String, List<Status>> =
-        presenter.model.after
-    val after: List<UI>? =
-        afterStatus[status.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+    val afterStatus =
+        presenter.model.conversations.get(status.remoteId)?.after
+    val after =
+        afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
 
-    InnerLazyColumn(after)
+
+    InnerLazyColumn(after, goToConversation)
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun Before(status: UI) {
+fun Before(status: UI, goToConversation: (String) -> Unit = {}) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -56,17 +57,19 @@ fun Before(status: UI) {
     LaunchedEffect(key1 = status) {
         presenter.handle(ConversationPresenter.Load(status.remoteId))
     }
-    val afterStatus: Map<String, List<Status>> =
-        presenter.model.before
-    val after: List<UI>? =
-        afterStatus[status.remoteId]?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+    val beforeStatus =
+        presenter.model.conversations.get(status.remoteId)?.before
+    val after =
+        beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
 
-    InnerLazyColumn(after)
+    InnerLazyColumn(after, goToConversation = goToConversation)
 }
+
 
 @Composable
 fun InnerLazyColumn(
-    items: List<UI>?
+    items: List<UI>?,
+    goToConversation: (String) -> Unit
 ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     val configuration = LocalConfiguration.current
@@ -79,7 +82,8 @@ fun InnerLazyColumn(
                     card(
                         Modifier.background(MaterialTheme.colorScheme.surfaceVariant),
                         inner,
-                        submitPresenter.events
+                        submitPresenter.events,
+                        goToConversation = goToConversation
                     )
                 }
             }
@@ -88,12 +92,14 @@ fun InnerLazyColumn(
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun card(
     modifier: Modifier,
     status: UI,
-    events: MutableSharedFlow<SubmitPresenter.SubmitEvent>
-) {
+    events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
+    goToConversation: (String) -> Unit
+) { AnimatedVisibility(true) {
     Column {
         TimelineCard(
             modifier = modifier,
@@ -113,8 +119,11 @@ fun card(
             favoriteStatus = {},
             state = null,
             isReplying = { false },
-            alwaysShowButtonBar = true
+            alwaysShowButtonBar = true,
+            goToConversation = goToConversation
         )
     }
+}
+
 
 }

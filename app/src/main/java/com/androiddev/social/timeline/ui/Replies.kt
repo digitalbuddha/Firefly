@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Parent(
+    label: String,
     onClick: () -> Unit
 ) {
     Row(
@@ -34,7 +35,7 @@ fun Parent(
             shape = RoundedCornerShape(50, 50, 50, 50),
             onClick = onClick,
             label = {
-                Text("Show Parent", style = MaterialTheme.typography.labelMedium)
+                Text(label, style = MaterialTheme.typography.labelMedium)
             },
         )
     }

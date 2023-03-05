@@ -56,7 +56,8 @@ fun TimelineScreen(
     onNewAccount: () -> Unit,
     onProfileSelected: (account: Account) -> Unit,
     goToMentions: () -> Unit,
-    goToNotifications: () -> Unit
+    goToNotifications: () -> Unit,
+    goToConversation: (String) -> Unit
 ) {
     val component =
         retain(
@@ -127,6 +128,7 @@ fun TimelineScreen(
                             }
                         }
                         UserInput(
+                            status = null,
                             modifier = Modifier.padding(bottom = 0.dp),
                             onMessageSent = { it, visibility, uris ->
                                 submitPresenter.handle(
@@ -139,8 +141,8 @@ fun TimelineScreen(
                                 done = true
                             },
                             participants = "",
-                            status = null,
-                            showReplies = false
+                            showReplies = false,
+                            goToConversation = goToConversation
                         )
                     }) {
                     val model = homePresenter.model
@@ -153,7 +155,8 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Home,
                                 items = model.homeStatuses?.collectAsLazyPagingItems(),
-                                state
+                                state,
+                                goToConversation,
                             ) {
                                 replying = it
                             }
@@ -166,7 +169,8 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Local,
                                 model.localStatuses?.collectAsLazyPagingItems(),
-                                state
+                                state,
+                                goToConversation,
                             ) { replying = it }
                         }
 
@@ -177,7 +181,8 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Federated,
                                 model.federatedStatuses?.collectAsLazyPagingItems(),
-                                state
+                                state,
+                                goToConversation,
                             ) { replying = it }
                         }
 
@@ -188,7 +193,8 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Trending,
                                 model.trendingStatuses?.collectAsLazyPagingItems(),
-                                state
+                                state,
+                                goToConversation,
                             ) { replying = it }
                         }
                     }
@@ -265,7 +271,8 @@ private fun timelineScreen(
     tabToLoad: FeedType,
     items: LazyPagingItems<StatusDB>?,
     state: ModalBottomSheetState,
-    isReplying: (Boolean) -> Unit
+    goToConversation: (String) -> Unit,
+    isReplying: (Boolean) -> Unit,
 ) {
     LaunchedEffect(key1 = tabToLoad, key2 = domain) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad))
@@ -318,8 +325,9 @@ private fun timelineScreen(
                     )
                 },
                 state,
-                isReplying
-            )
+                isReplying,
+                goToConversation =  goToConversation,
+                )
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -335,7 +343,8 @@ fun TimelineRows(
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState,
-    isReplying: (Boolean) -> Unit
+    isReplying: (Boolean) -> Unit,
+    goToConversation: (String) -> Unit
 ) {
     LazyColumn {
         if (ui.itemCount == 0) {
@@ -356,7 +365,7 @@ fun TimelineRows(
         } else {
             items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
                 it?.mapStatus()?.let { ui ->
-                    TimelineCard(false,ui, replyToStatus, boostStatus, favoriteStatus, state, isReplying)
+                    TimelineCard(false,ui, replyToStatus, boostStatus, favoriteStatus, state,goToConversation, isReplying, )
                 }
             }
         }

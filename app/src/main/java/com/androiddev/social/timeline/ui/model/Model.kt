@@ -45,9 +45,14 @@ data class UI(
     val accountEmojis: List<Emoji>?,
     val boostedEmojis: List<Emoji>?,
     val boostedAvatar: String?,
-    val remoteId:String
+    val remoteId: String,
+    var replyType: ReplyType? = null
 )
 
+enum class ReplyType {
+    PARENT,
+    CHILD
+}
 
 fun String.parseAsMastodonHtml(): Spanned {
     return this.replace("<br> ", "<br>&nbsp;")
