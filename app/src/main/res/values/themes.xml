@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Ebony" parent="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+    <style name="Theme.Ebony" parent="Theme.MaterialComponents.DayNight" />
+    <style name="Theme.Splash" parent="Theme.MaterialComponents.DayNight" />
 </resources>
