@@ -8,11 +8,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -81,17 +79,11 @@ class MainActivity : ComponentActivity() {
                 .build()
 
             CompositionLocalProvider(LocalImageLoader provides loader) {
-
                 var isDynamicTheme by remember { mutableStateOf(true) }
                 EbonyTheme(isDynamicColor = isDynamicTheme) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(
-                                colorScheme.surface.copy(
-                                    alpha = .99f
-                                )
-                            )
                     ) {
                         val scope = rememberCoroutineScope()
                         val navController = rememberNavController()

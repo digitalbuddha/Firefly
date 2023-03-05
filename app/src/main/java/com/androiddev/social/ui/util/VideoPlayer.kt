@@ -87,7 +87,7 @@ fun VideoPlayer(
 
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f),
+            color = MaterialTheme.colorScheme.tertiaryContainer,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 8.dp, end = 8.dp)

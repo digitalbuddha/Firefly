@@ -77,7 +77,7 @@ fun InnerLazyColumn(
             items.take(10).forEach { inner ->
                 item {
                     card(
-                        Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = .5f)),
+                        Modifier.background(MaterialTheme.colorScheme.surfaceVariant),
                         inner,
                         submitPresenter.events
                     )

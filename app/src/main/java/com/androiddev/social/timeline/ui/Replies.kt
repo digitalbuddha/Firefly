@@ -28,7 +28,7 @@ fun Parent(
         AssistChip(
             border = AssistChipDefaults.assistChipBorder(borderColor = Color.Transparent),
             colors = AssistChipDefaults.assistChipColors(
-                containerColor = colorScheme.tertiaryContainer.copy(alpha = .3f),
+                containerColor = colorScheme.surfaceVariant,
                 labelColor = colorScheme.primary
             ),
             shape = RoundedCornerShape(50, 50, 50, 50),

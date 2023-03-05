@@ -33,9 +33,7 @@ fun DirectMessage(directMessage: Boolean) {
 //                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = colorScheme.primary,
-                    leadingIconContentColor = colorScheme.secondary.copy(
-                        alpha = .5f
-                    ), labelColor = colorScheme.onPrimary
+                    leadingIconContentColor = colorScheme.secondary, labelColor = colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(50, 50, 50, 50),
                 onClick = { /* Do something! */ },
@@ -47,7 +45,7 @@ fun DirectMessage(directMessage: Boolean) {
                         modifier = Modifier.height(PaddingSize3),
                         painter = painterResource(R.drawable.mail),
                         contentDescription = "",
-                        colorFilter = ColorFilter.tint(colorScheme.onPrimary.copy(alpha = .5f)),
+                        colorFilter = ColorFilter.tint(colorScheme.onPrimary),
                     )
                 },
             )

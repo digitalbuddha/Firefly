@@ -69,7 +69,7 @@ fun TimelineCard(
     state: ModalBottomSheetState?,
     isReplying: (Boolean) -> Unit,
     modifier: Modifier = Modifier
-        .background(colorScheme.surface.copy(alpha = .99f)),
+        .background(colorScheme.surface),
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
@@ -218,8 +218,8 @@ fun TimelineCard(
                 }
 
                 Divider(
-                    Modifier.padding(top = PaddingSize2),
-                    color = Color.Gray.copy(alpha = .5f)
+                    Modifier.padding(top = PaddingSize1),
+                    color = Color.LightGray
                 )
             }
         }

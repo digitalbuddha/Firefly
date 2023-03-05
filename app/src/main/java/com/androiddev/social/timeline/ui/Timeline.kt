@@ -116,9 +116,7 @@ fun TimelineScreen(
                 }
             }) { padding ->
             Box {
-                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surface.copy(
-                    alpha = .5f
-                ),
+                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     sheetElevation = PaddingSize2,
                     sheetState = state,
                     sheetContent = {
@@ -282,7 +280,7 @@ private fun timelineScreen(
         Modifier
             .pullRefresh(pullRefreshState)
             .padding(top = 60.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.Transparent)
             .fillMaxSize()
     ) {
         items?.let {

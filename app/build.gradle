@@ -27,8 +27,8 @@ android {
         applicationId "social.androiddev"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -112,7 +112,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.4.0"
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
 
-   def  room_version = "2.5.0"
+    def  room_version = "2.5.0"
 
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
