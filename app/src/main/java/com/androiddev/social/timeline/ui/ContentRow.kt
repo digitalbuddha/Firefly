@@ -4,7 +4,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -69,7 +68,7 @@ fun TimelineCard(
     state: ModalBottomSheetState?,
     isReplying: (Boolean) -> Unit,
     modifier: Modifier = Modifier
-        .background(colorScheme.surface),
+    ,
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),

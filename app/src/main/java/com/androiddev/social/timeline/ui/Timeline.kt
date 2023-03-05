@@ -196,7 +196,7 @@ fun TimelineScreen(
             }
             TopAppBar(modifier = Modifier
                 .height(60.dp)
-                .background(Color.Transparent),
+                .background(MaterialTheme.colorScheme.surface),
                 backgroundColor = Color.Transparent,
 
                 title = {
@@ -280,7 +280,8 @@ private fun timelineScreen(
         Modifier
             .pullRefresh(pullRefreshState)
             .padding(top = 60.dp)
-            .background(Color.Transparent)
+//                   .background(colorScheme.surface)
+
             .fillMaxSize()
     ) {
         items?.let {
