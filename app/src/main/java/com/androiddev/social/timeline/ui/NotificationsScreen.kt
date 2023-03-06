@@ -28,11 +28,12 @@ import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.ui.model.UI
 import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NotificationsScreen(navController: NavHostController, goToConversation: (String) -> Unit) {
+fun NotificationsScreen(navController: NavHostController, goToConversation: (UI) -> Unit) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
@@ -56,7 +57,7 @@ fun NotificationsScreen(navController: NavHostController, goToConversation: (Str
         Modifier
             .background(MaterialTheme.colorScheme.surface)
             .pullRefresh(pullRefreshState)
-            .padding(top = 56.dp)
+            .padding(top = 0.dp)
             .fillMaxSize()
     ) {
         LazyColumn(

@@ -10,12 +10,12 @@ import kotlinx.serialization.Serializable
 //    suspend fun post(newStatus: NewStatus): Status
 //}
 
-sealed class FeedType(val type: String) {
-    object Home : FeedType("Home")
-    object Local : FeedType("Local")
+enum class FeedType(val type: String) {
+    Home("Home"),
+    Local("Local"),
 
-    object Federated : FeedType("Federated")
-    object Trending : FeedType("Trending")
+    Federated("Federated"),
+    Trending("Trending")
 //    object Favorites : FeedType("Favorites")
 }
 
@@ -31,4 +31,4 @@ data class NewStatus(
     @SerialName("media_ids") val mediaIds: List<String>?,
 //    @SerialName("scheduled_at") val scheduledAt: String?,
 
-    )
+)

@@ -1,22 +1,33 @@
 package com.androiddev.social.timeline.ui
 
 import android.content.Context
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
-import androidx.navigation.navigation
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.UserManagerProvider
 import com.androiddev.social.timeline.data.dataStore
+import com.androiddev.social.timeline.ui.model.UI
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.navigation
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -41,6 +52,7 @@ fun getUserComponent(code: String): UserComponent {
     )
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun Navigator(
     navController: NavHostController,
@@ -49,12 +61,20 @@ fun Navigator(
 ) {
 
 
-    NavHost(navController = navController, startDestination = "splash") {
-        navigation(
+    AnimatedNavHost(
+        navController = navController,
+        startDestination = "splash",
+        enterTransition = { slideIntoContainer(AnimatedContentScope.SlideDirection.Start) },
+        exitTransition = { slideOutOfContainer(AnimatedContentScope.SlideDirection.End) },
+//        popEnterTransition = { defaultTiviPopEnterTransition() },
+//        popExitTransition = { defaultTiviPopExitTransition() },
+        modifier = Modifier,
+    ){
+    navigation(
             startDestination = "timeline",
             route = "home/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}"
         ) {
-            composable("timeline") {
+            composable("timeline", enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
                 val accessTokenRequest = accessTokenRequest(it)
                 val userComponent = getUserComponent(accessTokenRequest = accessTokenRequest)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -72,8 +92,8 @@ fun Navigator(
                         goToNotifications = {
                             navController.navigate("notifications/${it.arguments?.getString("code")}")
                         },
-                        goToConversation = { statusid: String ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
+                        goToConversation = { status: UI ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                         }
                     )
                 }
@@ -90,18 +110,19 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        MentionsScreen(navController, goToConversation = { statusId ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusId")
+                        MentionsScreen(navController, goToConversation = { status ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                         })
                     }
                 }
             }
             dialog(
-                "conversation/{code}/{statusId}",
+                "conversation/{code}/{statusId}/{type}",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 val statusId = it.arguments?.getString("statusId")!!
+                val type = it.arguments?.getString("type")!!
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
                     val userComponent: UserComponent = LocalUserComponent.current
 
@@ -110,7 +131,7 @@ fun Navigator(
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         ConversationScreen(
-                            navController, statusId
+                            navController, statusId, type
                         )
                     }
                 }
@@ -127,19 +148,19 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        NotificationsScreen(navController) { statusid: String ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/$statusid")
+                        NotificationsScreen(navController) { status: UI ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}")
                         }
                     }
                 }
             }
         }
-        composable("splash") {
+        composable("splash",  enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
             SplashScreen(navController)
         }
 
 
-        composable("selectServer") {
+        composable("selectServer", enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
             ServerSelectScreen { server ->
                 scope.launch {
                     navController.navigate("login/$server")
@@ -177,4 +198,41 @@ fun accessTokenRequest(it: NavBackStackEntry) = AccessTokenRequest(
     redirectUri = it.arguments?.getString("redirectUri")!!,
     domain = it.arguments?.getString("server")!!
 )
+
+@ExperimentalAnimationApi
+private fun AnimatedContentScope<*>.defaultTiviEnterTransition(): EnterTransition {
+//    val initialNavGraph = initial.destination.hostNavGraph
+//    val targetNavGraph = target.destination.hostNavGraph
+//    // If we're crossing nav graphs (bottom navigation graphs), we crossfade
+//    if (initialNavGraph.id != targetNavGraph.id) {
+//        return fadeIn()
+//    }
+//    // Otherwise we're in the same nav graph, we can imply a direction
+    return fadeIn() + slideIntoContainer(AnimatedContentScope.SlideDirection.Start)
+}
+
+@ExperimentalAnimationApi
+private fun AnimatedContentScope<*>.defaultTiviExitTransition(): ExitTransition {
+//    val initialNavGraph = initial.destination.hostNavGraph
+//    val targetNavGraph = target.destination.hostNavGraph
+//    // If we're crossing nav graphs (bottom navigation graphs), we crossfade
+//    if (initialNavGraph.id != targetNavGraph.id) {
+//        return fadeOut()
+//    }
+//    // Otherwise we're in the same nav graph, we can imply a direction
+    return fadeOut() + slideOutOfContainer(AnimatedContentScope.SlideDirection.Start)
+}
+
+private val NavDestination.hostNavGraph: NavGraph
+    get() = hierarchy.first { it is NavGraph } as NavGraph
+
+@ExperimentalAnimationApi
+private fun AnimatedContentScope<*>.defaultTiviPopEnterTransition(): EnterTransition {
+    return fadeIn() + slideIntoContainer(AnimatedContentScope.SlideDirection.End)
+}
+
+@ExperimentalAnimationApi
+private fun AnimatedContentScope<*>.defaultTiviPopExitTransition(): ExitTransition {
+    return fadeOut() + slideOutOfContainer(AnimatedContentScope.SlideDirection.End)
+}
 

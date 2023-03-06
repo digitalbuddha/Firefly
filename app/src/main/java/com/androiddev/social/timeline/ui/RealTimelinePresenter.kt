@@ -33,6 +33,13 @@ class RealTimelinePresenter @Inject constructor(
     override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
         when (event) {
             is Load -> {
+                val result =
+                    kotlin.runCatching {
+                        api.accountVerifyCredentials(authHeader = " Bearer ${oauthRepository.getCurrent()}")
+                    }
+                result?.getOrNull()?.let {
+                    model = model.copy(account = it)
+                }
                 when (event.feedType) {
                     FeedType.Home -> {
                         val remoteMediator =
@@ -99,7 +106,6 @@ class RealTimelinePresenter @Inject constructor(
             }
 
 
-
             is FavoriteMessage -> {
                 val result = kotlin.runCatching {
                     api.favoriteStatus(
@@ -159,6 +165,7 @@ abstract class TimelinePresenter :
     data class HomeModel(
         val loading: Boolean,
         val homeStatuses: Flow<PagingData<StatusDB>>? = null,
+        val account: Account? = null,
         val federatedStatuses: Flow<PagingData<StatusDB>>? = null,
         val trendingStatuses: Flow<PagingData<StatusDB>>? = null,
         val localStatuses: Flow<PagingData<StatusDB>>? = null

@@ -10,7 +10,7 @@ data class Notification(
     val status: Status? = null,
     val account: Account,
     val created_at: Instant,
-    val realType: Type = Type.valueOf(type)
+    val realType: Type = if (type.contains('.')) Type.adminreport else Type.mention
 )
 
 @Serializable
@@ -23,6 +23,6 @@ enum class Type(val value: String) {
     favourite("favourite"),
     poll("poll"),
     update("update"),
-    adminsignup("admin.sign_up"),
+    adminsign_up("admin.sign_up"),
     adminreport("admin.report"),
 }

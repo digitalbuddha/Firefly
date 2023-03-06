@@ -138,7 +138,8 @@ fun StatusDB.mapStatus(): UI {
         contentEmojis = status.emoji,
         accountEmojis = status.accountEmojis,
         remoteId = status.remoteId,
-        boostedEmojis = status.boostedEmojis
+        boostedEmojis = status.boostedEmojis,
+        type = FeedType.valueOf(status.type)
     )
 }
 

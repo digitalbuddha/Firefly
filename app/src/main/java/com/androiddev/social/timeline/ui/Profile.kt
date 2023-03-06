@@ -1,11 +1,15 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +31,7 @@ import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
 import social.androiddev.R
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Profile(
     onProfileClick: (account: Account) -> Unit = {},
@@ -43,6 +48,9 @@ fun Profile(
             AvatarImage(url = url, onClick = { expanded = true })
         }
 
+
+
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -57,28 +65,30 @@ fun Profile(
                     expanded = false
                     onProfileClick(account)
                 }, text = {
-                    Row {
-                        account.let {
-                            AvatarImage(url = it.avatar, onClick = { expanded = true })
-                            val emojis = account.emojis
+                    Column {
+//                        UserCard(account = uiFrom(account =account), null)
+                        Row {
+                            account.let {
+                                AvatarImage(url = it.avatar, onClick = { expanded = true })
+                                val emojis = account.emojis
 
 
-                            val unformatted = account.displayName
-                            val (inlineContentMap, text) = inlineEmojis(
-                                unformatted,
-                                emojis
-                            )
+                                val unformatted = account.displayName
+                                val (inlineContentMap, text) = inlineEmojis(
+                                    unformatted,
+                                    emojis
+                                )
 
-                            Text(
-                                modifier = Modifier
-                                    .padding(PaddingSize0_5)
-                                    .align(Alignment.CenterVertically),
-                                text = text,
-                                inlineContent = inlineContentMap
-                            )
+                                Text(
+                                    modifier = Modifier
+                                        .padding(PaddingSize0_5)
+                                        .align(Alignment.CenterVertically),
+                                    text = text,
+                                    inlineContent = inlineContentMap
+                                )
+                            }
                         }
                     }
-
                 })
             }
 

@@ -2,6 +2,7 @@ package com.androiddev.social.timeline.data
 
 import androidx.paging.PagingSource
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
@@ -45,6 +46,8 @@ interface StatusDao {
     @Query("SELECT * FROM status ORDER BY remoteId Asc Limit 1")
     fun getHomeTimelineLast(): StatusDB
 
+    @Query("SELECT * FROM status WHERE remoteId = :remoteId ORDER BY remoteId Asc Limit 1")
+    fun getStatusBy(remoteId:String): Flow<StatusDB>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(users: List<StatusDB>)

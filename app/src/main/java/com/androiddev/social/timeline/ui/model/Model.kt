@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
 import com.androiddev.social.theme.PaddingSize2_5
 import com.androiddev.social.timeline.data.Emoji
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
@@ -46,7 +47,8 @@ data class UI(
     val boostedEmojis: List<Emoji>?,
     val boostedAvatar: String?,
     val remoteId: String,
-    var replyType: ReplyType? = null
+    var replyType: ReplyType? = null,
+    val type: FeedType
 )
 
 enum class ReplyType {

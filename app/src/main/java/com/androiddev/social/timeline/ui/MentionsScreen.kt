@@ -20,10 +20,11 @@ import androidx.navigation.NavHostController
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.ui.model.UI
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MentionsScreen(navController: NavHostController, goToConversation: (String) -> Unit) {
+fun MentionsScreen(navController: NavHostController, goToConversation: (UI) -> Unit) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 

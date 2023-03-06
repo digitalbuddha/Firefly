@@ -7,12 +7,14 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -34,6 +36,7 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
+import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.placeholder
@@ -47,7 +50,10 @@ val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No co
 val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
 val LocalImageLoader = compositionLocalOf<ImageLoader> { error("No component found!") }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun TimelineScreen(
     accessTokenRequest: AccessTokenRequest,
@@ -57,7 +63,7 @@ fun TimelineScreen(
     onProfileSelected: (account: Account) -> Unit,
     goToMentions: () -> Unit,
     goToNotifications: () -> Unit,
-    goToConversation: (String) -> Unit
+    goToConversation: (UI) -> Unit
 ) {
     val component =
         retain(
@@ -82,7 +88,7 @@ fun TimelineScreen(
             initialValue = ModalBottomSheetValue.Hidden,
         )
         var replying by remember { mutableStateOf(false) }
-        var tabToLoad: FeedType by remember { mutableStateOf(FeedType.Home) }
+        var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
         if (!state.isVisible) replying = false
 
         Scaffold(
@@ -155,6 +161,7 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Home,
                                 items = model.homeStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
                                 state,
                                 goToConversation,
                             ) {
@@ -169,6 +176,7 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Local,
                                 model.localStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
                                 state,
                                 goToConversation,
                             ) { replying = it }
@@ -181,6 +189,7 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Federated,
                                 model.federatedStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
                                 state,
                                 goToConversation,
                             ) { replying = it }
@@ -193,6 +202,7 @@ fun TimelineScreen(
                                 submitPresenter.events,
                                 FeedType.Trending,
                                 model.trendingStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
                                 state,
                                 goToConversation,
                             ) { replying = it }
@@ -270,8 +280,9 @@ private fun timelineScreen(
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<StatusDB>?,
+    account: Account?,
     state: ModalBottomSheetState,
-    goToConversation: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
 ) {
     LaunchedEffect(key1 = tabToLoad, key2 = domain) {
@@ -301,6 +312,7 @@ private fun timelineScreen(
             }
             TimelineRows(
                 items,
+                account = account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitEvents.tryEmit(
                         SubmitPresenter.PostMessage(
@@ -326,8 +338,8 @@ private fun timelineScreen(
                 },
                 state,
                 isReplying,
-                goToConversation =  goToConversation,
-                )
+                goToConversation = goToConversation,
+            )
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -335,18 +347,34 @@ private fun timelineScreen(
     }
 }
 
+@Composable
+fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
+    // After recreation, LazyPagingItems first return 0 items, then the cached items.
+    // This behavior/issue is resetting the LazyListState scroll position.
+    // Below is a workaround. More info: https://issuetracker.google.com/issues/177245496.
+    return when (itemCount) {
+        // Return a different LazyListState instance.
+        0 -> remember(this) { LazyListState(0, 0) }
+        // Return rememberLazyListState (normal case).
+        else -> androidx.compose.foundation.lazy.rememberLazyListState()
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineRows(
     ui: LazyPagingItems<StatusDB>,
+    account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState,
     isReplying: (Boolean) -> Unit,
-    goToConversation: (String) -> Unit
+    goToConversation: (UI) -> Unit
 ) {
-    LazyColumn {
+
+    val lazyListState = ui.rememberLazyListState()
+    LazyColumn(state = lazyListState) {
         if (ui.itemCount == 0) {
             items(5) {
                 Box(
@@ -365,7 +393,17 @@ fun TimelineRows(
         } else {
             items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
                 it?.mapStatus()?.let { ui ->
-                    TimelineCard(false,ui, replyToStatus, boostStatus, favoriteStatus, state,goToConversation, isReplying, false)
+                    TimelineCard(
+                        false,
+                        ui,
+                        replyToStatus,
+                        boostStatus,
+                        favoriteStatus,
+                        state,
+                        goToConversation,
+                        isReplying,
+                        false
+                    )
                 }
             }
         }

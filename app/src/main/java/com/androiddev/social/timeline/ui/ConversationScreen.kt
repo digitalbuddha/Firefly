@@ -1,10 +1,11 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,15 +29,12 @@ import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.ReplyType
 import com.androiddev.social.timeline.ui.model.UI
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
-    navController: NavHostController, statusId: String
+    navController: NavHostController, statusId: String, type: String
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -48,7 +46,7 @@ fun ConversationScreen(
         presenter.start()
     }
     LaunchedEffect(key1 = userComponent.request()) {
-        presenter.handle(ConversationPresenter.Load(statusId))
+        presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type)))
     }
     val conversation = presenter.model.conversations.get(statusId)
     val after = conversation?.after?.map { it.toStatusDb(FeedType.Home).mapStatus() }
@@ -57,7 +55,7 @@ fun ConversationScreen(
         conversation?.before?.map { it.toStatusDb(FeedType.Home).mapStatus() }
             ?.map { it.copy(replyType = ReplyType.PARENT) } ?: emptyList()
     val status =
-        listOf(conversation?.status?.toStatusDb(FeedType.Home)?.mapStatus()).filterNotNull()
+        listOf(conversation?.status).filterNotNull()
 
     var showParent by remember(statusId) { mutableStateOf(false) }
 
@@ -66,7 +64,7 @@ fun ConversationScreen(
         if (showParent) before + status + after.map { it.copy(replyType = ReplyType.CHILD) } else status + after
 
     val pullRefreshState = rememberPullRefreshState(false, {
-        presenter.handle(ConversationPresenter.Load(statusId))
+        presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type)))
     })
     BackBar(navController, "Conversation")
 
@@ -82,7 +80,11 @@ fun ConversationScreen(
             Parent(if (!showParent) "Show Full Thread" else "Show Replies Only") {
                 showParent = !showParent
             }
-        statuses.render(component.submitPresenter().events, goToNowhere, addPadding = before.isNotEmpty())
+        statuses.render(
+            component.submitPresenter().events,
+            goToNowhere,
+            addPadding = before.isNotEmpty()
+        )
 
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
@@ -94,7 +96,7 @@ fun ConversationScreen(
 @Composable
 private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
-    goToConversation: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
     addPadding: Boolean,
 
     ) {
@@ -102,25 +104,11 @@ private fun List<UI>.render(
     LazyColumn(
         Modifier
             .wrapContentHeight()
+            .fillMaxWidth()
             .padding(top = if (addPadding) 40.dp else 0.dp)
     ) {
-        if (statuses.isEmpty()) {
-            items(3) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(16.dp)
-                        .placeholder(
-                            visible = true,
-                            highlight = PlaceholderHighlight.shimmer(),
-                        )
-                ) {
-
-                }
-            }
-        } else {
-            items(statuses) {
+        items(statuses) {
+            AnimatedVisibility(true, enter = fadeIn()) {
                 card(
                     modifier = Modifier.background(if (it.replyType == ReplyType.PARENT) colorScheme.surface else if (it.replyType == ReplyType.CHILD) colorScheme.background else Color.Transparent),
                     status = it,
@@ -129,9 +117,11 @@ private fun List<UI>.render(
                     goToConversation = goToConversation
                 )
             }
+
         }
     }
 }
 
-val goToNowhere: (String) -> Unit = { string -> string.length }
+
+val goToNowhere: (UI) -> Unit = { string -> string.toString() }
 

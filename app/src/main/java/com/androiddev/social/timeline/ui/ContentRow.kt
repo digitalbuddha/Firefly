@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialApi::class)
+
 package com.androiddev.social.timeline.ui
 
 import android.net.Uri
@@ -48,6 +50,7 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.Status
@@ -66,7 +69,7 @@ fun TimelineCard(
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
-    goToConversation: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
     showInlineReplies: Boolean,
     modifier: Modifier = Modifier,
@@ -209,14 +212,14 @@ fun TimelineCard(
                             showReply = showingReplies,
                             onShowReplies = {
                                 showingReplies = !showingReplies
-                                goToConversation(ui.remoteId)
+                                goToConversation(ui)
                             },
                             onReply = {
                                 showReply = !showReply
                                 isReplying(showReply)
                             },
                             goToConversation = {
-                                goToConversation(ui.remoteId)
+                                goToConversation(ui)
                             })
                     }
                 }
@@ -372,4 +375,31 @@ fun ClickableText(
         },
         inlineContent = inlineContent
     )
+}
+
+
+@Composable
+fun uiFrom(account: Account): UI {
+    val ui = UI(
+        imageUrl = null,
+        displayName = account.displayName,
+        userName = account.username,
+        content = account.note,
+        replyCount = 0,
+        boostCount = 0,
+        favoriteCount = 0,
+        timePosted = account.createdAt.toString(),
+        boostedBy = null,
+        directMessage = false,
+        avatar = account.avatar,
+        mentions = emptyList(),
+        tags = emptyList(),
+        contentEmojis = null,
+        accountEmojis = account.emojis,
+        boostedEmojis = null,
+        boostedAvatar = null,
+        remoteId = account.id,
+        type = FeedType.Home
+    )
+    return ui
 }

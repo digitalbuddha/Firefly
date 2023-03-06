@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
@@ -26,6 +25,7 @@ import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.theme.*
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.squareup.anvil.annotations.ContributesTo
 import javax.inject.Provider
 
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                     ) {
                         val scope = rememberCoroutineScope()
-                        val navController = rememberNavController()
+                        val navController = rememberAnimatedNavController()
                         Navigator(navController, scope) {
                             isDynamicTheme = !isDynamicTheme
                         }

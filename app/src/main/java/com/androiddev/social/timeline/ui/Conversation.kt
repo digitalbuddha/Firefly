@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI, goToConversation: (String) -> Unit) {
+fun After(status: UI, goToConversation: (UI) -> Unit) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -34,7 +34,7 @@ fun After(status: UI, goToConversation: (String) -> Unit) {
         presenter.start()
     }
     LaunchedEffect(key1 = status) {
-        presenter.handle(ConversationPresenter.Load(status.remoteId))
+        presenter.handle(ConversationPresenter.Load(status.remoteId, status.type))
     }
     val afterStatus =
         presenter.model.conversations.get(status.remoteId)?.after
@@ -47,7 +47,7 @@ fun After(status: UI, goToConversation: (String) -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun Before(status: UI, goToConversation: (String) -> Unit = {}) {
+fun Before(status: UI, goToConversation: (UI) -> Unit = {}) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -55,7 +55,7 @@ fun Before(status: UI, goToConversation: (String) -> Unit = {}) {
         presenter.start()
     }
     LaunchedEffect(key1 = status) {
-        presenter.handle(ConversationPresenter.Load(status.remoteId))
+        presenter.handle(ConversationPresenter.Load(status.remoteId, status.type))
     }
     val beforeStatus =
         presenter.model.conversations.get(status.remoteId)?.before
@@ -69,7 +69,7 @@ fun Before(status: UI, goToConversation: (String) -> Unit = {}) {
 @Composable
 fun InnerLazyColumn(
     items: List<UI>?,
-    goToConversation: (String) -> Unit
+    goToConversation: (UI) -> Unit
 ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     val configuration = LocalConfiguration.current
@@ -100,7 +100,7 @@ fun card(
     status: UI,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     showInlineReplies: Boolean,
-    goToConversation: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
 
 ) { AnimatedVisibility(true) {
     Column {

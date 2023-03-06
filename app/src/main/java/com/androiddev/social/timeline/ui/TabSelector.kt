@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -28,7 +29,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
-import dev.marcellogalhardo.retained.compose.retain
 import social.androiddev.R
 
 @Composable
@@ -38,21 +38,22 @@ fun TabSelector(onClick: (String) -> Unit) {
         "Home" to R.drawable.house,
         "Local" to R.drawable.local,
         "Federated" to R.drawable.world,
-        "Trending" to R.drawable.star
+        "Trending" to R.drawable.trend
     )
-    val selectedIndex = retain(key = "") { TabPosition(0) }
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
+
     Row(modifier = Modifier.clickable(onClick = { expanded = true })) {
         Image(
             modifier = Modifier
                 .size(PaddingSize4)
                 .align(CenterVertically),
-            painter = painterResource(items[selectedIndex.position].second),
+            painter = painterResource(items[selectedIndex].second),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
         )
         Text(
             modifier = Modifier.align(CenterVertically),
-            text = items[selectedIndex.position].first,
+            text = items[selectedIndex].first,
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.headlineSmall
         )
@@ -73,9 +74,9 @@ fun TabSelector(onClick: (String) -> Unit) {
         ) {
             items.forEachIndexed { index, s ->
                 DropdownMenuItem(onClick = {
-                    selectedIndex.position = index
+                    selectedIndex = index
                     expanded = false
-                    onClick(items[selectedIndex.position].first)
+                    onClick(items[selectedIndex].first)
                 }, text = {
                     Row(
                         verticalAlignment = CenterVertically,
