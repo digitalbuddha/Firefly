@@ -2,15 +2,22 @@ package com.androiddev.social.timeline.ui
 
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
+import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
-import org.mobilenativefoundation.store.store5.get
+import org.mobilenativefoundation.store.store5.StoreRequest
 import javax.inject.Inject
 
 abstract class NotificationPresenter :
@@ -31,31 +38,47 @@ abstract class NotificationPresenter :
 @ContributesBinding(AuthRequiredScope::class, boundType = NotificationPresenter::class)
 @SingleIn(AuthRequiredScope::class)
 class RealNotificationPresenter @Inject constructor(
-    val api: UserApi,
-    val repository: OauthRepository
+    val repository: NotificationsRepository
 ) : NotificationPresenter() {
 
-    val store = StoreBuilder.from(
-        fetcher = Fetcher.of { key: Unit ->
-            val token = " Bearer ${repository.getCurrent()}"
-            api.notifications(authHeader = token, offset = null)
-        }
-    ).build()
 
     override suspend fun eventHandler(event: NotificationEvent, coroutineScope: CoroutineScope) {
         when (event) {
             is Load -> {
-                val token = " Bearer ${repository.getCurrent()}"
-                val notification =
-                    kotlin.runCatching { store.get(Unit) }
-                if (notification.isSuccess) {
-                    val conversations: List<Notification> = notification.getOrThrow()
-                    val statuses = conversations.filter {
-                        it.status != null
+                coroutineScope.launch(Dispatchers.IO) {
+                    repository.get().collectLatest {
+                        val statuses = it.filter {
+                            it.status != null
+                        }
+                        model = model.copy(statuses = statuses)
                     }
-                    model = model.copy(statuses = statuses)
                 }
             }
         }
     }
+}
+
+interface NotificationsRepository {
+    suspend fun get(): Flow<List<Notification>>
+}
+
+@ContributesBinding(UserScope::class)
+@SingleIn(UserScope::class)
+class RealNotificationsRepository @Inject constructor(
+    userApi: UserApi,
+    oauthRepository: OauthRepository
+) :
+    NotificationsRepository {
+    val store = StoreBuilder.from(
+        Fetcher.of { key: Unit ->
+            userApi.notifications(
+                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                offset = null
+            )
+        }
+    ).build()
+
+    override suspend fun get(): Flow<List<Notification>> =
+        store.stream(StoreRequest.cached(Unit, refresh = true)).map { it.dataOrNull() }
+            .filterNotNull()
 }

@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.*
@@ -26,32 +25,30 @@ fun ServerSelectScreen(
     var current by remember { mutableStateOf("androiddev.social") }
     EbonyTheme {
         Surface(
-            modifier = Modifier.clip(RoundedCornerShape(8.dp)),
-            color = colorScheme.surface.copy(alpha = .8f)
+            color = colorScheme.background
         ) {
 
             Column(
                 Modifier
                     .padding(PaddingSize2)
                     .fillMaxWidth(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .fillMaxHeight(),
+                    .wrapContentHeight(),
                 verticalArrangement = Arrangement.Center
 
 
             ) {
                 Text(
                     color = colorScheme.onSurface,
-                    modifier = Modifier.padding(PaddingSize2),
+//                    modifier = Modifier.padding(PaddingSize2),
                     text = "Welcome!",
                     style = MaterialTheme.typography.headlineLarge
                 )
                 Text(
                     color = colorScheme.onSurface,
-                    modifier = Modifier.padding(
-                        horizontal = PaddingSize2,
-                        vertical = PaddingSize1
-                    ),
+//                    modifier = Modifier.padding(
+//                        horizontal = PaddingSize2,
+//                        vertical = PaddingSize1
+//                    ),
                     text = "Which Server should we connect to?",
                     style = MaterialTheme.typography.headlineMedium
                 )

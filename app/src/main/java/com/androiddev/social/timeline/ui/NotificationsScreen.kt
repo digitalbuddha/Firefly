@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -38,8 +39,10 @@ fun NotificationsScreen(navController: NavHostController, goToConversation: (UI)
     val userComponent = LocalUserComponent.current
 
     val notificationPresenter = component.notificationPresenter()
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(key1 = userComponent.request()) {
-        notificationPresenter.start()
+        notificationPresenter.start(scope)
     }
     LaunchedEffect(key1 = userComponent.request()) {
         notificationPresenter.handle(NotificationPresenter.Load)

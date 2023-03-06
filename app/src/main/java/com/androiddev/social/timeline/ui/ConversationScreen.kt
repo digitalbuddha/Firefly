@@ -76,10 +76,12 @@ fun ConversationScreen(
             .background(colorScheme.background)
             .fillMaxSize()
     ) {
-        if (before.isNotEmpty())
+        AnimatedVisibility(before.isNotEmpty()) {
             Parent(if (!showParent) "Show Full Thread" else "Show Replies Only") {
                 showParent = !showParent
             }
+        }
+
         statuses.render(
             component.submitPresenter().events,
             goToNowhere,

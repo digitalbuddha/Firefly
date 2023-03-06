@@ -13,9 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.androiddev.social.auth.data.AccessTokenRequest
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 
 @Composable
 fun SplashScreen(navController: NavHostController) {
@@ -35,10 +32,6 @@ fun SplashScreen(navController: NavHostController) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .placeholder(
-                visible = true,
-                highlight = PlaceholderHighlight.shimmer(),
-            )
     ) {
         Box(
             contentAlignment = Alignment.Center,

@@ -26,6 +26,9 @@ import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.theme.*
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.navigation.material.ModalBottomSheetLayout
+import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.squareup.anvil.annotations.ContributesTo
 import javax.inject.Provider
 
@@ -62,6 +65,7 @@ class MainActivity : ComponentActivity() {
         super.onPause()
     }
 
+    @OptIn(ExperimentalMaterialNavigationApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,9 +90,13 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                     ) {
                         val scope = rememberCoroutineScope()
-                        val navController = rememberAnimatedNavController()
-                        Navigator(navController, scope) {
-                            isDynamicTheme = !isDynamicTheme
+                        val bottomSheetNavigator = rememberBottomSheetNavigator()
+
+                        val navController = rememberAnimatedNavController(bottomSheetNavigator)
+                        ModalBottomSheetLayout(bottomSheetNavigator) {
+                            Navigator(navController, scope) {
+                                isDynamicTheme = !isDynamicTheme
+                            }
                         }
                     }
                 }

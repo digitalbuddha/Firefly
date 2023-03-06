@@ -11,13 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.dialog
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.UserComponent
@@ -28,6 +26,8 @@ import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.navigation
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.navigation.material.bottomSheet
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -52,7 +52,7 @@ fun getUserComponent(code: String): UserComponent {
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialNavigationApi::class)
 @Composable
 fun Navigator(
     navController: NavHostController,
@@ -98,9 +98,9 @@ fun Navigator(
                     )
                 }
             }
-            dialog(
+            bottomSheet(
                 "mentions/{code}",
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -116,9 +116,8 @@ fun Navigator(
                     }
                 }
             }
-            dialog(
+        bottomSheet(
                 "conversation/{code}/{statusId}/{type}",
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 val statusId = it.arguments?.getString("statusId")!!
@@ -136,9 +135,8 @@ fun Navigator(
                     }
                 }
             }
-            dialog(
+        bottomSheet(
                 "notifications/{code}",
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -155,12 +153,11 @@ fun Navigator(
                 }
             }
         }
-        composable("splash",  enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
+        composable("splash",  enterTransition = {  fadeIn()}, exitTransition = {slideOutOfContainer(AnimatedContentScope.SlideDirection.End) }) {
             SplashScreen(navController)
         }
 
-
-        composable("selectServer", enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
+        bottomSheet("selectServer") {
             ServerSelectScreen { server ->
                 scope.launch {
                     navController.navigate("login/$server")
@@ -169,9 +166,7 @@ fun Navigator(
 
         }
 
-
-
-        composable("login/{server}") {
+        bottomSheet("login/{server}") {
             val server = it.arguments?.getString("server")!!
             SignInScreen(navController, scope, server)
         }
