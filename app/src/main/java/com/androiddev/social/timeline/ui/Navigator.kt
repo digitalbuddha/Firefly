@@ -13,11 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.dialog
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.EbonyApp
 import com.androiddev.social.UserComponent
@@ -54,7 +56,8 @@ fun getUserComponent(code: String): UserComponent {
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialNavigationApi::class,
+@OptIn(
+    ExperimentalAnimationApi::class, ExperimentalMaterialNavigationApi::class,
     ExperimentalMaterialApi::class
 )
 @Composable
@@ -74,12 +77,12 @@ fun Navigator(
 //        popEnterTransition = { defaultTiviPopEnterTransition() },
 //        popExitTransition = { defaultTiviPopExitTransition() },
         modifier = Modifier,
-    ){
-    navigation(
+    ) {
+        navigation(
             startDestination = "timeline",
             route = "home/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}"
         ) {
-            composable("timeline", enterTransition = {  fadeIn()}, exitTransition = { fadeOut() }) {
+            composable("timeline", enterTransition = { fadeIn() }, exitTransition = { fadeOut() }) {
                 val accessTokenRequest = accessTokenRequest(it)
                 val userComponent = getUserComponent(accessTokenRequest = accessTokenRequest)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -103,9 +106,9 @@ fun Navigator(
                     )
                 }
             }
-            bottomSheet(
-                "mentions/{code}",
-//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+            dialog(
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                route = "mentions/{code}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -121,7 +124,7 @@ fun Navigator(
                     }
                 }
             }
-        bottomSheet(
+            bottomSheet(
                 "conversation/{code}/{statusId}/{type}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
@@ -140,8 +143,9 @@ fun Navigator(
                     }
                 }
             }
-        bottomSheet(
-                "notifications/{code}",
+            dialog(
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                route = "notifications/{code}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
@@ -152,13 +156,18 @@ fun Navigator(
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         NotificationsScreen(navController) { status: UI ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}")
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}") {
+                                popUpTo("timeline")
+                            }
                         }
                     }
                 }
             }
         }
-        composable("splash",  enterTransition = {  fadeIn()}, exitTransition = {slideOutOfContainer(AnimatedContentScope.SlideDirection.End) }) {
+        composable(
+            "splash",
+            enterTransition = { fadeIn() },
+            exitTransition = { slideOutOfContainer(AnimatedContentScope.SlideDirection.End) }) {
             SplashScreen(navController)
         }
 

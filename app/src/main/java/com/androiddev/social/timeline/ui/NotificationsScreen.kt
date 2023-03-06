@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,6 +32,9 @@ import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material3.placeholder
+import com.google.accompanist.placeholder.material3.shimmer
 import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -68,34 +73,50 @@ fun NotificationsScreen(navController: NavHostController, goToConversation: (UI)
                 .wrapContentHeight()
                 .padding(top = 60.dp)
         ) {
+            if (statuses.isEmpty()) {
+                items(3) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .padding(16.dp)
+                            .placeholder(
+                                visible = true,
+                                highlight = PlaceholderHighlight.shimmer(),
+                            )
+                    ) {
 
-            items(statuses, key = { it.id }) {
-                Column {
-                    if (it.realType == Type.favourite) {
-                        Boosted(
-                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " favorited",
-                            boostedAvatar = it.account.avatar,
-                            boostedEmojis = it.account.emojis,
-                            drawable = R.drawable.star
-                        )
                     }
-                    if (it.realType == Type.reblog) {
-                        Boosted(
-                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " boosted",
-                            boostedAvatar = it.account.avatar,
-                            boostedEmojis = it.account.emojis,
-                            drawable = R.drawable.rocket3
-                        )
-                    }
-                    card(
-                        modifier = Modifier.background(Color.Transparent),
-                        status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
-                        events = component.submitPresenter().events,
-                        goToConversation = goToConversation,
-                        showInlineReplies = false
-                    )
                 }
+            } else {
+                items(statuses, key = { it.id }) {
+                    Column {
+                        if (it.realType == Type.favourite) {
+                            Boosted(
+                                boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " favorited",
+                                boostedAvatar = it.account.avatar,
+                                boostedEmojis = it.account.emojis,
+                                drawable = R.drawable.star
+                            )
+                        }
+                        if (it.realType == Type.reblog) {
+                            Boosted(
+                                boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " boosted",
+                                boostedAvatar = it.account.avatar,
+                                boostedEmojis = it.account.emojis,
+                                drawable = R.drawable.rocket3
+                            )
+                        }
+                        card(
+                            modifier = Modifier.background(Color.Transparent),
+                            status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
+                            events = component.submitPresenter().events,
+                            goToConversation = goToConversation,
+                            showInlineReplies = false
+                        )
+                    }
 
+                }
             }
         }
         CustomViewPullRefreshView(
