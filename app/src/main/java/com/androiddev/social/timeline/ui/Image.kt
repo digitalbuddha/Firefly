@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ fun AvatarImage(
             contentDescription = "Content",
             imageLoader = LocalImageLoader.current,
             modifier = modifier
-                .clip(CircleShape)
+                .clip(shape = RoundedCornerShape(8, 8, 8, 8),)
                 .clickable { onClick() }
                 .size(size),
             transform = AsyncImagePainter.DefaultTransform,
@@ -68,6 +68,7 @@ fun ContentImage(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .padding(0.dp)
+                .clip(shape = RoundedCornerShape(4, 4, 4, 4))
                 .clickable { onClick() }
                 .background(Color.Transparent),
             transform = AsyncImagePainter.DefaultTransform,

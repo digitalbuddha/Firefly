@@ -80,156 +80,163 @@ fun TimelineCard(
 ////        modifier = Modifier.animateItemPlacement()
 //    ) {
     Column(
-        modifier
+
+    ) {
+        Column( modifier
             .padding(
                 bottom = PaddingSize2,
                 start = PaddingSize2,
                 end = PaddingSize2,
                 top = PaddingSize2
-            )
-    ) {
-        val provider = LocalAuthComponent.current.conversationPresenter().get()
-        var presenter by remember { mutableStateOf(provider) }
-        val submitPresenter = LocalAuthComponent.current.submitPresenter()
-        val beforeStatus: List<Status>? =
-            presenter.model.conversations[ui.remoteId]?.before
+            )) {
+            val provider = LocalAuthComponent.current.conversationPresenter().get()
+            var presenter by remember { mutableStateOf(provider) }
+            val submitPresenter = LocalAuthComponent.current.submitPresenter()
+            val beforeStatus: List<Status>? =
+                presenter.model.conversations[ui.remoteId]?.before
 
-        val before: MutableList<UI>? =
-            beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-                ?.toMutableList()
-        var showingReplies by remember { mutableStateOf(false) }
-        AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
-            var showParent by remember { mutableStateOf(false) }
+            val before: MutableList<UI>? =
+                beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+                    ?.toMutableList()
+            var showingReplies by remember { mutableStateOf(false) }
+            this@Column.AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
+                var showParent by remember { mutableStateOf(false) }
 
-//            if (!showParent)
-//                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
-            AnimatedVisibility(showParent) {
-                InnerLazyColumn(before, goToConversation = goToConversation)
-            }
-        }
-        DirectMessage(ui.directMessage)
-        Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis, R.drawable.rocket3)
-        UserInfo(ui)
-        Row(
-            Modifier
-                .padding(bottom = PaddingSizeNone)
-                .wrapContentHeight()
-        ) {
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val (mapping, text) = emojiText(ui.content, ui.mentions, ui.tags, ui.contentEmojis)
-                var clicked by remember(ui) { mutableStateOf(false) }
-                var showReply by remember(ui) { mutableStateOf(false) }
-                if (clicked) {
-                    LaunchedEffect(Unit) {
-                        state?.hide()
-                    }
+                //            if (!showParent)
+                //                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
+                this@Column.AnimatedVisibility(showParent) {
+                    InnerLazyColumn(before, goToConversation = goToConversation)
                 }
+            }
+            DirectMessage(ui.directMessage)
+            Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis, R.drawable.rocket3)
+            UserInfo(ui)
+            Row(
+                Modifier
+                    .padding(bottom = PaddingSizeNone)
+                    .wrapContentHeight()
+            ) {
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val (mapping, text) = emojiText(
+                        ui.content,
+                        ui.mentions,
+                        ui.tags,
+                        ui.contentEmojis
+                    )
+                    var clicked by remember(ui) { mutableStateOf(false) }
+                    var showReply by remember(ui) { mutableStateOf(false) }
+                    if (clicked) {
+                        LaunchedEffect(Unit) {
+                            state?.hide()
+                        }
+                    }
 
 
-                val uriHandler = LocalUriHandler.current
+                    val uriHandler = LocalUriHandler.current
 
-                ClickableText(
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = colorScheme.onSurface,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = text,
-                    onClick = {
-                        clicked = !clicked
-                        if (!clicked && showReply) showReply = false
+                    ClickableText(
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = colorScheme.onSurface,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        text = text,
+                        onClick = {
+                            clicked = !clicked
+                            if (!clicked && showReply) showReply = false
 
 
-                        text.getStringAnnotations(
-                            tag = "URL", start = it,
-                            end = it
-                        )
-                            .firstOrNull()?.let { annotation ->
-                                // If yes, we log its value
-                                uriHandler.openUri(annotation.item)
-                                Log.d("Clicked URL", annotation.item)
+                            text.getStringAnnotations(
+                                tag = "URL", start = it,
+                                end = it
+                            )
+                                .firstOrNull()?.let { annotation ->
+                                    // If yes, we log its value
+                                    uriHandler.openUri(annotation.item)
+                                    Log.d("Clicked URL", annotation.item)
+                                }
+                        },
+                        inlineContent = mapping
+                    )
+
+                    ui.imageUrl?.let { ContentImage(it) { clicked = !clicked } }
+                    val toolbarHeight = PaddingSize6
+                    val toolbarHeightPx =
+                        with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
+                    val toolbarOffsetHeightPx =
+
+                        remember(ui) { mutableStateOf(0f) }
+                    val nestedScrollConnection = remember(ui) {
+                        object : NestedScrollConnection {
+                            override fun onPreScroll(
+                                available: Offset,
+                                source: NestedScrollSource
+                            ): Offset {
+                                val delta = available.y
+                                val newOffset = toolbarOffsetHeightPx.value + delta
+                                toolbarOffsetHeightPx.value =
+                                    newOffset.coerceIn(-toolbarHeightPx, 0f)
+                                return Offset.Zero
                             }
-                    },
-                    inlineContent = mapping
-                )
+                        }
+                    }
+                    AnimatedVisibility(visible = showReply) {
+                        var mentions =
+                            ui.mentions.map { mention -> mention.username }.toMutableList()
 
-                ui.imageUrl?.let { ContentImage(it) { clicked = !clicked } }
-                val toolbarHeight = PaddingSize6
-                val toolbarHeightPx =
-                    with(LocalDensity.current) { toolbarHeight.roundToPx().toFloat() }
-                val toolbarOffsetHeightPx =
+                        mentions.add(ui.userName)
+                        mentions = mentions.map { "@${it}" }.toMutableList()
+                        Column(modifier = Modifier.padding(top = PaddingSize2)) {
+                            UserInput(
+                                ui,
+                                connection = nestedScrollConnection,
+                                onMessageSent = { it, visibility, uris ->
+                                    replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
+                                },
+                                defaultVisiblity = "Direct",
+                                participants = mentions.joinToString(" "),
+                                showReplies = true,
+                                goToConversation = goToConversation
+                            )
+                        }
+                    }
+                    AnimatedVisibility(visible = clicked || alwaysShowButtonBar) {
+                        Column {
 
-                    remember(ui) { mutableStateOf(0f) }
-                val nestedScrollConnection = remember(ui) {
-                    object : NestedScrollConnection {
-                        override fun onPreScroll(
-                            available: Offset,
-                            source: NestedScrollSource
-                        ): Offset {
-                            val delta = available.y
-                            val newOffset = toolbarOffsetHeightPx.value + delta
-                            toolbarOffsetHeightPx.value =
-                                newOffset.coerceIn(-toolbarHeightPx, 0f)
-                            return Offset.Zero
+                            ButtonBar(
+                                ui,
+                                ui.replyCount,
+                                ui.boostCount,
+                                ui.favoriteCount,
+                                showInlineReplies,
+                                onBoost = {
+                                    boostStatus(ui.remoteId)
+                                },
+                                onFavorite = {
+                                    favoriteStatus(ui.remoteId)
+                                },
+                                showReply = showingReplies,
+                                onShowReplies = {
+                                    showingReplies = !showingReplies
+                                    goToConversation(ui)
+                                },
+                                onReply = {
+                                    showReply = !showReply
+                                    isReplying(showReply)
+                                },
+                                goToConversation = {
+                                    goToConversation(ui)
+                                })
                         }
                     }
                 }
-                AnimatedVisibility(visible = showReply) {
-                    var mentions = ui.mentions.map { mention -> mention.username }.toMutableList()
-
-                    mentions.add(ui.userName)
-                    mentions = mentions.map { "@${it}" }.toMutableList()
-                    Column(modifier = Modifier.padding(top = PaddingSize2)) {
-                        UserInput(
-                            ui,
-                            connection = nestedScrollConnection,
-                            onMessageSent = { it, visibility, uris ->
-                                replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
-                            },
-                            defaultVisiblity = "Direct",
-                            participants = mentions.joinToString(" "),
-                            showReplies = true,
-                            goToConversation = goToConversation
-                        )
-                    }
-                }
-                AnimatedVisibility(visible = clicked || alwaysShowButtonBar) {
-                    Column {
-
-                        ButtonBar(
-                            ui,
-                            ui.replyCount,
-                            ui.boostCount,
-                            ui.favoriteCount,
-                            showInlineReplies,
-                            onBoost = {
-                                boostStatus(ui.remoteId)
-                            },
-                            onFavorite = {
-                                favoriteStatus(ui.remoteId)
-                            },
-                            showReply = showingReplies,
-                            onShowReplies = {
-                                showingReplies = !showingReplies
-                                goToConversation(ui)
-                            },
-                            onReply = {
-                                showReply = !showReply
-                                isReplying(showReply)
-                            },
-                            goToConversation = {
-                                goToConversation(ui)
-                            })
-                    }
-                }
-
-                Divider(
-                    Modifier.padding(top = PaddingSize1),
-                    color = Color.LightGray
-                )
             }
         }
+        Divider(
+            Modifier.padding(top = PaddingSize1),
+            color = Color.LightGray
+        )
     }
 }
 

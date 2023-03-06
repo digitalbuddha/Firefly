@@ -26,9 +26,9 @@ import com.androiddev.social.EbonyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.theme.*
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.squareup.anvil.annotations.ContributesTo
 import javax.inject.Provider
 
@@ -90,11 +90,19 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                     ) {
                         val scope = rememberCoroutineScope()
-                        val bottomSheetNavigator = rememberBottomSheetNavigator()
+                        val sheetState = rememberModalBottomSheetState(
+                            ModalBottomSheetValue.Hidden,
+                            SwipeableDefaults.AnimationSpec,
+                                    skipHalfExpanded = true
+
+                        )
+                        val bottomSheetNavigator = remember(sheetState) {
+                            BottomSheetNavigator(sheetState = sheetState)
+                        }
 
                         val navController = rememberAnimatedNavController(bottomSheetNavigator)
                         ModalBottomSheetLayout(bottomSheetNavigator) {
-                            Navigator(navController, scope) {
+                            Navigator(navController, scope,sheetState) {
                                 isDynamicTheme = !isDynamicTheme
                             }
                         }

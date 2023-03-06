@@ -35,7 +35,7 @@ fun DirectMessage(directMessage: Boolean) {
                     containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary, labelColor = colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(50, 50, 50, 50),
+                shape = RoundedCornerShape(25, 25, 25, 25),
                 onClick = { /* Do something! */ },
                 label = {
                     Text("Private Mention", style = MaterialTheme.typography.labelLarge)
