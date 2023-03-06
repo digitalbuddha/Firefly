@@ -171,7 +171,7 @@ fun Navigator(
 
         }
 
-        bottomSheet("login/{server}") {
+        composable("login/{server}") {
             val server = it.arguments?.getString("server")!!
             SignInScreen(navController, scope, server)
         }

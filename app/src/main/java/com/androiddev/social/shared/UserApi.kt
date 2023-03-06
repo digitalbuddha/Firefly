@@ -68,7 +68,8 @@ interface UserApi {
         @Path("id") statusId: String
     ): StatusNode
 
-    fun boostStatus(
+    @POST("/api/v1/statuses/{id}/reblog")
+    suspend fun boostStatus(
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
     ): Status
