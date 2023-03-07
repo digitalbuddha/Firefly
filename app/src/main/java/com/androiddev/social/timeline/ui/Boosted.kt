@@ -1,11 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.AssistChip
@@ -18,9 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import com.androiddev.social.theme.PaddingSize0_5
-import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize3
+import androidx.compose.ui.unit.dp
+import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.ui.util.emojiText
 
@@ -28,18 +23,13 @@ import com.androiddev.social.ui.util.emojiText
 @Composable
 fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?, drawable: Int) {
     boostedBy?.let {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = PaddingSize0_5, bottom = PaddingSize1)
-        ) {
             AssistChip(
+                modifier=Modifier.height(20.dp),
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary, labelColor = colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(50, 50, 50, 50),
+                shape = RoundedCornerShape(25, 25, 25, 25),
                 onClick = { /* Do something! */ },
                 label = {
                     val (mapping, text) = emojiText(
@@ -50,16 +40,16 @@ fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoj
                     )
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelSmall,
                         inlineContent = mapping
                     )
                 },
                 leadingIcon = {
-                    AvatarImage(size = PaddingSize3, url = boostedAvatar)
+                    AvatarImage(size = PaddingSize2, url = boostedAvatar)
                 },
                 trailingIcon = {
                     Image(
-                        modifier = Modifier.height(PaddingSize3),
+                        modifier = Modifier.height(PaddingSize2),
                         painter = painterResource(drawable),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(colorScheme.onPrimary),
@@ -69,4 +59,3 @@ fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoj
             )
         }
     }
-}

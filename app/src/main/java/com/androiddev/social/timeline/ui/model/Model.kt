@@ -65,8 +65,8 @@ fun String.parseAsMastodonHtml(): Spanned {
         .replace("<br/> ", "<br/>&nbsp;")
         .replace("  ", "&nbsp;&nbsp;")
         .parseAsHtml()
-        /* Html.fromHtml returns trailing whitespace if the html ends in a </p> tag, which
-         * most status contents do, so it should be trimmed. */
+    /* Html.fromHtml returns trailing whitespace if the html ends in a </p> tag, which
+     * most status contents do, so it should be trimmed. */
         .trimTrailingWhitespace()
 
 }
@@ -85,22 +85,33 @@ fun Spanned.toAnnotatedString(
     mutableMapOf: MutableMap<String, InlineTextContent>
 ): AnnotatedString {
     val builder = AnnotatedString.Builder()
-    val split = split(":").filter { group -> group != "" }
-    split.forEach { token ->
+    val split = split("((?<=:)|(?=:))".toRegex()).filter { group -> group != "" }
+    val newList = mutableListOf<String>()
+    val shortCodes = emojis?.map { it.shortcode }?.toSet() ?: emptySet()
+    split.forEachIndexed { index, s ->
+        if (shortCodes.contains(s) && newList.isNotEmpty()) {
+            newList.removeAt(newList.lastIndex)
+        }
+
+        if (s != ":" || (newList.isEmpty() || !shortCodes.contains(newList.last()))) {
+            newList.add(s)
+        }
+    }
+    newList.forEach { token ->
         val emoji = emojis?.firstOrNull { it.shortcode == token }
         if (emoji != null) {
             builder.appendInlineContent(
-                emoji.shortcode,
-                token
+                "${emoji.shortcode}",
+                ":${token}:"
             )
-            mutableMapOf[token] = InlineTextContent(
+            mutableMapOf["${emoji.shortcode}"] = InlineTextContent(
                 Placeholder(
                     20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
                 ), children = {
                     AvatarImage(PaddingSize2_5, url = emoji.url)
                 })
         } else {
-            builder.append(token)
+            builder.append("${token}")
         }
     }
     val copierContext = CopierContext(primaryColor)
@@ -111,7 +122,9 @@ fun Spanned.toAnnotatedString(
         }
     }
 
-    return builder.toAnnotatedString()
+    var toAnnotatedString = builder.toAnnotatedString()
+
+    return toAnnotatedString
 }
 
 private data class CopierContext(
@@ -128,11 +141,12 @@ private enum class SpanCopier {
             destination: AnnotatedString.Builder,
             context: CopierContext
         ) {
+            val newStart = if (start > 0) start - 1 else start
             val urlSpan = span as URLSpan
             destination.addStringAnnotation(
                 tag = name,
                 annotation = urlSpan.url,
-                start = start,
+                start = newStart,
                 end = end,
             )
             destination.addStyle(
@@ -143,7 +157,6 @@ private enum class SpanCopier {
                 start = start,
                 end = end,
             )
-
         }
     },
     FOREGROUND_COLOR {

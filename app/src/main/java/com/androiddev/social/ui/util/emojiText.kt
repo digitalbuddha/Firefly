@@ -35,12 +35,13 @@ fun emojiText(
     val mapping by remember(content, mentions, tags) { mutableStateOf(mutableMapOf<String, InlineTextContent>()) }
     val linkColor = MaterialTheme.colorScheme.primary
     val text by remember(content, mentions, tags) {
+        val value = prettyText.toAnnotatedString(
+            linkColor,
+            emojis,
+            mapping
+        )
         mutableStateOf(
-            prettyText.toAnnotatedString(
-                linkColor,
-                emojis,
-                mapping
-            )
+            value
         )
     }
     return Pair(mapping, text)

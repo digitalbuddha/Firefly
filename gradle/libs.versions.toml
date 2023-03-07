@@ -74,6 +74,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 retained-compose = { module = "dev.marcellogalhardo:retained-compose", version.ref = "retained-compose" }
 store-cache = { module = "org.mobilenativefoundation.store:cache5-jvm", version.ref = "store" }
 store-jvm = { module = "org.mobilenativefoundation.store:store5-jvm", version.ref = "store" }
+google-firebase-bom = "com.google.firebase:firebase-bom:31.2.3"
+google-firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
+google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle-plugin" }
@@ -82,3 +85,5 @@ anvil = { id = "com.squareup.anvil", version.ref = "anvil" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+firebase-crashlytics = "com.google.firebase.crashlytics:2.9.4"
+gms-googleServices = "com.google.gms.google-services:4.3.15"

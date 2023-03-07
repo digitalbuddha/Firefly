@@ -3,7 +3,6 @@ package com.androiddev.social.timeline.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -17,7 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import com.androiddev.social.theme.PaddingSize3
+import androidx.compose.ui.unit.dp
+import com.androiddev.social.theme.PaddingSize2
 import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -27,7 +27,7 @@ fun DirectMessage(directMessage: Boolean) {
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxWidth()
+                .height(20.dp)
         ) {
             AssistChip(
 //                border = AssistChipDefaults.assistChipBorder(borderColor =  Pink40.copy(alpha = .2f)),
@@ -38,11 +38,11 @@ fun DirectMessage(directMessage: Boolean) {
                 shape = RoundedCornerShape(25, 25, 25, 25),
                 onClick = { /* Do something! */ },
                 label = {
-                    Text("Private Mention", style = MaterialTheme.typography.labelLarge)
+                    Text("Private", style = MaterialTheme.typography.labelSmall)
                 },
                 leadingIcon = {
                     Image(
-                        modifier = Modifier.height(PaddingSize3),
+                        modifier = Modifier.height(PaddingSize2),
                         painter = painterResource(R.drawable.mail),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(colorScheme.onPrimary),

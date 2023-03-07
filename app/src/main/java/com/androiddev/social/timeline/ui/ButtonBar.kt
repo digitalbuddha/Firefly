@@ -2,14 +2,12 @@
 
 package com.androiddev.social.timeline.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,10 +57,9 @@ fun ButtonBar(
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit
 ) {
-    Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
-                contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                contentPadding = PaddingValues(PaddingSize1, 0.dp),
                 border = BorderStroke(ThickSm, Color.Transparent),
                 onClick = onReply
             ) {
@@ -85,7 +82,7 @@ fun ButtonBar(
 
 
                 OutlinedButton(
-                    contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                    contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     border = BorderStroke(ThickSm, Color.Transparent),
                     onClick = {
                         onShowReplies()
@@ -107,7 +104,7 @@ fun ButtonBar(
             else{
                 //placeholder I am bad at code
                 OutlinedButton(
-                    contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                    contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     border = BorderStroke(ThickSm, Color.Transparent),
                     onClick = {
                     }
@@ -116,11 +113,7 @@ fun ButtonBar(
                 }
             }
         }
-        AnimatedVisibility(visible = showReply && showInlineReplies) {
-            After(status = status, goToConversation = goToConversation)
-        }
     }
-}
 
 @Composable
 private fun SpringyButton(
@@ -144,7 +137,7 @@ private fun SpringyButton(
     val scope = rememberCoroutineScope()
 
     OutlinedButton(
-        contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+        contentPadding = PaddingValues(PaddingSize1, 0.dp),
         border = BorderStroke(ThickSm, Color.Transparent),
         onClick = {
             clicked = !clicked

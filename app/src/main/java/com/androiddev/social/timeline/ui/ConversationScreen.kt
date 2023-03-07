@@ -1,11 +1,14 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,7 +61,6 @@ fun ConversationScreen(
         listOf(conversation?.status).filterNotNull()
 
 
-
     val statuses = before + status + after.map { it.copy(replyType = ReplyType.CHILD) }
 
 
@@ -67,39 +69,33 @@ fun ConversationScreen(
     })
     BackBar(navController, "Conversation")
 
+    AnimatedVisibility(true, enter = fadeIn(animationSpec = TweenSpec(durationMillis = 10000))) {
 
-    Box(
-        Modifier
-            .pullRefresh(pullRefreshState)
-            .padding(top = 56.dp)
-            .background(colorScheme.background)
-            .fillMaxSize()
-    ) {
-//        AnimatedVisibility(before.isNotEmpty()) {
-//            Parent(if (!showParent) "Show Full Thread" else "Show Replies Only") {
-//                showParent = !showParent
-//            }
-//        }
+        Box(
+            Modifier
+                .pullRefresh(pullRefreshState)
+                .padding(top = 56.dp)
+                .background(Color.Transparent)
+                .fillMaxSize()
+        ) {
+            statuses.render(
+                component.submitPresenter().events,
+                goToNowhere,
+                scrollToPosition = before.size
+            )
 
-        statuses.render(
-            component.submitPresenter().events,
-            goToNowhere,
-            addPadding = before.isNotEmpty(),
-            scrollToPosition = before.size
-        )
-
-        CustomViewPullRefreshView(
-            pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
-        )
+            CustomViewPullRefreshView(
+                pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
+            )
+        }
     }
-}
 
+}
 
 @Composable
 private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     goToConversation: (UI) -> Unit,
-    addPadding: Boolean,
     scrollToPosition: Int,
 
     ) {
@@ -110,22 +106,21 @@ private fun List<UI>.render(
         state = state,
         modifier = Modifier
             .wrapContentHeight()
-            .fillMaxWidth()
-            .padding(top = if (addPadding) 40.dp else 0.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .fillMaxSize()
+//            .padding(top = if (addPadding) 40.dp else 0.dp)
     ) {
         items(statuses) {
-            AnimatedVisibility(true, enter = expandHorizontally()) {
-                card(
-                    modifier = Modifier
-                        .background(if (it.replyType == ReplyType.PARENT) colorScheme.surface else if (it.replyType == ReplyType.CHILD) colorScheme.background else Color.Transparent),
-                    status = it,
-                    events = mutableSharedFlow,
-                    showInlineReplies = true,
-                    goToConversation = goToConversation
-                )
-            }
-
+            card(
+                modifier = Modifier
+                    .animateItemPlacement(),
+                status = it,
+                events = mutableSharedFlow,
+                showInlineReplies = true,
+                goToConversation = goToConversation
+            )
         }
+
     }
 }
 

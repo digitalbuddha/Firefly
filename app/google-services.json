@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1094786048013",
+    "project_id": "ebony-c65c2",
+    "storage_bucket": "ebony-c65c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094786048013:android:8081df33e0da1d51f8f544",
+        "android_client_info": {
+          "package_name": "social.androiddev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1094786048013-dt15fahkl4gli8anom6l3e6k16bkei55.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "social.androiddev",
+            "certificate_hash": "c432d01ff876f24d8690beee734599279194f8ef"
+          }
+        },
+        {
+          "client_id": "1094786048013-4gr51oj355ca3eovah0qsl1v460rjv3o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAy-pDqbFBCGISYYYjFVQXSm9Q_botNh18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1094786048013-4gr51oj355ca3eovah0qsl1v460rjv3o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,14 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.text.TextPaint
-import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import androidx.annotation.VisibleForTesting
 import androidx.core.net.toUri
 import com.androiddev.social.timeline.ui.model.UI
@@ -25,8 +22,6 @@ import kotlinx.datetime.monthsUntil
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.until
 import kotlinx.datetime.yearsUntil
-import java.net.URI
-import java.net.URISyntaxException
 
 
 fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
@@ -162,7 +157,6 @@ fun StatusDB.mapStatus(): UI {
 fun setClickableText(
     content: CharSequence, mentions: List<Mention>, tags: List<Tag>?, listener: LinkListener,
 ): SpannableStringBuilder {
-//    waitForDebugger()
 
     val spannableContent: SpannableStringBuilder = SpannableStringBuilder(content)
 
@@ -268,54 +262,8 @@ private fun getCustomSpanForMentionUrl(
     }
 }
 
-/**
- * Put mentions in a piece of text and makes them clickable, associating them with callbacks to
- * notify when they're clicked.
- *
- * @param view the returned text will be put in
- * @param mentions any '@' mentions which are known to be in the content
- * @param listener to notify about particular spans that are clicked
- */
-fun setClickableMentions(view: TextView, mentions: List<Mention>?, listener: LinkListener) {
-    if (mentions?.isEmpty() != false) {
-        view.text = null
-        return
-    }
 
-    view.text = SpannableStringBuilder().apply {
-        var start = 0
-        var end = 0
-        var flags: Int
-        var firstMention = true
 
-        for (mention in mentions) {
-            val customSpan = getCustomSpanForMentionUrl(mention.url, mention.id, listener)
-            end += 1 + mention.username.length // length of @ + username
-            flags = getSpanFlags(customSpan)
-            if (firstMention) {
-                firstMention = false
-            } else {
-                append(" ")
-                start += 1
-                end += 1
-            }
-
-            append("@")
-            append(mention.username)
-            setSpan(customSpan, start, end, flags)
-            append("\u200B") // same reasoning as in setClickableText
-            end += 1 // shift position to take the previous character into account
-            start = end
-        }
-    }
-    view.movementMethod = LinkMovementMethod.getInstance()
-}
-
-fun createClickableText(text: String, link: String): CharSequence {
-    return SpannableStringBuilder(text).apply {
-        setSpan(NoUnderlineURLSpan(link), 0, text.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
-    }
-}
 
 /**
  * Opens a link, depending on the settings, either in the browser or in a custom tab
@@ -347,74 +295,5 @@ private fun openLinkInBrowser(uri: Uri?, context: Context) {
         context.startActivity(intent)
     } catch (e: ActivityNotFoundException) {
         Log.w("LinkOpener", "Activity was not found for intent, $intent")
-    }
-}
-
-/**
- * tries to open a link in a custom tab
- * falls back to browser if not possible
- *
- * @param uri the uri to open
- * @param context context
- */
-//private fun openLinkInCustomTab(uri: Uri, context: Context) {
-//
-//    val customTabsIntent = CustomTabsIntent.Builder()
-//        .setShowTitle(true)
-//        .build()
-//
-//    try {
-//        customTabsIntent.launchUrl(context, uri)
-//    } catch (e: ActivityNotFoundException) {
-//        Log.w(TAG, "Activity was not found for intent $customTabsIntent")
-//        openLinkInBrowser(uri, context)
-//    }
-//}
-
-// https://mastodon.foo.bar/@User
-// https://mastodon.foo.bar/@User/43456787654678
-// https://pleroma.foo.bar/users/User
-// https://pleroma.foo.bar/users/9qTHT2ANWUdXzENqC0
-// https://pleroma.foo.bar/notice/9sBHWIlwwGZi5QGlHc
-// https://pleroma.foo.bar/objects/d4643c42-3ae0-4b73-b8b0-c725f5819207
-// https://friendica.foo.bar/profile/user
-// https://friendica.foo.bar/display/d4643c42-3ae0-4b73-b8b0-c725f5819207
-// https://misskey.foo.bar/notes/83w6r388br (always lowercase)
-// https://pixelfed.social/p/connyduck/391263492998670833
-// https://pixelfed.social/connyduck
-// https://gts.foo.bar/@goblin/statuses/01GH9XANCJ0TA8Y95VE9H3Y0Q2
-// https://gts.foo.bar/@goblin
-// https://foo.microblog.pub/o/5b64045effd24f48a27d7059f6cb38f5
-fun looksLikeMastodonUrl(urlString: String): Boolean {
-    val uri: URI
-    try {
-        uri = URI(urlString)
-    } catch (e: URISyntaxException) {
-        return false
-    }
-
-    if (uri.query != null || uri.fragment != null || uri.path == null) {
-        return false
-    }
-
-    return uri.path.let {
-        it.matches("^/@[^/]+$".toRegex()) || it.matches("^/@[^/]+/\\d+$".toRegex()) || it.matches("^/users/\\w+$".toRegex()) || it.matches(
-            "^/notice/[a-zA-Z0-9]+$".toRegex()
-        ) || it.matches("^/objects/[-a-f0-9]+$".toRegex()) || it.matches("^/notes/[a-z0-9]+$".toRegex()) || it.matches(
-            "^/display/[-a-f0-9]+$".toRegex()
-        ) || it.matches("^/profile/\\w+$".toRegex()) || it.matches("^/p/\\w+/\\d+$".toRegex()) || it.matches(
-            "^/\\w+$".toRegex()
-        ) || it.matches("^/@[^/]+/statuses/[a-zA-Z0-9]+$".toRegex()) || it.matches("^/o/[a-f0-9]+$".toRegex())
-    }
-
-
-}
-
-fun getDomain(urlString: String?): String {
-    val host = urlString?.toUri()?.host
-    return when {
-        host == null -> ""
-        host.startsWith("www.") -> host.substring(4)
-        else -> host
     }
 }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -82,13 +80,15 @@ fun TimelineCard(
     Column(
 
     ) {
-        Column( modifier
-            .padding(
-                bottom = PaddingSize2,
-                start = PaddingSize2,
-                end = PaddingSize2,
-                top = PaddingSize2
-            )) {
+        Column(
+            modifier
+                .padding(
+                    bottom = PaddingSize2,
+                    start = PaddingSize2,
+                    end = PaddingSize2,
+                    top = PaddingSize2
+                )
+        ) {
             val provider = LocalAuthComponent.current.conversationPresenter().get()
             var presenter by remember { mutableStateOf(provider) }
             val submitPresenter = LocalAuthComponent.current.submitPresenter()
@@ -108,8 +108,7 @@ fun TimelineCard(
                     InnerLazyColumn(before, goToConversation = goToConversation)
                 }
             }
-            DirectMessage(ui.directMessage)
-            Boosted(ui.boostedBy, ui.boostedAvatar, ui.boostedEmojis, R.drawable.rocket3)
+
             UserInfo(ui)
             Row(
                 Modifier
@@ -143,19 +142,24 @@ fun TimelineCard(
                             .fillMaxWidth(),
                         text = text,
                         onClick = {
-                            clicked = !clicked
-                            if (!clicked && showReply) showReply = false
+                            if (ui.inReplyTo != null) {
+                                goToConversation(ui)
+                                clicked = false
+                            } else {
+                                clicked = !clicked
+                                if (!clicked && showReply) showReply = false
 
 
-                            text.getStringAnnotations(
-                                tag = "URL", start = it,
-                                end = it
-                            )
-                                .firstOrNull()?.let { annotation ->
-                                    // If yes, we log its value
-                                    uriHandler.openUri(annotation.item)
-                                    Log.d("Clicked URL", annotation.item)
-                                }
+                                text.getStringAnnotations(
+                                    tag = "URL", start = it,
+                                    end = it
+                                )
+                                    .firstOrNull()?.let { annotation ->
+                                        // If yes, we log its value
+                                        uriHandler.openUri(annotation.item)
+                                        Log.d("Clicked URL", annotation.item)
+                                    }
+                            }
                         },
                         inlineContent = mapping
                     )
@@ -201,8 +205,9 @@ fun TimelineCard(
                             )
                         }
                     }
-                    AnimatedVisibility(visible = clicked || alwaysShowButtonBar) {
-                        Column {
+                    AnimatedVisibility(true) {
+
+                        Column() {
 
                             ButtonBar(
                                 ui,
@@ -211,7 +216,7 @@ fun TimelineCard(
                                 ui.favoriteCount,
                                 ui.favorited,
                                 ui.boosted,
-                                ui.inReplyTo!=null,
+                                ui.inReplyTo != null,
                                 showInlineReplies,
                                 onBoost = {
                                     boostStatus(ui.remoteId)
@@ -232,14 +237,11 @@ fun TimelineCard(
                                     goToConversation(ui)
                                 })
                         }
+
                     }
                 }
             }
         }
-        Divider(
-            Modifier.padding(top = PaddingSize1),
-            color = Color.LightGray
-        )
     }
 }
 
@@ -275,22 +277,38 @@ fun UserInfo(ui: UI) {
                         style = MaterialTheme.typography.titleMedium,
                         inlineContent = inlineContentMap
                     )
+                    if (ui.directMessage) {
+                        DirectMessage(ui.directMessage)
+                    }
+                    if (ui.boostedBy != null) Boosted(
+                        ui.boostedBy,
+                        ui.boostedAvatar,
+                        ui.boostedEmojis,
+                        R.drawable.rocket3
+                    )
+
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        color = colorScheme.secondary,
+                        text = ui.userName,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
                     Text(
                         color = colorScheme.secondary,
                         text = ui.timePosted,
                         style = MaterialTheme.typography.titleMedium,
                     )
+
                 }
-                Text(
-                    color = colorScheme.secondary,
-                    text = ui.userName,
-                    style = MaterialTheme.typography.titleSmall,
-                )
+
             }
 
+
         }
-
-
     }
 }
 

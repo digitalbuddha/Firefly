@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.anvil)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.gms.googleServices)
 }
 
 repositories {
@@ -67,6 +69,13 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.4.0'
+    implementation platform('com.google.firebase:firebase-bom:31.2.3')
+
+    // Add the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
     kapt(libs.dagger.compiler)
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
@@ -134,5 +143,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer:2.18.4'
     implementation "com.google.accompanist:accompanist-navigation-animation:0.28.0"
     implementation "com.google.accompanist:accompanist-navigation-material:0.28.0"
-
 }
+
+
+
