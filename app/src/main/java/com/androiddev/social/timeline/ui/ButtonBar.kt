@@ -48,7 +48,10 @@ fun ButtonBar(
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
-    showInlineReplies:Boolean,
+    favorited: Boolean,
+    boosted: Boolean,
+    hasParent: Boolean,
+    showInlineReplies: Boolean,
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
@@ -71,26 +74,45 @@ fun ButtonBar(
                 )
             }
 
-            val icon = R.drawable.rocket3
+            val icon = if (boosted) R.drawable.rocketfilled else R.drawable.rocket3
             SpringyButton(onBoost, icon, boostCount)
-            SpringyButton(onFavorite, R.drawable.star, favoriteCount)
-            OutlinedButton(
-                contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
-                border = BorderStroke(ThickSm, Color.Transparent),
-                onClick = {
-                    onShowReplies()
-                }
-            ) {
-                Image(
-                    modifier = Modifier.size(PaddingSize3),
-                    painter = painterResource(R.drawable.chat),
-                    contentDescription = "",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                )
-                replyCount?.let {
-                    Text(
-                        text = " $it"
+            SpringyButton(
+                onFavorite,
+                if (favorited) R.drawable.starfilled else R.drawable.star,
+                favoriteCount
+            )
+            if ((replyCount != null && replyCount > 0) || hasParent) {
+
+
+                OutlinedButton(
+                    contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                    border = BorderStroke(ThickSm, Color.Transparent),
+                    onClick = {
+                        onShowReplies()
+                    }
+                ) {
+                    Image(
+                        modifier = Modifier.size(PaddingSize3),
+                        painter = painterResource(R.drawable.chat),
+                        contentDescription = "",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
+                    replyCount?.let {
+                        Text(
+                            text = " $it"
+                        )
+                    }
+                }
+            }
+            else{
+                //placeholder I am bad at code
+                OutlinedButton(
+                    contentPadding = PaddingValues(PaddingSize1, PaddingSize1),
+                    border = BorderStroke(ThickSm, Color.Transparent),
+                    onClick = {
+                    }
+                ) {
+
                 }
             }
         }

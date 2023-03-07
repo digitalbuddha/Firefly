@@ -122,7 +122,7 @@ fun Profile(
                 Row {
                     Image(
                         modifier = Modifier.size(PaddingSize3),
-                        painter = painterResource(R.drawable.theme),
+                        painter = painterResource(R.drawable.adduser),
                         contentDescription = "",
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )

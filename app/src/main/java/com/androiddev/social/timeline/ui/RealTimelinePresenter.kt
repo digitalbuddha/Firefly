@@ -117,7 +117,7 @@ class RealTimelinePresenter @Inject constructor(
                     result.isSuccess -> {
                         withContext(Dispatchers.IO) {
                             statusDao.insertAll(
-                                listOf(result.getOrThrow().toStatusDb())
+                                listOf(result.getOrThrow().toStatusDb(event.feedType))
                             )
                         }
                     }
@@ -135,11 +135,11 @@ class RealTimelinePresenter @Inject constructor(
                     result.isSuccess -> {
                         withContext(Dispatchers.IO) {
                             result.getOrThrow().reblog?.let {
-                                statusDao.insertAll(listOf(it.toStatusDb()))
+                                statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
                             }
                             statusDao.insertAll(
                                 listOf(
-                                    result.getOrThrow().toStatusDb(FeedType.Home)
+                                    result.getOrThrow().toStatusDb(event.feedType)
                                 )
                             )
                         }
@@ -159,8 +159,8 @@ abstract class TimelinePresenter :
     data class Load(val feedType: FeedType) : HomeEvent
 
 
-    data class BoostMessage(val statusId: String) : HomeEvent
-    data class FavoriteMessage(val statusId: String) : HomeEvent
+    data class BoostMessage(val statusId: String, val feedType: FeedType) : HomeEvent
+    data class FavoriteMessage(val statusId: String, val feedType: FeedType) : HomeEvent
 
     data class HomeModel(
         val loading: Boolean,

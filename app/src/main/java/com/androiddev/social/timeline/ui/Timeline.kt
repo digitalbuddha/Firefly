@@ -327,13 +327,13 @@ private fun timelineScreen(
                 {
                     events.tryEmit(
                         TimelinePresenter
-                            .BoostMessage(it)
+                            .BoostMessage(it,tabToLoad)
                     )
                 },
                 {
                     events.tryEmit(
                         TimelinePresenter
-                            .FavoriteMessage(it)
+                            .FavoriteMessage(it,tabToLoad)
                     )
                 },
                 state,

@@ -68,7 +68,6 @@ fun Navigator(
     onChangeTheme: () -> Unit
 ) {
 
-
     AnimatedNavHost(
         navController = navController,
         startDestination = "splash",
@@ -106,8 +105,7 @@ fun Navigator(
                     )
                 }
             }
-            dialog(
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+            bottomSheet(
                 route = "mentions/{code}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
@@ -124,8 +122,9 @@ fun Navigator(
                     }
                 }
             }
-            bottomSheet(
-                "conversation/{code}/{statusId}/{type}",
+            dialog(
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+               route =  "conversation/{code}/{statusId}/{type}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 val statusId = it.arguments?.getString("statusId")!!
@@ -143,8 +142,8 @@ fun Navigator(
                     }
                 }
             }
-            dialog(
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+            bottomSheet(
+//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 route = "notifications/{code}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
@@ -157,7 +156,7 @@ fun Navigator(
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         NotificationsScreen(navController) { status: UI ->
                             navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}") {
-                                popUpTo("timeline")
+//                                popUpTo("timeline")
                             }
                         }
                     }

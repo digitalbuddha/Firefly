@@ -60,7 +60,10 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         tags = status.tags ?: emptyList(),
         boostedBy = if (reblog != null) account?.displayName else null,
         boostedAvatar = account?.avatar,
-        boostedEmojis = account?.emojis ?: emptyList()
+        boostedEmojis = account?.emojis ?: emptyList(),
+        favorited = status.favourited?:false,
+        boosted = status.reblogged?:false,
+        inReplyTo = status.inReplyToId
     )
 }
 
@@ -139,7 +142,10 @@ fun StatusDB.mapStatus(): UI {
         accountEmojis = status.accountEmojis,
         remoteId = status.remoteId,
         boostedEmojis = status.boostedEmojis,
-        type = FeedType.valueOf(status.type)
+        type = FeedType.valueOf(status.type),
+        favorited = status.favorited,
+        boosted = status.boosted,
+        inReplyTo= status.inReplyTo
     )
 }
 

@@ -209,6 +209,9 @@ fun TimelineCard(
                                 ui.replyCount,
                                 ui.boostCount,
                                 ui.favoriteCount,
+                                ui.favorited,
+                                ui.boosted,
+                                ui.inReplyTo!=null,
                                 showInlineReplies,
                                 onBoost = {
                                     boostStatus(ui.remoteId)
@@ -406,7 +409,10 @@ fun uiFrom(account: Account): UI {
         boostedEmojis = null,
         boostedAvatar = null,
         remoteId = account.id,
-        type = FeedType.Home
+        type = FeedType.Home,
+        favorited = false,
+        boosted = false,
+        inReplyTo = null,
     )
     return ui
 }

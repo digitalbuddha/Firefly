@@ -48,7 +48,10 @@ data class UI(
     val boostedAvatar: String?,
     val remoteId: String,
     var replyType: ReplyType? = null,
-    val type: FeedType
+    val type: FeedType,
+    val favorited: Boolean,
+    val boosted: Boolean,
+    val inReplyTo: String?,
 )
 
 enum class ReplyType {
