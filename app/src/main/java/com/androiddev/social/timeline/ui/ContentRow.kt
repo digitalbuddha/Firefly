@@ -198,7 +198,7 @@ fun TimelineCard(
                                 onMessageSent = { it, visibility, uris ->
                                     replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
                                 },
-                                defaultVisiblity = "Direct",
+                                defaultVisiblity = "Public",
                                 participants = mentions.joinToString(" "),
                                 showReplies = true,
                                 goToConversation = goToConversation
