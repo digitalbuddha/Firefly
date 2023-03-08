@@ -21,10 +21,10 @@ import com.androiddev.social.ui.util.emojiText
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?, drawable: Int) {
+fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?, drawable: Int?, modifier: Modifier?=null) {
     boostedBy?.let {
             AssistChip(
-                modifier=Modifier.height(20.dp),
+                modifier=modifier?:Modifier.height(20.dp),
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary, labelColor = colorScheme.onPrimary
@@ -48,6 +48,7 @@ fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoj
                     AvatarImage(size = PaddingSize2, url = boostedAvatar)
                 },
                 trailingIcon = {
+                   if(drawable!=null)
                     Image(
                         modifier = Modifier.height(PaddingSize2),
                         painter = painterResource(drawable),

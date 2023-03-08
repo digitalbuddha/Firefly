@@ -58,7 +58,8 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         boostedEmojis = account?.emojis ?: emptyList(),
         favorited = status.favourited?:false,
         boosted = status.reblogged?:false,
-        inReplyTo = status.inReplyToId
+        inReplyTo = status.inReplyToId,
+
     )
 }
 
@@ -140,7 +141,8 @@ fun StatusDB.mapStatus(): UI {
         type = FeedType.valueOf(status.type),
         favorited = status.favorited,
         boosted = status.boosted,
-        inReplyTo= status.inReplyTo
+        inReplyTo= status.inReplyTo,
+        accountId = status.accountId
     )
 }
 

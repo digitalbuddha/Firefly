@@ -1,10 +1,12 @@
 package com.androiddev.social.timeline.data
 
 import android.app.Application
+import androidx.datastore.dataStore
 import androidx.room.Room
 import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.AccessTokenRequest
+import com.androiddev.social.auth.data.LoggedInAccountsSerializer
 import com.androiddev.social.shared.UserApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.squareup.anvil.annotations.ContributesTo
@@ -44,7 +46,9 @@ class UserModule {
         )
             .fallbackToDestructiveMigration()
             .build()
-
+    @Provides
+    @SingleIn(UserScope::class)
+    fun provideAccountStore() = dataStore("account", LoggedInAccountsSerializer)
 
     @Provides
     @SingleIn(UserScope::class)

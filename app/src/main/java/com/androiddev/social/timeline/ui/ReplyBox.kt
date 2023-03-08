@@ -58,7 +58,6 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.ui.model.UI
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import social.androiddev.R
 
@@ -94,7 +93,8 @@ fun UserInput(
     defaultVisiblity: String = "Public",
     participants: String = " ",
     showReplies: Boolean,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
@@ -169,7 +169,8 @@ fun UserInput(
                 connection = connection,
                 uris = uris,
                 status = status,
-                goToConversation = goToConversation
+                goToConversation = goToConversation,
+                goToProfile = goToProfile
             )
             Row(
                 horizontalArrangement = Arrangement.Start,
@@ -230,7 +231,8 @@ private fun SelectorExpanded(
     connection: NestedScrollConnection?,
     uris: SnapshotStateList<Uri>,
     status: UI?,
-    goToConversation: (UI) -> Unit = {}
+    goToConversation: (UI) -> Unit = {},
+    goToProfile: (UI) -> Unit
 ) {
     val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
@@ -248,7 +250,8 @@ private fun SelectorExpanded(
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.REPLIES  ->
-                status?.let { After(status = it, goToConversation = goToConversation) }
+                status?.let { After(status = it, goToConversation = goToConversation,
+                    goToProfile = goToProfile) }
             InputSelector.PICTURE -> PhotoPickerResultComposable(uris) {
                 onClearSelector()
             }

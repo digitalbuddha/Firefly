@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI, goToConversation: (UI) -> Unit) {
+fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (UI) -> Unit) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -42,34 +42,14 @@ fun After(status: UI, goToConversation: (UI) -> Unit) {
         afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
 
 
-    InnerLazyColumn(after, goToConversation)
+    InnerLazyColumn(after, goToConversation,goToProfile)
 }
-
-@ExperimentalMaterialApi
-@Composable
-fun Before(status: UI, goToConversation: (UI) -> Unit = {}) {
-    val provider = LocalAuthComponent.current.conversationPresenter().get()
-    var presenter by remember { mutableStateOf(provider) }
-
-    LaunchedEffect(key1 = status) {
-        presenter.start()
-    }
-    LaunchedEffect(key1 = status) {
-        presenter.handle(ConversationPresenter.Load(status.remoteId, status.type))
-    }
-    val beforeStatus =
-        presenter.model.conversations.get(status.remoteId)?.before
-    val after =
-        beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-
-    InnerLazyColumn(after, goToConversation = goToConversation)
-}
-
 
 @Composable
 fun InnerLazyColumn(
     items: List<UI>?,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit
 ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     LaunchedEffect(key1 = items) {
@@ -86,8 +66,9 @@ fun InnerLazyColumn(
                         Modifier.background(MaterialTheme.colorScheme.background),
                         inner,
                         submitPresenter.events,
+                        showInlineReplies = true,
                         goToConversation = goToConversation,
-                        showInlineReplies = true
+                        goToProfile = goToProfile
                     )
                 }
             }
@@ -104,6 +85,7 @@ fun card(
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     showInlineReplies: Boolean,
     goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit,
 
     ) {
 
@@ -147,7 +129,8 @@ fun card(
                 isReplying = { },
                 alwaysShowButtonBar = true,
                 showInlineReplies = showInlineReplies,
-                goToConversation = goToConversation
+                goToConversation = goToConversation,
+                goToProfile = goToProfile
             )
         }
     }

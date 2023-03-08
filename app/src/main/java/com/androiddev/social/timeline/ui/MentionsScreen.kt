@@ -29,7 +29,12 @@ import com.google.accompanist.placeholder.material3.shimmer
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MentionsScreen(navController: NavHostController, goToConversation: (UI) -> Unit) {
+fun MentionsScreen(
+    navController: NavHostController,
+    goToConversation: (UI) -> Unit,
+    showBackBar: Boolean,
+    goToProfile: (UI) -> Unit
+) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
@@ -82,8 +87,9 @@ fun MentionsScreen(navController: NavHostController, goToConversation: (UI) -> U
                         modifier = Modifier.background(Color.Transparent),
                         status = it,
                         events = component.submitPresenter().events,
+                        showInlineReplies = false,
                         goToConversation = goToConversation,
-                        showInlineReplies = false
+                        goToProfile = goToProfile
                     )
                 }
             }
@@ -92,6 +98,7 @@ fun MentionsScreen(navController: NavHostController, goToConversation: (UI) -> U
     CustomViewPullRefreshView(
         pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
     )
+    if(showBackBar)
     BackBar(navController, "Mentions")
 }
 

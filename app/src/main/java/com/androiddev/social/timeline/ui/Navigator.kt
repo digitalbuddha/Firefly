@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalPagerApi::class)
+
 package com.androiddev.social.timeline.ui
 
 import android.content.Context
+import android.os.Bundle
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -32,6 +35,7 @@ import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.navigation
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.bottomSheet
+import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +71,7 @@ fun Navigator(
     navController: NavHostController,
     scope: CoroutineScope,
     sheetState: ModalBottomSheetState,
-    onChangeTheme: () -> Unit
+    onChangeTheme: () -> Unit,
 ) {
 
     AnimatedNavHost(
@@ -87,6 +91,7 @@ fun Navigator(
                 val accessTokenRequest = accessTokenRequest(it)
                 val userComponent = getUserComponent(accessTokenRequest = accessTokenRequest)
                 CompositionLocalProvider(LocalUserComponent provides userComponent) {
+
                     TimelineScreen(
                         accessTokenRequest,
                         userComponent,
@@ -104,7 +109,9 @@ fun Navigator(
                         goToConversation = { status: UI ->
                             navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                         }
-                    )
+                    ) { status: UI ->
+                        navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                    }
                 }
             }
             bottomSheet(
@@ -118,15 +125,56 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        MentionsScreen(navController, goToConversation = { status ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
-                        })
+                        MentionsScreen(
+                            navController,
+                            goToConversation = { status ->
+                                navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
+                            },
+                            true,
+                            goToProfile = { status: UI ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                            }
+                        )
                     }
                 }
             }
+            @Composable
+            fun AuthScoped(
+                arguments: Bundle?,
+                code: String?,
+                content: @Composable (component: AuthRequiredInjector, code: String) -> Unit
+            ) {
+                val userComponent = getUserComponent(code = code!!)
+                CompositionLocalProvider(LocalUserComponent provides userComponent) {
+                    val userComponent: UserComponent = LocalUserComponent.current
+
+                    val component = retain(
+                        key = userComponent.request().code ?: ""
+                    ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
+                    CompositionLocalProvider(LocalAuthComponent provides component) {
+                        content(component, code)
+                    }
+                }
+            }
+
+            bottomSheet(
+                route = "profile/{code}/{accountId}",
+            ) {
+                AuthScoped(it.arguments, it.arguments?.getString("code")) { component, code ->
+                    ProfileScreen(
+                        component,
+                        it,
+                        navController,
+                        scope,
+                        code,
+                        accountId = it.arguments?.getString("accountId")!!
+                    )
+                }
+
+            }
             dialog(
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
-               route =  "conversation/{code}/{statusId}/{type}",
+                route = "conversation/{code}/{statusId}/{type}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
                 val statusId = it.arguments?.getString("statusId")!!
@@ -139,7 +187,9 @@ fun Navigator(
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         ConversationScreen(
-                            navController, statusId, type
+                            navController, statusId, type, goToProfile = { status ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                            }
                         )
                     }
                 }
@@ -156,11 +206,17 @@ fun Navigator(
                         key = userComponent.request().domain ?: ""
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
-                        NotificationsScreen(navController) { status: UI ->
-                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}") {
-//                                popUpTo("timeline")
+                        NotificationsScreen(
+                            navController,
+                            { status: UI ->
+                                navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}") {
+                            //                                popUpTo("timeline")
+                                }
+                            },
+                            { status: UI ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -190,7 +246,7 @@ fun Navigator(
 
 
 suspend fun Context.getAccounts(): List<AccessTokenRequest> = withContext(Dispatchers.IO) {
-     buildList {
+    buildList {
         val current = dataStore.data.first()
         current.servers.values.forEach {
             it.users.values.forEach {

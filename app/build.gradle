@@ -104,6 +104,10 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     implementation(libs.retained.compose)
     implementation(libs.androidx.nav.compose)
+    implementation "com.google.accompanist:accompanist-pager:0.28.0"
+
+    // If using indicators, also depend on
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.28.0"
     api(libs.atomicfu)
     implementation("app.cash.sqldelight:android-driver:2.0.0-alpha05")
 //    implementation "com.airbnb.android:lottie-compose:6.0.0"

@@ -37,7 +37,6 @@ data class StatusDB(
     val favorited: Boolean = false,
     val boosted: Boolean = false,
     val inReplyTo: String?,
-
 //    var uid: Int = 0,
 )
 
@@ -46,23 +45,27 @@ interface StatusDao {
     @Query("SELECT * FROM status WHERE type = :type ORDER BY originalId Desc")
     fun getTimeline(type: String): PagingSource<Int, StatusDB>
 
+    @Query("SELECT * FROM status WHERE type = :type AND accountId = :accountId ORDER BY remoteId Desc")
+    fun getUserTimeline(type: String, accountId: String): PagingSource<Int, StatusDB>
+
+
     @Query("SELECT * FROM status ORDER BY remoteId Asc Limit 1")
     fun getHomeTimelineLast(): StatusDB
 
     @Query("SELECT * FROM status WHERE remoteId = :remoteId ORDER BY remoteId Asc Limit 1")
-    fun getStatusBy(remoteId:String): Flow<StatusDB>
+    fun getStatusBy(remoteId: String): Flow<StatusDB>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(users: List<StatusDB>)
 
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
-    fun update(replyCount:Int, statusId:String)
+    fun update(replyCount: Int, statusId: String)
 
     @Query("DELETE FROM status")
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 10)
+@Database(entities = [StatusDB::class], version = 11)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

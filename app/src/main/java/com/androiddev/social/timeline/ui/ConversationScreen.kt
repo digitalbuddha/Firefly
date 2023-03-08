@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
-    navController: NavHostController, statusId: String, type: String
+    navController: NavHostController, statusId: String, type: String, goToProfile: (UI) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -84,7 +84,8 @@ fun ConversationScreen(
             statuses.render(
                 component.submitPresenter().events,
                 goToNowhere,
-                scrollToPosition = before.size
+                scrollToPosition = before.size,
+                goToProfile = goToProfile
             )
 
             CustomViewPullRefreshView(
@@ -100,6 +101,7 @@ private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     goToConversation: (UI) -> Unit,
     scrollToPosition: Int,
+    goToProfile: (UI) -> Unit,
 
     ) {
 
@@ -120,7 +122,8 @@ private fun List<UI>.render(
                 status = it,
                 events = mutableSharedFlow,
                 showInlineReplies = true,
-                goToConversation = goToConversation
+                goToConversation = goToConversation,
+                goToProfile = goToProfile
             )
         }
 

@@ -63,7 +63,8 @@ fun TimelineScreen(
     onProfileSelected: (account: Account) -> Unit,
     goToMentions: () -> Unit,
     goToNotifications: () -> Unit,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit
 ) {
     val component =
         retain(
@@ -71,7 +72,7 @@ fun TimelineScreen(
         ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     CompositionLocalProvider(LocalAuthComponent provides component) {
 
-        val homePresenter = component.homePresenter()
+        val homePresenter = component.homePresenter().get()
         val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
         val scope = rememberCoroutineScope()
@@ -148,7 +149,8 @@ fun TimelineScreen(
                             },
                             participants = "",
                             showReplies = false,
-                            goToConversation = goToConversation
+                            goToConversation = goToConversation,
+                            goToProfile = goToProfile
                         )
                     }) {
                     val model = homePresenter.model
@@ -156,6 +158,7 @@ fun TimelineScreen(
                     when (tabToLoad) {
                         FeedType.Home -> {
                             timelineScreen(
+                                goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -164,13 +167,15 @@ fun TimelineScreen(
                                 account = model.account,
                                 state,
                                 goToConversation,
-                            ) {
+
+                                ) {
                                 replying = it
                             }
                         }
 
                         FeedType.Local -> {
                             timelineScreen(
+                                goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -184,6 +189,7 @@ fun TimelineScreen(
 
                         FeedType.Federated -> {
                             timelineScreen(
+                                goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -197,6 +203,7 @@ fun TimelineScreen(
 
                         FeedType.Trending -> {
                             timelineScreen(
+                                goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -206,6 +213,15 @@ fun TimelineScreen(
                                 state,
                                 goToConversation,
                             ) { replying = it }
+                        }
+
+                        FeedType.User -> {
+
+                        }
+
+                        FeedType.UserWithMedia -> {}
+                        FeedType.UserWithReplies -> {
+
                         }
                     }
                 }
@@ -275,6 +291,7 @@ fun TimelineScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineScreen(
+    goToProfile: (UI) -> Unit,
     domain: String?,
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
@@ -311,6 +328,7 @@ private fun timelineScreen(
                 items.refresh()
             }
             TimelineRows(
+                goToProfile,
                 items,
                 account = account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
@@ -327,13 +345,13 @@ private fun timelineScreen(
                 {
                     submitEvents.tryEmit(
                         SubmitPresenter
-                            .BoostMessage(it,tabToLoad)
+                            .BoostMessage(it, tabToLoad)
                     )
                 },
                 {
                     submitEvents.tryEmit(
                         SubmitPresenter
-                            .FavoriteMessage(it,tabToLoad)
+                            .FavoriteMessage(it, tabToLoad)
                     )
                 },
                 state,
@@ -363,6 +381,7 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineRows(
+    goToProfile: (UI) -> Unit,
     ui: LazyPagingItems<StatusDB>,
     account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
@@ -394,6 +413,7 @@ fun TimelineRows(
             items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
                 it?.mapStatus()?.let { ui ->
                     TimelineCard(
+                        goToProfile,
                         false,
                         ui,
                         replyToStatus,

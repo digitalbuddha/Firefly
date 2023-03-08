@@ -31,7 +31,8 @@ class RealTimelinePresenter @Inject constructor(
     )
 
     override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) = withContext(
-        Dispatchers.IO) {
+        Dispatchers.IO
+    ) {
         when (event) {
             is Load -> {
                 val result =
@@ -104,6 +105,63 @@ class RealTimelinePresenter @Inject constructor(
                         )
                     }
 
+                    FeedType.UserWithReplies -> {
+                        val remoteMediator =
+                            timelineRemoteMediators.filterIsInstance<UserWithRepliesRemoteMediator>()
+                                .single()
+                        remoteMediator.accountId = event.accountId!!
+
+                        val flow = Pager(
+                            config = PagingConfig(
+                                pageSize = 10,
+                                initialLoadSize = 10,
+                                prefetchDistance = 10
+                            ),
+                            remoteMediator = remoteMediator
+                        ) {
+                            statusDao.getUserTimeline(FeedType.UserWithReplies.type, event.accountId)
+                        }.flow
+
+                        model = model.copy(
+                            userWithRepliesStatuses = flow.cachedIn(scope)
+                        )
+                    }
+
+                    FeedType.UserWithMedia -> {
+                        val remoteMediator =
+                            timelineRemoteMediators.filterIsInstance<UserWithMediaRemoteMediator>()
+                                .single()
+                        remoteMediator.accountId = event.accountId!!
+
+                        val flow = Pager(
+                            config = pagingConfig,
+                            remoteMediator = remoteMediator
+                        ) {
+                            statusDao.getUserTimeline(FeedType.UserWithMedia.type, event.accountId)
+                        }.flow
+
+                        model = model.copy(
+                            userWithMediaStatuses = flow.cachedIn(scope)
+                        )
+                    }
+
+                    FeedType.User -> {
+                        val remoteMediator =
+                            timelineRemoteMediators.filterIsInstance<UserRemoteMediator>()
+                                .single()
+                        remoteMediator.accountId = event.accountId!!
+                        val flow = Pager(
+                            config = pagingConfig,
+                            remoteMediator = remoteMediator
+                        ) {
+                            statusDao.getUserTimeline(FeedType.User.type, event.accountId)
+                        }.flow
+
+                        model = model.copy(
+                            userStatuses = flow.cachedIn(scope)
+                        )
+                    }
+
                     else -> {}
                 }
             }
@@ -117,7 +175,7 @@ abstract class TimelinePresenter :
         HomeModel(true)
     ) {
     sealed interface HomeEvent
-    data class Load(val feedType: FeedType) : HomeEvent
+    data class Load(val feedType: FeedType, val accountId: String? = null) : HomeEvent
 
 
     data class HomeModel(
@@ -126,7 +184,10 @@ abstract class TimelinePresenter :
         val account: Account? = null,
         val federatedStatuses: Flow<PagingData<StatusDB>>? = null,
         val trendingStatuses: Flow<PagingData<StatusDB>>? = null,
-        val localStatuses: Flow<PagingData<StatusDB>>? = null
+        val localStatuses: Flow<PagingData<StatusDB>>? = null,
+        val userStatuses: Flow<PagingData<StatusDB>>? = null,
+        val userWithMediaStatuses: Flow<PagingData<StatusDB>>? = null,
+        val userWithRepliesStatuses: Flow<PagingData<StatusDB>>? = null
     )
 
     sealed interface HomeEffect

@@ -43,7 +43,8 @@ interface AuthOptionalInjector {
 @ContributesTo(AuthRequiredScope::class)
 interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
-    fun homePresenter(): TimelinePresenter
+    fun profilePresenter(): ProfilePresenter
+    fun homePresenter(): Provider<TimelinePresenter>
     fun mentionsPresenter(): MentionsPresenter
     fun notificationPresenter(): NotificationPresenter
     fun submitPresenter(): SubmitPresenter
@@ -101,9 +102,12 @@ class MainActivity : ComponentActivity() {
 
                         val navController = rememberAnimatedNavController(bottomSheetNavigator)
                         ModalBottomSheetLayout(bottomSheetNavigator) {
-                            Navigator(navController, scope,sheetState) {
-                                isDynamicTheme = !isDynamicTheme
-                            }
+                            Navigator(
+                                navController, scope, sheetState,
+                                {
+                                    isDynamicTheme = !isDynamicTheme
+                                },
+                            )
                         }
                     }
                 }

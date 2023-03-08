@@ -56,7 +56,8 @@ fun ButtonBar(
     onReply: () -> Unit,
     showReply: Boolean,
     onShowReplies: () -> Unit,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit
 ) {
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
@@ -118,7 +119,7 @@ fun ButtonBar(
             }
         }
         AnimatedVisibility(visible = showReply && showInlineReplies) {
-            After(status = status, goToConversation = goToConversation)
+            After(status = status, goToConversation = goToConversation, goToProfile = goToProfile)
         }
     }
 

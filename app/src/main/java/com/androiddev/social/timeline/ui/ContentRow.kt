@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,7 +49,6 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.data.Status
@@ -62,6 +62,7 @@ import social.androiddev.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
+    goToProfile: (UI) -> Unit,
     alwaysShowButtonBar: Boolean = false,
     ui: UI, replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
@@ -105,11 +106,15 @@ fun TimelineCard(
                 //            if (!showParent)
                 //                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
                 this@Column.AnimatedVisibility(showParent) {
-                    InnerLazyColumn(before, goToConversation = goToConversation)
+                    InnerLazyColumn(
+                        before,
+                        goToConversation = goToConversation,
+                        goToProfile = goToProfile
+                    )
                 }
             }
 
-            UserInfo(ui)
+            UserInfo(ui, goToProfile)
             Row(
                 Modifier
                     .padding(bottom = PaddingSizeNone)
@@ -202,7 +207,8 @@ fun TimelineCard(
                                 defaultVisiblity = "Public",
                                 participants = mentions.joinToString(" "),
                                 showReplies = true,
-                                goToConversation = goToConversation
+                                goToConversation = goToConversation,
+                                goToProfile = goToProfile
                             )
                         }
                     }
@@ -225,18 +231,20 @@ fun TimelineCard(
                                 onFavorite = {
                                     favoriteStatus(ui.remoteId)
                                 },
+                                onReply = {
+                                    showReply = !showReply
+                                    isReplying(showReply)
+                                },
                                 showReply = showingReplies,
                                 onShowReplies = {
                                     showingReplies = !showingReplies
                                     goToConversation(ui)
                                 },
-                                onReply = {
-                                    showReply = !showReply
-                                    isReplying(showReply)
-                                },
                                 goToConversation = {
                                     goToConversation(ui)
-                                })
+                                },
+                                goToProfile = goToProfile
+                            )
                         }
 
                     }
@@ -248,14 +256,17 @@ fun TimelineCard(
 
 
 @Composable
-fun UserInfo(ui: UI) {
+fun UserInfo(ui: UI, goToProfile: (UI) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(bottom = PaddingSize1),
+            .padding(bottom = PaddingSize1)
+            .clickable {
+                goToProfile(ui)
+            },
         horizontalArrangement = Arrangement.Start
     ) {
-        ui.avatar?.let { AvatarImage(PaddingSize7, it) }
+        ui.avatar?.let { AvatarImage(PaddingSize7, it, onClick = {goToProfile(ui)}) }
         ui.accountEmojis?.let {
             val (inlineContentMap, text) = inlineEmojis(
                 ui.displayName,
@@ -273,12 +284,13 @@ fun UserInfo(ui: UI) {
                         color = colorScheme.secondary,
                         modifier = Modifier
                             .padding(bottom = PaddingSize0_5)
-                            .fillMaxWidth(.6f).align(Alignment.Top),
+                            .fillMaxWidth(.6f)
+                            .align(Alignment.Top),
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
                         inlineContent = inlineContentMap,
 
-                    )
+                        )
                     if (ui.directMessage) {
                         DirectMessage(ui.directMessage)
                     }
@@ -407,32 +419,3 @@ fun ClickableText(
     )
 }
 
-
-@Composable
-fun uiFrom(account: Account): UI {
-    val ui = UI(
-        imageUrl = null,
-        displayName = account.displayName,
-        userName = account.username,
-        content = account.note,
-        replyCount = 0,
-        boostCount = 0,
-        favoriteCount = 0,
-        timePosted = account.createdAt.toString(),
-        boostedBy = null,
-        directMessage = false,
-        avatar = account.avatar,
-        mentions = emptyList(),
-        tags = emptyList(),
-        contentEmojis = null,
-        accountEmojis = account.emojis,
-        boostedEmojis = null,
-        boostedAvatar = null,
-        remoteId = account.id,
-        type = FeedType.Home,
-        favorited = false,
-        boosted = false,
-        inReplyTo = null,
-    )
-    return ui
-}

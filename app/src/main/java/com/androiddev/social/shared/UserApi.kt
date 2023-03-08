@@ -23,7 +23,7 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("local") localOnly: Boolean = true,
         @Query("limit") limit: String = "40",
-        @Query("max_id") since: String?,
+        @Query("max_id") since: String?=null,
     ): List<Status>
 
     @GET("/api/v1/trends/statuses")
@@ -58,6 +58,23 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Path("id") id: String,
     ): Status
+
+    @GET("api/v1/accounts/{id}/statuses")
+    suspend fun accountStatuses(
+        @Header("Authorization") authHeader: String,
+        @Path("id") accountId: String,
+        @Query("max_id") since: String?,
+        @Query("exclude_replies") excludeReplies: Boolean? = null,
+        @Query("only_media") onlyMedia: Boolean? = null,
+        @Query("pinned") pinned: Boolean? = null,
+        @Query("limit") limit: Int? = 40,
+    ): List<Status>
+
+    @GET("api/v1/accounts/{id}")
+    suspend fun account(
+        @Header("Authorization") authHeader: String,
+        @Path("id") accountId: String,
+    ): Account
 
     @Serializable
     data class StatusNode(val ancestors: List<Status>, val descendants: List<Status>)

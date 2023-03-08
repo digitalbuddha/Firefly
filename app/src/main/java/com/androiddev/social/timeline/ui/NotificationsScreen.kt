@@ -39,7 +39,11 @@ import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NotificationsScreen(navController: NavHostController, goToConversation: (UI) -> Unit) {
+fun NotificationsScreen(
+    navController: NavHostController,
+    goToConversation: (UI) -> Unit,
+    goToProfile: (UI) -> Unit
+) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
@@ -111,8 +115,9 @@ fun NotificationsScreen(navController: NavHostController, goToConversation: (UI)
                             modifier = Modifier.background(Color.Transparent),
                             status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
                             events = component.submitPresenter().events,
+                            showInlineReplies = false,
                             goToConversation = goToConversation,
-                            showInlineReplies = false
+                            goToProfile = goToProfile
                         )
                     }
 
