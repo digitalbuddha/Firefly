@@ -4,7 +4,6 @@ package com.androiddev.social.timeline.ui
 
 import android.net.Uri
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -60,7 +59,7 @@ fun TimelineScreen(
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
     onNewAccount: () -> Unit,
-    onProfileSelected: (account: Account) -> Unit,
+    onProfileClick: (account: Account, isCurrent:Boolean) -> Unit = {a,b->},
     goToMentions: () -> Unit,
     goToNotifications: () -> Unit,
     goToConversation: (UI) -> Unit,
@@ -93,6 +92,66 @@ fun TimelineScreen(
         if (!state.isVisible) replying = false
 
         Scaffold(
+            topBar = {
+                TopAppBar(modifier = Modifier
+                    .height(60.dp),
+                    backgroundColor = MaterialTheme.colorScheme.background,
+
+                    title = {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            LaunchedEffect(key1 = accessTokenRequest.domain) {
+                                avatarPresenter.start()
+                            }
+
+
+
+                            LaunchedEffect(key1 = accessTokenRequest.domain) {
+                                avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+                            }
+                            Box {
+                                AccountChooser(
+                                    model = avatarPresenter.model,
+                                    onChangeTheme = onChangeTheme,
+                                    onNewAccount = onNewAccount,
+                                    onProfileClick = onProfileClick
+                                )
+                            }
+
+                            Box(Modifier.align(Alignment.CenterVertically)) {
+                                TabSelector { it ->
+                                    tabToLoad = when (it) {
+                                        FeedType.Home.type -> {
+                                            FeedType.Home
+                                        }
+
+                                        FeedType.Local.type -> {
+                                            FeedType.Local
+                                        }
+
+                                        FeedType.Federated.type -> {
+                                            FeedType.Federated
+                                        }
+
+                                        FeedType.Trending.type -> {
+                                            FeedType.Trending
+                                        }
+
+                                        else -> {
+                                            FeedType.Home
+                                        }
+                                    }
+                                }
+                            }
+                            Search()
+                        }
+                    })
+            },
+
+
             backgroundColor = Color.Transparent,
             bottomBar = {
                 AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
@@ -226,63 +285,6 @@ fun TimelineScreen(
                     }
                 }
             }
-            TopAppBar(modifier = Modifier
-                .height(60.dp)
-                .background(MaterialTheme.colorScheme.surface),
-                backgroundColor = Color.Transparent,
-
-                title = {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        LaunchedEffect(key1 = accessTokenRequest.domain) {
-                            avatarPresenter.start()
-                        }
-
-
-
-                        LaunchedEffect(key1 = accessTokenRequest.domain) {
-                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
-                        }
-                        Box {
-                            Profile(
-                                model = avatarPresenter.model,
-                                onChangeTheme = onChangeTheme,
-                                onNewAccount = onNewAccount,
-                                onProfileClick = onProfileSelected
-                            )
-                        }
-
-                        Box(Modifier.align(Alignment.CenterVertically)) {
-                            TabSelector { it ->
-                                tabToLoad = when (it) {
-                                    FeedType.Home.type -> {
-                                        FeedType.Home
-                                    }
-
-                                    FeedType.Local.type -> {
-                                        FeedType.Local
-                                    }
-
-                                    FeedType.Federated.type -> {
-                                        FeedType.Federated
-                                    }
-
-                                    FeedType.Trending.type -> {
-                                        FeedType.Trending
-                                    }
-
-                                    else -> {
-                                        FeedType.Home
-                                    }
-                                }
-                            }
-                        }
-                        Search()
-                    }
-                })
         }
     }
 }
@@ -314,9 +316,6 @@ private fun timelineScreen(
     Box(
         Modifier
             .pullRefresh(pullRefreshState)
-            .padding(top = 60.dp)
-//                   .background(colorScheme.surface)
-
             .fillMaxSize()
     ) {
         items?.let {

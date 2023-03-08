@@ -2,6 +2,7 @@ package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.AssistChip
@@ -24,7 +25,7 @@ import com.androiddev.social.ui.util.emojiText
 fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoji>?, drawable: Int?, modifier: Modifier?=null) {
     boostedBy?.let {
             AssistChip(
-                modifier=modifier?:Modifier.height(20.dp),
+                modifier=modifier?:Modifier.height(20.dp).wrapContentWidth(),
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = colorScheme.primary,
                     leadingIconContentColor = colorScheme.secondary, labelColor = colorScheme.onPrimary
@@ -41,7 +42,8 @@ fun Boosted(boostedBy: String?, boostedAvatar: String?, boostedEmojis: List<Emoj
                     Text(
                         text = text,
                         style = MaterialTheme.typography.labelSmall,
-                        inlineContent = mapping
+                        inlineContent = mapping,
+                        maxLines = 1
                     )
                 },
                 leadingIcon = {

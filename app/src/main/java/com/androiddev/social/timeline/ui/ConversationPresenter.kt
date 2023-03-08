@@ -56,7 +56,7 @@ class RealConversationPresenter @Inject constructor(
                         currentConvo.copy(status = status.getOrThrow().mapStatus())
                     val conversations = model.conversations.toMutableMap()
                     conversations.put(event.statusId, currentConvo)
-//                    model = model.copy(conversations = conversations)
+                    model = model.copy(conversations = conversations)
                 }
 
 

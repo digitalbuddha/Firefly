@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -93,10 +94,11 @@ fun NotificationsScreen(
                     }
                 }
             } else {
-                items(statuses, key = { it.id }) {
-                    Column {
+                itemsIndexed(items = statuses, key = { a, status -> status.id }) {index,it->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         if (it.realType == Type.favourite) {
                             Boosted(
+                                modifier = Modifier.height(30.dp),
                                 boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " favorited",
                                 boostedAvatar = it.account.avatar,
                                 boostedEmojis = it.account.emojis,
@@ -105,6 +107,7 @@ fun NotificationsScreen(
                         }
                         if (it.realType == Type.reblog) {
                             Boosted(
+                                modifier = Modifier.height(30.dp),
                                 boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " boosted",
                                 boostedAvatar = it.account.avatar,
                                 boostedEmojis = it.account.emojis,

@@ -97,8 +97,13 @@ fun Navigator(
                         userComponent,
                         onChangeTheme,
                         onNewAccount = { navController.navigate("selectServer") },
-                        onProfileSelected = { account ->
-                            navController.navigate("login/${account.domain}")
+                        onProfileClick = { account, isCurrent ->
+                            if (isCurrent)
+                                navController.navigate(
+                                    "profile/${it.arguments?.getString("code")}/${account.id}"
+                                )
+                            else
+                                navController.navigate("login/${account.domain}")
                         },
                         goToMentions = {
                             navController.navigate("mentions/${it.arguments?.getString("code")}")
@@ -210,7 +215,7 @@ fun Navigator(
                             navController,
                             { status: UI ->
                                 navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type}") {
-                            //                                popUpTo("timeline")
+                                    //                                popUpTo("timeline")
                                 }
                             },
                             { status: UI ->

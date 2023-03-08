@@ -4,8 +4,8 @@ import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
-import com.androiddev.social.conversation.Conversation
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.ui.util.Presenter
@@ -48,7 +48,7 @@ class RealMentionsPresenter @Inject constructor(
             is Load -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     mentionRepository.get().collectLatest {
-                        val statuses = it.map { it.lastStatus }
+                        val statuses = it.mapNotNull { it.status }
                         model = model.copy(statuses = statuses)
                     }
                 }
@@ -57,9 +57,8 @@ class RealMentionsPresenter @Inject constructor(
     }
 }
 
-
 interface MentionRepository {
-    suspend fun get(): Flow<List<Conversation>>
+    suspend fun get(): Flow<List<Notification>>
 }
 
 @ContributesBinding(UserScope::class)
@@ -79,7 +78,7 @@ class RealMentionRepository @Inject constructor(
         }
     ).build()
 
-    override suspend fun get(): Flow<List<Conversation>> = withContext(Dispatchers.IO) {
+    override suspend fun get(): Flow<List<Notification>> = withContext(Dispatchers.IO) {
         store.stream(StoreRequest.cached(Unit, refresh = true)).map { it.dataOrNull() }
             .filterNotNull()
     }

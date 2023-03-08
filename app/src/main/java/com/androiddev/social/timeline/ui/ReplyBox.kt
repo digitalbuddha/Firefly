@@ -493,7 +493,7 @@ private fun UserInputText(
 
                 Box(
                     modifier = Modifier
-                        .heightIn(min=100.dp)
+                        .heightIn(min=60.dp)
                         .fillMaxWidth(.75f)
                         .align(Alignment.Bottom)
 //                        .background(Color.Red)

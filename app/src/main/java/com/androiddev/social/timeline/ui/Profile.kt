@@ -31,10 +31,9 @@ import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
 import social.androiddev.R
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Profile(
-    onProfileClick: (account: Account) -> Unit = {},
+fun AccountChooser(
+    onProfileClick: (account: Account, isCurrent:Boolean) -> Unit = {a,b->},
     onChangeTheme: () -> Unit = {},
     onNewAccount: () -> Unit = {},
     model: AvatarPresenter.AvatarModel
@@ -48,9 +47,6 @@ fun Profile(
             AvatarImage(url = url, onClick = { expanded = true })
         }
 
-
-
-
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -63,13 +59,15 @@ fun Profile(
             model.accounts?.forEach { account: Account ->
                 DropdownMenuItem(onClick = {
                     expanded = false
-                    onProfileClick(account)
+                    onProfileClick(account, account == model.accounts.firstOrNull())
                 }, text = {
                     Column {
-//                        UserCard(account = uiFrom(account =account), null)
                         Row {
                             account.let {
-                                AvatarImage(url = it.avatar, onClick = { expanded = true })
+                                AvatarImage(url = it.avatar, onClick = {
+                                    expanded = false
+                                    onProfileClick(account, account == model.accounts.firstOrNull())}
+                                )
                                 val emojis = account.emojis
 
 

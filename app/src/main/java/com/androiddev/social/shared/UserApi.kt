@@ -1,6 +1,5 @@
 package com.androiddev.social.shared
 
-import com.androiddev.social.conversation.Conversation
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Notification
@@ -23,7 +22,7 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("local") localOnly: Boolean = true,
         @Query("limit") limit: String = "40",
-        @Query("max_id") since: String?=null,
+        @Query("max_id") since: String? = null,
     ): List<Status>
 
     @GET("/api/v1/trends/statuses")
@@ -33,18 +32,22 @@ interface UserApi {
         @Query("offset") offset: String?,
     ): List<Status>
 
-    @GET("/api/v1/conversations")
+    @GET("/api/v1/notifications")
     suspend fun conversations(
         @Header("Authorization") authHeader: String,
         @Query("limit") limit: String = "40",
-    ): List<Conversation>
+        @Query("types[]") types: Set<String>? = setOf("mention"),
+//        @Query("exclude_types[]") excludes: Set<String>?,
+    ): List<Notification>
 
     @GET("/api/v1/notifications")
     suspend fun notifications(
         @Header("Authorization") authHeader: String,
         @Query("offset") offset: String?,
         @Query("limit") limit: String = "40",
-        ): List<Notification>
+//        @Query("types[]") types:Set<String>? = setOf("mention", "status"),
+//        @Query("exclude_types[]") excludes: Set<String>?,
+    ): List<Notification>
 
 
     @POST("/api/v1/statuses")

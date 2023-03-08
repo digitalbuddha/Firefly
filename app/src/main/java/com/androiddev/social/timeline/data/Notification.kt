@@ -10,7 +10,7 @@ data class Notification(
     val status: Status? = null,
     val account: Account,
     val created_at: Instant,
-    val realType: Type = if (type.contains('.')) Type.adminreport else Type.mention
+    val realType: Type = if (type.contains('.')) Type.adminreport else Type.valueOf(type)
 )
 
 @Serializable
