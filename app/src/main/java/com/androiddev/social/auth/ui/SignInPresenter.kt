@@ -55,45 +55,47 @@ class RealSignInPresenter @Inject constructor(
 
     }
 
-    override suspend fun eventHandler(event: SignInEvent, scope: CoroutineScope) {
-        when (event) {
-            is SignIn -> {
-                val params = ApplicationBody(baseUrl = event.domain)
-                val result: Result<NewOauthApplication> = kotlin.runCatching {
-                    appTokenRepository.getAppToken(
-                        AppTokenRequest(
-                            "https://${event.domain}/api/v1/apps",
-                            params.scopes,
-                            params.clientName,
-                            params.redirectUris()
-                        )
-                    )
-                }
-                if (result.isSuccess) {
-                    val value: NewOauthApplication = result.getOrThrow()
-                    val request: AccessTokenRequest? = dataStore.data.map {
-                        val server = it.servers[event.domain]
-                        val isAUserLoggedIn =
-                            server?.users?.values?.firstOrNull { it.accessToken!=null }
-                        isAUserLoggedIn?.accessTokenRequest
-                    }.firstOrNull()
-                    if (request != null) {
-                        model = model.copy(accessTokenRequest = request)
-                    } else {
-                        model = model.copy(
-                            redirectUri = value.redirectUri,
-                            oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
-                            clientId = value.clientId,
-                            clientSecret = value.clientSecret
+    override suspend fun eventHandler(event: SignInEvent, scope: CoroutineScope): Unit =
+        withContext(Dispatchers.IO) {
+            when (event) {
+                is SignIn -> {
+                    val params = ApplicationBody(baseUrl = event.domain)
+                    val result: Result<NewOauthApplication> = kotlin.runCatching {
+                        appTokenRepository.getAppToken(
+                            AppTokenRequest(
+                                "https://${event.domain}/api/v1/apps",
+                                params.scopes,
+                                params.clientName,
+                                params.redirectUris()
+                            )
                         )
                     }
+                    if (result.isSuccess) {
+                        val value: NewOauthApplication = result.getOrThrow()
+                        val request: AccessTokenRequest? = dataStore.data.map {
+                            val server = it.servers[event.domain]
+                            val isAUserLoggedIn =
+                                server?.users?.values?.firstOrNull { it.accessToken != null }
+                            isAUserLoggedIn?.accessTokenRequest
+                        }.firstOrNull()
+                        if (request != null) {
+                            model = model.copy(accessTokenRequest = request)
+                        } else {
+                            model = model.copy(
+                                redirectUri = value.redirectUri,
+                                oauthAuthorizeUrl = createOAuthAuthorizeUrl(value, params.baseUrl),
+                                clientId = value.clientId,
+                                clientSecret = value.clientSecret
+                            )
+                        }
 
-                } else {
-                    result.exceptionOrNull()
+                    } else {
+                        result.exceptionOrNull()
+                    }
                 }
             }
         }
-    }
+
 
     private fun createOAuthAuthorizeUrl(token: NewOauthApplication, server: String): String {
         val b = StringBuilder().apply {
@@ -158,7 +160,10 @@ class RealSignInPresenter @Inject constructor(
             defaultValue = Server(domain = accessTokenRequest.domain!!)
         )
         val users = server.users.toMutableMap()
-        users.put(accessTokenRequest.code,User(accessToken = null, accessTokenRequest = accessTokenRequest))
+        users.put(
+            accessTokenRequest.code,
+            User(accessToken = null, accessTokenRequest = accessTokenRequest)
+        )
         server.copy(users = users)
 
 

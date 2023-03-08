@@ -34,8 +34,10 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.bottomSheet
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -187,8 +189,8 @@ fun Navigator(
 }
 
 
-suspend fun Context.getAccounts(): List<AccessTokenRequest> {
-    return buildList {
+suspend fun Context.getAccounts(): List<AccessTokenRequest> = withContext(Dispatchers.IO) {
+     buildList {
         val current = dataStore.data.first()
         current.servers.values.forEach {
             it.users.values.forEach {

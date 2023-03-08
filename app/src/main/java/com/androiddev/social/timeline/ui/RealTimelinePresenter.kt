@@ -30,7 +30,8 @@ class RealTimelinePresenter @Inject constructor(
         prefetchDistance = 10
     )
 
-    override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
+    override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) = withContext(
+        Dispatchers.IO) {
         when (event) {
             is Load -> {
                 val result =
@@ -102,48 +103,8 @@ class RealTimelinePresenter @Inject constructor(
                             trendingStatuses = flow.cachedIn(scope)
                         )
                     }
-                }
-            }
 
-
-            is FavoriteMessage -> {
-                val result = kotlin.runCatching {
-                    api.favoriteStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        id = event.statusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            statusDao.insertAll(
-                                listOf(result.getOrThrow().toStatusDb(event.feedType))
-                            )
-                        }
-                    }
-                }
-            }
-
-            is BoostMessage -> {
-                val result = kotlin.runCatching {
-                    api.boostStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        id = event.statusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            result.getOrThrow().reblog?.let {
-                                statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
-                            }
-                            statusDao.insertAll(
-                                listOf(
-                                    result.getOrThrow().toStatusDb(event.feedType)
-                                )
-                            )
-                        }
-                    }
+                    else -> {}
                 }
             }
         }
@@ -158,9 +119,6 @@ abstract class TimelinePresenter :
     sealed interface HomeEvent
     data class Load(val feedType: FeedType) : HomeEvent
 
-
-    data class BoostMessage(val statusId: String, val feedType: FeedType) : HomeEvent
-    data class FavoriteMessage(val statusId: String, val feedType: FeedType) : HomeEvent
 
     data class HomeModel(
         val loading: Boolean,

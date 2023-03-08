@@ -197,6 +197,7 @@ fun TimelineCard(
                                 connection = nestedScrollConnection,
                                 onMessageSent = { it, visibility, uris ->
                                     replyToStatus(it, visibility, ui.remoteId, ui.replyCount, uris)
+                                    showReply = false
                                 },
                                 defaultVisiblity = "Public",
                                 participants = mentions.joinToString(" "),
@@ -264,7 +265,7 @@ fun UserInfo(ui: UI) {
             Column(Modifier.padding(start = PaddingSize1)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
                         maxLines = 1,
@@ -272,10 +273,11 @@ fun UserInfo(ui: UI) {
                         color = colorScheme.secondary,
                         modifier = Modifier
                             .padding(bottom = PaddingSize0_5)
-                            .fillMaxWidth(.6f),
+                            .fillMaxWidth(.6f).align(Alignment.Top),
                         text = text,
-                        style = MaterialTheme.typography.titleMedium,
-                        inlineContent = inlineContentMap
+                        style = MaterialTheme.typography.bodyLarge,
+                        inlineContent = inlineContentMap,
+
                     )
                     if (ui.directMessage) {
                         DirectMessage(ui.directMessage)

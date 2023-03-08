@@ -7,10 +7,11 @@ import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
-import com.androiddev.social.timeline.data.TimelineRemoteMediator
+import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +34,6 @@ abstract class SubmitPresenter :
         SubmitModel(emptyMap())
     ) {
     sealed interface SubmitEvent
-
     data class PostMessage(
         val content: String,
         val visibility: String,
@@ -41,6 +41,13 @@ abstract class SubmitPresenter :
         val replyCount: Int = 0,
         val uris: Set<Uri>
     ) : SubmitEvent
+
+
+    data class BoostMessage(val statusId: String, val feedType: FeedType) :
+        SubmitEvent
+
+    data class FavoriteMessage(val statusId: String, val feedType: FeedType) :
+        SubmitEvent
 
     data class SubmitModel(
         val statuses: Map<String, List<Status>>
@@ -52,14 +59,14 @@ abstract class SubmitPresenter :
 @ContributesBinding(AuthRequiredScope::class, boundType = SubmitPresenter::class)
 @SingleIn(AuthRequiredScope::class)
 class RealSubmitPresenter @Inject constructor(
-    val timelineRemoteMediators: @JvmSuppressWildcards Set<TimelineRemoteMediator>,
     val statusDao: StatusDao,
     val api: UserApi,
     val oauthRepository: OauthRepository,
     val context: android.app.Application
 ) : SubmitPresenter() {
 
-    override suspend fun eventHandler(event: SubmitEvent, coroutineScope: CoroutineScope) {
+    override suspend fun eventHandler(event: SubmitEvent, coroutineScope: CoroutineScope): Unit =
+        withContext(Dispatchers.IO) {
         when (event) {
             is PostMessage -> {
                 val ids: List<String> = event.uris.map { uri ->
@@ -124,6 +131,46 @@ class RealSubmitPresenter @Inject constructor(
                 }
             }
 
+            is FavoriteMessage -> {
+                val result = kotlin.runCatching {
+                    api.favoriteStatus(
+                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                        id = event.statusId
+                    )
+                }
+                when {
+                    result.isSuccess -> {
+                        withContext(Dispatchers.IO) {
+                            statusDao.insertAll(
+                                listOf(result.getOrThrow().toStatusDb(event.feedType))
+                            )
+                        }
+                    }
+                }
+            }
+
+            is BoostMessage -> {
+                val result = kotlin.runCatching {
+                    api.boostStatus(
+                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                        id = event.statusId
+                    )
+                }
+                when {
+                    result.isSuccess -> {
+                        withContext(Dispatchers.IO) {
+                            result.getOrThrow().reblog?.let {
+                                statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
+                            }
+                            statusDao.insertAll(
+                                listOf(
+                                    result.getOrThrow().toStatusDb(event.feedType)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

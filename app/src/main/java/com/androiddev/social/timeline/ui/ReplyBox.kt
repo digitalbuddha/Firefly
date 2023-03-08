@@ -103,7 +103,7 @@ fun UserInput(
     // Intercept back navigation if there's a InputSelector visible
 
 
-    var textState by remember { mutableStateOf(TextFieldValue(participants)) }
+    var textState by remember { mutableStateOf(TextFieldValue("$participants ")) }
 
     // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
@@ -389,7 +389,6 @@ private fun UserInputSelector(
             onClick = {
                 clicked = !clicked
                 scope.launch {
-                    delay(500)
                     onMessageSent()
                 }
             },
@@ -520,7 +519,7 @@ private fun UserInputText(
                             capitalization = KeyboardCapitalization.Sentences
                         ),
                         maxLines = 10,
-                        minLines = 2,
+                        minLines = 1,
                         cursorBrush = SolidColor(LocalContentColor.current),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
                     )

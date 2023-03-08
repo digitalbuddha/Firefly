@@ -325,14 +325,14 @@ private fun timelineScreen(
                     )
                 },
                 {
-                    events.tryEmit(
-                        TimelinePresenter
+                    submitEvents.tryEmit(
+                        SubmitPresenter
                             .BoostMessage(it,tabToLoad)
                     )
                 },
                 {
-                    events.tryEmit(
-                        TimelinePresenter
+                    submitEvents.tryEmit(
+                        SubmitPresenter
                             .FavoriteMessage(it,tabToLoad)
                     )
                 },

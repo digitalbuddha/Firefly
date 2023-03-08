@@ -5,6 +5,8 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.shared.Api
 import com.androiddev.social.timeline.data.NewOauthApplication
 import com.squareup.anvil.annotations.ContributesBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
@@ -30,8 +32,8 @@ class RealAppTokenRepository @Inject constructor(
         return appTokenStore.get(appTokenRequest)
     }
 
-    suspend fun fetchAppToken(appTokenRequest: AppTokenRequest): NewOauthApplication {
-        return api.createApplication(
+    suspend fun fetchAppToken(appTokenRequest: AppTokenRequest): NewOauthApplication = withContext(Dispatchers.IO) {
+         api.createApplication(
             appTokenRequest.url,
             appTokenRequest.scopes,
             appTokenRequest.client_name,

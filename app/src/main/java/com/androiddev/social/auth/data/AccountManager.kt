@@ -2,6 +2,8 @@ package com.androiddev.social.auth.data
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -21,20 +23,22 @@ object LoggedInAccountsSerializer : Serializer<LoggedInAccounts> {
 
     override val defaultValue = LoggedInAccounts()
 
-    override suspend fun readFrom(input: InputStream): LoggedInAccounts {
-        try {
-            return Json.decodeFromString(
-                LoggedInAccounts.serializer(), input.readBytes().decodeToString()
-            )
-        } catch (serialization: SerializationException) {
-            throw CorruptionException("Unable to read LoggedInAccounts", serialization)
+    override suspend fun readFrom(input: InputStream): LoggedInAccounts =
+        withContext(Dispatchers.IO) {
+            try {
+                Json.decodeFromString(
+                    LoggedInAccounts.serializer(), input.readBytes().decodeToString()
+                )
+            } catch (serialization: SerializationException) {
+                throw CorruptionException("Unable to read LoggedInAccounts", serialization)
+            }
         }
-    }
 
-    override suspend fun writeTo(t: LoggedInAccounts, output: OutputStream) {
-        output.write(
-            Json.encodeToString(LoggedInAccounts.serializer(), t)
-                .encodeToByteArray()
-        )
-    }
+    override suspend fun writeTo(t: LoggedInAccounts, output: OutputStream) =
+        withContext(Dispatchers.IO) {
+            output.write(
+                Json.encodeToString(LoggedInAccounts.serializer(), t)
+                    .encodeToByteArray()
+            )
+        }
 }

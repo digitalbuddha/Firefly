@@ -5,6 +5,8 @@ import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.squareup.anvil.annotations.ContributesBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
@@ -42,9 +44,9 @@ class RealStatusRepository @Inject constructor(
         sourceOfTruth = sourceOfTruth
     ).build()
 
-    override suspend fun get(feedStoreRequest: FeedStoreRequest): StatusDB {
+    override suspend fun get(feedStoreRequest: FeedStoreRequest): StatusDB = withContext(Dispatchers.IO) {
         val get = store.get(feedStoreRequest)
-        return get
+         get
     }
 }
 

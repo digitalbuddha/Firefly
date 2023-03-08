@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreRequest
@@ -78,7 +79,8 @@ class RealNotificationsRepository @Inject constructor(
         }
     ).build()
 
-    override suspend fun get(): Flow<List<Notification>> =
+    override suspend fun get(): Flow<List<Notification>> = withContext(Dispatchers.IO) {
         store.stream(StoreRequest.cached(Unit, refresh = true)).map { it.dataOrNull() }
             .filterNotNull()
+    }
 }

@@ -49,6 +49,9 @@ fun ConversationScreen(
         presenter.start()
     }
     LaunchedEffect(key1 = userComponent.request()) {
+        component.submitPresenter().start()
+    }
+    LaunchedEffect(key1 = System.nanoTime()) {
         presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type)))
     }
     val conversation = presenter.model.conversations.get(statusId)

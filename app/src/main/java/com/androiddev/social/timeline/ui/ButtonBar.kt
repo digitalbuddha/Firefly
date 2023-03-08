@@ -2,12 +2,14 @@
 
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +38,6 @@ import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.ui.model.UI
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import social.androiddev.R
 
@@ -57,6 +58,7 @@ fun ButtonBar(
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit
 ) {
+    Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 contentPadding = PaddingValues(PaddingSize1, 0.dp),
@@ -79,8 +81,6 @@ fun ButtonBar(
                 favoriteCount
             )
             if ((replyCount != null && replyCount > 0) || hasParent) {
-
-
                 OutlinedButton(
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     border = BorderStroke(ThickSm, Color.Transparent),
@@ -100,8 +100,7 @@ fun ButtonBar(
                         )
                     }
                 }
-            }
-            else{
+            } else {
                 //placeholder I am bad at code
                 OutlinedButton(
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
@@ -109,11 +108,21 @@ fun ButtonBar(
                     onClick = {
                     }
                 ) {
-
+                    Image(
+                        modifier = Modifier.size(PaddingSize3),
+                        painter = painterResource(R.drawable.chat),
+                        contentDescription = "",
+                        colorFilter = ColorFilter.tint(Color.Gray)
+                    )
                 }
             }
         }
+        AnimatedVisibility(visible = showReply && showInlineReplies) {
+            After(status = status, goToConversation = goToConversation)
+        }
     }
+
+}
 
 @Composable
 private fun SpringyButton(
@@ -142,7 +151,7 @@ private fun SpringyButton(
         onClick = {
             clicked = !clicked
             scope.launch {
-                delay(500)
+//                delay(500)
 //                if (count != null && count + 1 >= localCount!!) localCount = count + 1
                 onClick()
             }

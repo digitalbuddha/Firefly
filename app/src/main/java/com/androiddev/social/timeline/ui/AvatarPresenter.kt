@@ -11,6 +11,8 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 abstract class AvatarPresenter :
@@ -40,7 +42,8 @@ class RealAvatarPresenter @Inject constructor(
 ) :
     AvatarPresenter() {
 
-    override suspend fun eventHandler(event: AvatarEvent, coroutineScope: CoroutineScope) {
+    override suspend fun eventHandler(event: AvatarEvent, coroutineScope: CoroutineScope) = withContext(
+        Dispatchers.IO) {
         when (event) {
             is Load -> {
                 val touch = oauthRepository.getCurrent()//touch it to make sure we save it

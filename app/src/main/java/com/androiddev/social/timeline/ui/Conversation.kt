@@ -72,6 +72,9 @@ fun InnerLazyColumn(
     goToConversation: (UI) -> Unit
 ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
+    LaunchedEffect(key1 = items) {
+        submitPresenter.start()
+    }
     val configuration = LocalConfiguration.current
 
     val screenHeight = configuration.screenHeightDp
@@ -102,32 +105,52 @@ fun card(
     showInlineReplies: Boolean,
     goToConversation: (UI) -> Unit,
 
-) { AnimatedVisibility(true) {
-    Column {
-        TimelineCard(
-            modifier = modifier,
-            ui = status,
-            replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                events.tryEmit(
-                    SubmitPresenter.PostMessage(
-                        content = content,
-                        visibility = visiblity,
-                        replyStatusId = replyToId,
-                        replyCount = replyCount,
-                        uris = uris
+    ) {
+
+    var eagerStatus by remember { mutableStateOf(status) }
+
+
+    AnimatedVisibility(true) {
+        Column {
+            TimelineCard(
+                modifier = modifier,
+                ui = eagerStatus,
+                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                    events.tryEmit(
+                        SubmitPresenter.PostMessage(
+                            content = content,
+                            visibility = visiblity,
+                            replyStatusId = replyToId,
+                            replyCount = replyCount,
+                            uris = uris
+                        )
                     )
-                )
-            },
-            boostStatus = {},
-            favoriteStatus = {},
-            state = null,
-            isReplying = { false },
-            alwaysShowButtonBar = true,
-            showInlineReplies = showInlineReplies,
-            goToConversation = goToConversation
-        )
+                    eagerStatus = eagerStatus.copy(replyCount = eagerStatus.replyCount + 1)
+                },
+                boostStatus = {
+                    events.tryEmit(
+                        SubmitPresenter
+                            .BoostMessage(it, status.type)
+                    )
+                    eagerStatus = eagerStatus.copy(boostCount = eagerStatus.boostCount + 1, boosted = true)
+
+                },
+                favoriteStatus = {
+                    events.tryEmit(
+                        SubmitPresenter
+                            .FavoriteMessage(it, status.type)
+                    )
+                    eagerStatus = eagerStatus.copy(favoriteCount = eagerStatus.favoriteCount + 1, favorited = true)
+
+                },
+                state = null,
+                isReplying = { },
+                alwaysShowButtonBar = true,
+                showInlineReplies = showInlineReplies,
+                goToConversation = goToConversation
+            )
+        }
     }
-}
 
 
 }

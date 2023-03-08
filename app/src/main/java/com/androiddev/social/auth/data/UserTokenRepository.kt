@@ -6,7 +6,9 @@ import com.androiddev.social.UserScope
 import com.androiddev.social.shared.Api
 import com.androiddev.social.shared.Token
 import com.squareup.anvil.annotations.ContributesBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.*
 import javax.inject.Inject
 
@@ -60,8 +62,8 @@ class RealOauthRepository @Inject constructor(
             sourceOfTruth = sourceOfTruth
         ).build()
 
-    override suspend fun getCurrent(): String {
-        return userTokenStore.get(accessTokenRequest.domain!!)
+    override suspend fun getCurrent(): String = withContext(Dispatchers.IO) {
+         userTokenStore.get(accessTokenRequest.domain!!)
     }
 
     suspend fun fetcher(): Token {

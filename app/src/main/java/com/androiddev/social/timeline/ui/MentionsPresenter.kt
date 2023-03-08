@@ -7,6 +7,7 @@ import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.conversation.Conversation
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Status
+import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreRequest
@@ -64,9 +66,11 @@ interface MentionRepository {
 @SingleIn(UserScope::class)
 class RealMentionRepository @Inject constructor(
     userApi: UserApi,
-    oauthRepository: OauthRepository
+    oauthRepository: OauthRepository,
+    statusDao: StatusDao
 ) :
     MentionRepository {
+
     val store = StoreBuilder.from(
         Fetcher.of { key: Unit ->
             userApi.conversations(
@@ -75,7 +79,8 @@ class RealMentionRepository @Inject constructor(
         }
     ).build()
 
-    override suspend fun get(): Flow<List<Conversation>> =
+    override suspend fun get(): Flow<List<Conversation>> = withContext(Dispatchers.IO) {
         store.stream(StoreRequest.cached(Unit, refresh = true)).map { it.dataOrNull() }
             .filterNotNull()
+    }
 }

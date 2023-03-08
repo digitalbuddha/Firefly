@@ -42,7 +42,7 @@ class RealConversationPresenter @Inject constructor(
     ConversationPresenter() {
 
 
-    override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope) {
+    override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope)= withContext(Dispatchers.IO) {
         when (event) {
             is Load -> {
                 val token = " Bearer ${repository.getCurrent()}"

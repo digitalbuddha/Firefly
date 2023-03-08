@@ -15,7 +15,8 @@ enum class FeedType(val type: String) {
     Local("Local"),
 
     Federated("Federated"),
-    Trending("Trending")
+    Trending("Trending"),
+//    Mention("Mention")
 //    object Favorites : FeedType("Favorites")
 }
 

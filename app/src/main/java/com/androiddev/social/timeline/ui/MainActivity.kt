@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         val sheetState = rememberModalBottomSheetState(
                             ModalBottomSheetValue.Hidden,
                             SwipeableDefaults.AnimationSpec,
-//                                    skipHalfExpanded = true
+                                    skipHalfExpanded = true
                         )
                         val bottomSheetNavigator = remember(sheetState) {
                             BottomSheetNavigator(sheetState = sheetState)
