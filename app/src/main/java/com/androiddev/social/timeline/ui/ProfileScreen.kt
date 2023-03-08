@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.ExperimentalMaterialApi
@@ -387,11 +389,14 @@ private fun profile(presenter: ProfilePresenter) {
                     emptyList(),
                     account.emojis
                 )
+                val scroll = rememberScrollState(0)
+
 
                 Text(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
+                        .verticalScroll(scroll)
                         .padding(PaddingSize0_5)
                         .align(Alignment.CenterHorizontally),
                     text = noteText,
