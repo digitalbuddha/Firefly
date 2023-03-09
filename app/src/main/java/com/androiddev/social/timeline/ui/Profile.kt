@@ -33,7 +33,7 @@ import social.androiddev.R
 
 @Composable
 fun AccountChooser(
-    onProfileClick: (account: Account, isCurrent:Boolean) -> Unit = {a,b->},
+    onProfileClick: (accountId: String, isCurrent:Boolean) -> Unit = {a,b->},
     onChangeTheme: () -> Unit = {},
     onNewAccount: () -> Unit = {},
     model: AvatarPresenter.AvatarModel
@@ -59,14 +59,14 @@ fun AccountChooser(
             model.accounts?.forEach { account: Account ->
                 DropdownMenuItem(onClick = {
                     expanded = false
-                    onProfileClick(account, account == model.accounts.firstOrNull())
+                    onProfileClick(account.id, account == model.accounts.firstOrNull())
                 }, text = {
                     Column {
                         Row {
                             account.let {
                                 AvatarImage(url = it.avatar, onClick = {
                                     expanded = false
-                                    onProfileClick(account, account == model.accounts.firstOrNull())}
+                                    onProfileClick(account.id, account == model.accounts.firstOrNull())}
                                 )
                                 val emojis = account.emojis
 

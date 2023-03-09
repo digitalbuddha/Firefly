@@ -9,8 +9,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,15 +32,12 @@ import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.ReplyType
 import com.androiddev.social.timeline.ui.model.UI
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
-    navController: NavHostController, statusId: String, type: String, goToProfile: (UI) -> Unit
+    navController: NavHostController, statusId: String, type: String, goToProfile: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -107,10 +102,8 @@ private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     goToConversation: (UI) -> Unit,
     scrollToPosition: Int,
-    goToProfile: (UI) -> Unit,
-
+    goToProfile: (String) -> Unit,
     ) {
-
     val statuses = this
     val state = LazyListState(firstVisibleItemIndex = scrollToPosition)
     LazyColumn(
@@ -121,38 +114,21 @@ private fun List<UI>.render(
             .fillMaxSize()
 //            .padding(top = if (addPadding) 40.dp else 0.dp)
     ) {
-
-        if (statuses.isEmpty()) {
-            items(1) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(16.dp)
-                        .placeholder(
-                            visible = true,
-                            highlight = PlaceholderHighlight.shimmer(),
-                        )
-                ) {
-
-                }
-            }
-        } else {
-            items(statuses) {
-                card(
-                    modifier = Modifier
-                        .animateItemPlacement(),
-                    status = it,
-                    events = mutableSharedFlow,
-                    showInlineReplies = true,
-                    goToConversation = goToConversation,
-                    goToProfile = goToProfile
-                )
-            }
-
+        items(statuses) {
+            card(
+                modifier = Modifier
+                    .animateItemPlacement(),
+                status = it,
+                events = mutableSharedFlow,
+                showInlineReplies = true,
+                goToConversation = goToConversation,
+                goToProfile = goToProfile
+            )
         }
+
     }
 }
+
 
 val goToNowhere: (UI) -> Unit = { string -> string.toString() }
 

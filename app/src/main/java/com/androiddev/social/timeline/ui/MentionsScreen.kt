@@ -3,8 +3,6 @@ package com.androiddev.social.timeline.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +21,6 @@ import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -33,7 +28,7 @@ fun MentionsScreen(
     navController: NavHostController,
     goToConversation: (UI) -> Unit,
     showBackBar: Boolean,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -66,22 +61,6 @@ fun MentionsScreen(
                 .wrapContentHeight()
                 .padding(top = 0.dp)
         ) {
-            if (statuses.isEmpty()) {
-                items(3) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .padding(16.dp)
-                            .placeholder(
-                                visible = true,
-                                highlight = PlaceholderHighlight.shimmer(),
-                            )
-                    ) {
-
-                    }
-                }
-            } else {
                 items(statuses, key = { it.remoteId }) {
                     card(
                         modifier = Modifier.background(Color.Transparent),
@@ -94,7 +73,6 @@ fun MentionsScreen(
                 }
             }
         }
-    }
     CustomViewPullRefreshView(
         pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
     )

@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (UI) -> Unit) {
+fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (String) -> Unit) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -49,7 +49,7 @@ fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (UI) -> Unit)
 fun InnerLazyColumn(
     items: List<UI>?,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     LaunchedEffect(key1 = items) {
@@ -85,7 +85,7 @@ fun card(
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     showInlineReplies: Boolean,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit,
+    goToProfile: (String) -> Unit,
 
     ) {
 
@@ -95,7 +95,7 @@ fun card(
     AnimatedVisibility(true) {
         Column {
             TimelineCard(
-                modifier = modifier,
+                goToProfile = goToProfile,
                 ui = eagerStatus,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     events.tryEmit(
@@ -126,11 +126,10 @@ fun card(
 
                 },
                 state = null,
-                isReplying = { },
-                alwaysShowButtonBar = true,
-                showInlineReplies = showInlineReplies,
                 goToConversation = goToConversation,
-                goToProfile = goToProfile
+                isReplying = { },
+                showInlineReplies = showInlineReplies,
+                modifier = modifier,
             )
         }
     }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -20,6 +19,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,9 +33,6 @@ import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 import social.androiddev.R
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -43,7 +40,7 @@ import social.androiddev.R
 fun NotificationsScreen(
     navController: NavHostController,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -78,61 +75,51 @@ fun NotificationsScreen(
                 .wrapContentHeight()
                 .padding(top = 60.dp)
         ) {
-            if (statuses.isEmpty()) {
-                items(3) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .padding(16.dp)
-                            .placeholder(
-                                visible = true,
-                                highlight = PlaceholderHighlight.shimmer(),
-                            )
-                    ) {
-
-                    }
-                }
-            } else {
-                itemsIndexed(items = statuses, key = { a, status -> status.id }) {index,it->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (it.realType == Type.favourite) {
-                            Boosted(
-                                modifier = Modifier.height(30.dp),
-                                boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " favorited",
-                                boostedAvatar = it.account.avatar,
-                                boostedEmojis = it.account.emojis,
-                                drawable = R.drawable.star
-                            )
-                        }
-                        if (it.realType == Type.reblog) {
-                            Boosted(
-                                modifier = Modifier.height(30.dp),
-                                boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " boosted",
-                                boostedAvatar = it.account.avatar,
-                                boostedEmojis = it.account.emojis,
-                                drawable = R.drawable.rocket3
-                            )
-                        }
-                        card(
-                            modifier = Modifier.background(Color.Transparent),
-                            status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
-                            events = component.submitPresenter().events,
-                            showInlineReplies = false,
-                            goToConversation = goToConversation,
-                            goToProfile = goToProfile
+            itemsIndexed(items = statuses, key = { a, status -> status.id }) { index, it ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (it.realType == Type.favourite) {
+                        Boosted(
+                            modifier = Modifier.height(30.dp),
+                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " favorited",
+                            boostedAvatar = it.account.avatar,
+                            boostedEmojis = it.account.emojis,
+                            drawable = R.drawable.star,
+                                    containerColor = colorScheme.surface,
+                            onClick = {
+                                goToProfile(it.account.id)
+                            }
                         )
                     }
-
+                    if (it.realType == Type.reblog) {
+                        Boosted(
+                            modifier = Modifier.height(30.dp),
+                            boostedBy = (if (it.account.displayName.isNullOrEmpty()) it.account.username else it.account.displayName) + " boosted",
+                            boostedAvatar = it.account.avatar,
+                            boostedEmojis = it.account.emojis,
+                            containerColor = colorScheme.surface,
+                            onClick = {
+                                goToProfile(it.account.id)
+                            },
+                            drawable = R.drawable.rocket3
+                        )
+                    }
+                    card(
+                        modifier = Modifier.background(Color.Transparent),
+                        status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
+                        events = component.submitPresenter().events,
+                        showInlineReplies = false,
+                        goToConversation = goToConversation,
+                        goToProfile = goToProfile
+                    )
                 }
+
             }
         }
-        CustomViewPullRefreshView(
-            pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
-        )
-        BackBar(navController, "Notifs")
     }
-
+    CustomViewPullRefreshView(
+        pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
+    )
+    BackBar(navController, "Notifications")
 }
 
 

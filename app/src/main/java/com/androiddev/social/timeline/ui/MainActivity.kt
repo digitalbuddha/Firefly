@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.constraintlayout.motion.widget.MotionLayout
 import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
@@ -30,6 +31,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.squareup.anvil.annotations.ContributesTo
+import social.androiddev.R
 import javax.inject.Provider
 
 
@@ -51,6 +53,7 @@ interface AuthRequiredInjector {
     fun conversationPresenter(): Provider<ConversationPresenter>
 }
 
+@OptIn(ExperimentalMaterialNavigationApi::class)
 @ExperimentalTextApi
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
@@ -70,7 +73,25 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_splash)
 
+        findViewById<MotionLayout>(R.id.motionLayout).setTransitionListener(object :
+            MotionLayout.TransitionListener {
+            override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
+                content()
+            }
+
+            override fun onTransitionChange(p0: MotionLayout?, p1: Int, p2: Int, p3: Float) {}
+
+            override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {}
+
+            override fun onTransitionTrigger(p0: MotionLayout?, p1: Int, p2: Boolean, p3: Float) {}
+        })
+
+
+    }
+
+    fun content() =
         setContent {
             val loader = ImageLoader.Builder(this)
                 .components {
@@ -94,7 +115,7 @@ class MainActivity : ComponentActivity() {
                         val sheetState = rememberModalBottomSheetState(
                             ModalBottomSheetValue.Hidden,
                             SwipeableDefaults.AnimationSpec,
-                                    skipHalfExpanded = true
+                            skipHalfExpanded = true
                         )
                         val bottomSheetNavigator = remember(sheetState) {
                             BottomSheetNavigator(sheetState = sheetState)
@@ -103,17 +124,16 @@ class MainActivity : ComponentActivity() {
                         val navController = rememberAnimatedNavController(bottomSheetNavigator)
                         ModalBottomSheetLayout(bottomSheetNavigator) {
                             Navigator(
-                                navController, scope, sheetState,
-                                {
-                                    isDynamicTheme = !isDynamicTheme
-                                },
-                            )
+                                navController, scope,
+                            ) {
+                                isDynamicTheme = !isDynamicTheme
+                            }
                         }
                     }
                 }
             }
         }
-    }
+
 
 
     fun noAuthComponent() =

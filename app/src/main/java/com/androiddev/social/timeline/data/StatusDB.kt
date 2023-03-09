@@ -37,6 +37,7 @@ data class StatusDB(
     val favorited: Boolean = false,
     val boosted: Boolean = false,
     val inReplyTo: String?,
+    val boostedById: String?,
 //    var uid: Int = 0,
 )
 
@@ -65,7 +66,7 @@ interface StatusDao {
     fun delete()
 }
 
-@Database(entities = [StatusDB::class], version = 11)
+@Database(entities = [StatusDB::class], version = 12)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

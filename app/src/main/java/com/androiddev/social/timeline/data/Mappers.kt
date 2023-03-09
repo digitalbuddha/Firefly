@@ -54,13 +54,14 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         mentions = status.mentions ?: emptyList(),
         tags = status.tags ?: emptyList(),
         boostedBy = if (reblog != null) account?.displayName else null,
+        boostedById = if (reblog != null) account?.id else null,
         boostedAvatar = account?.avatar,
         boostedEmojis = account?.emojis ?: emptyList(),
-        favorited = status.favourited?:false,
-        boosted = status.reblogged?:false,
+        favorited = status.favourited ?: false,
+        boosted = status.reblogged ?: false,
         inReplyTo = status.inReplyToId,
 
-    )
+        )
 }
 
 
@@ -115,6 +116,7 @@ fun StatusDB.mapStatus(): UI {
             minutes > 1 -> {
                 "$minutes min ago"
             }
+
             else -> {
                 "now"
             }
@@ -129,6 +131,7 @@ fun StatusDB.mapStatus(): UI {
         favoriteCount = status.favouritesCount ?: 0,
         timePosted = createdString,
         boostedBy = status.boostedBy,
+        boostedById = status.boostedById,
         boostedAvatar = status.boostedAvatar,
         directMessage = status.isDirectMessage,
         avatar = status.avatarUrl,
@@ -141,7 +144,7 @@ fun StatusDB.mapStatus(): UI {
         type = FeedType.valueOf(status.type),
         favorited = status.favorited,
         boosted = status.boosted,
-        inReplyTo= status.inReplyTo,
+        inReplyTo = status.inReplyTo,
         accountId = status.accountId
     )
 }
@@ -263,8 +266,6 @@ private fun getCustomSpanForMentionUrl(
         override fun onClick(view: View) = listener.onViewAccount(mentionId)
     }
 }
-
-
 
 
 /**

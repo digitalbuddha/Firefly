@@ -55,7 +55,7 @@ fun TabSelector(onClick: (String) -> Unit) {
             modifier = Modifier.align(CenterVertically),
             text = items[selectedIndex].first,
             color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.titleLarge
         )
         Icon(
             imageVector = Icons.Outlined.ArrowDropDown,

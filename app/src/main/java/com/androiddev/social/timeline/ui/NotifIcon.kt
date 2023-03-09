@@ -53,9 +53,9 @@ fun Search() {
                     MaterialTheme.colorScheme.primary.copy(alpha = .5f)
                 )
         ) {
-            var searchText by remember { mutableStateOf("Search") }
-            SearchBar(searchText, "Placeholder",
-                { searchText = it }, { searchText = "" })
+//            var searchText by remember { mutableStateOf("Search") }
+//            SearchBar(searchText, "Placeholder",
+//                { searchText = it }, { searchText = "" })
         }
     }
 }

@@ -94,7 +94,7 @@ fun UserInput(
     participants: String = " ",
     showReplies: Boolean,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
@@ -232,7 +232,7 @@ private fun SelectorExpanded(
     uris: SnapshotStateList<Uri>,
     status: UI?,
     goToConversation: (UI) -> Unit = {},
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return

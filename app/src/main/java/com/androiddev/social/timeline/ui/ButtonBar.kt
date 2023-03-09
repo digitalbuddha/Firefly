@@ -57,7 +57,7 @@ fun ButtonBar(
     showReply: Boolean,
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {

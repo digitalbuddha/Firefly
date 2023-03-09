@@ -37,9 +37,6 @@ import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.material3.shimmer
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -59,11 +56,11 @@ fun TimelineScreen(
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
     onNewAccount: () -> Unit,
-    onProfileClick: (account: Account, isCurrent:Boolean) -> Unit = {a,b->},
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
     goToMentions: () -> Unit,
     goToNotifications: () -> Unit,
     goToConversation: (UI) -> Unit,
-    goToProfile: (UI) -> Unit
+    goToProfile: (String) -> Unit
 ) {
     val component =
         retain(
@@ -84,17 +81,16 @@ fun TimelineScreen(
         LaunchedEffect(key1 = accessTokenRequest) {
             submitPresenter.start()
         }
-        val state = rememberModalBottomSheetState(
-            initialValue = ModalBottomSheetValue.Hidden,
+        val state = rememberBottomSheetScaffoldState(
+//            initialValue = ModalBottomSheetValue.Hidden,
         )
         var replying by remember { mutableStateOf(false) }
         var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
-        if (!state.isVisible) replying = false
+        if (!state.bottomSheetState.isExpanded) replying = false
 
         Scaffold(
             topBar = {
-                TopAppBar(modifier = Modifier
-                    .height(60.dp),
+                TopAppBar(modifier = Modifier,
                     backgroundColor = MaterialTheme.colorScheme.background,
 
                     title = {
@@ -177,20 +173,21 @@ fun TimelineScreen(
                     FAB(MaterialTheme.colorScheme) {
                         replying = true
                         scope.launch {
-                            state.show()
+                            state.bottomSheetState.expand()
                         }
                     }
                 }
             }) { padding ->
-            Box {
-                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            Box() {
+                BottomSheetScaffold(
+                    backgroundColor = Color.Transparent,
                     sheetElevation = PaddingSize2,
-                    sheetState = state,
+                    scaffoldState = state,
                     sheetContent = {
                         var done by remember { mutableStateOf(false) }
                         if (done) {
                             LaunchedEffect(Unit) {
-                                state.hide()
+                                state.bottomSheetState.collapse()
                             }
                         }
                         UserInput(
@@ -224,12 +221,14 @@ fun TimelineScreen(
                                 FeedType.Home,
                                 items = model.homeStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state,
+                                state.bottomSheetState,
                                 goToConversation,
+                                isReplying = {
+                                    replying = it
+                                },
+                                onProfileClick = onProfileClick
 
-                                ) {
-                                replying = it
-                            }
+                            )
                         }
 
                         FeedType.Local -> {
@@ -241,9 +240,11 @@ fun TimelineScreen(
                                 FeedType.Local,
                                 model.localStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state,
+                                state.bottomSheetState,
                                 goToConversation,
-                            ) { replying = it }
+                                { replying = it },
+                                onProfileClick
+                            )
                         }
 
                         FeedType.Federated -> {
@@ -255,9 +256,11 @@ fun TimelineScreen(
                                 FeedType.Federated,
                                 model.federatedStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state,
+                                state.bottomSheetState,
                                 goToConversation,
-                            ) { replying = it }
+                                { replying = it },
+                                onProfileClick,
+                            )
                         }
 
                         FeedType.Trending -> {
@@ -269,9 +272,11 @@ fun TimelineScreen(
                                 FeedType.Trending,
                                 model.trendingStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state,
+                                state.bottomSheetState,
                                 goToConversation,
-                            ) { replying = it }
+                                { replying = it },
+                                onProfileClick,
+                            )
                         }
 
                         FeedType.User -> {
@@ -293,16 +298,17 @@ fun TimelineScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineScreen(
-    goToProfile: (UI) -> Unit,
+    goToProfile: (String) -> Unit,
     domain: String?,
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<StatusDB>?,
     account: Account?,
-    state: ModalBottomSheetState,
+    state: BottomSheetState,
     goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
 ) {
     LaunchedEffect(key1 = tabToLoad, key2 = domain) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad))
@@ -356,6 +362,7 @@ private fun timelineScreen(
                 state,
                 isReplying,
                 goToConversation = goToConversation,
+                onProfileClick = onProfileClick
             )
         }
         CustomViewPullRefreshView(
@@ -380,50 +387,34 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineRows(
-    goToProfile: (UI) -> Unit,
+    goToProfile: (String) -> Unit,
     ui: LazyPagingItems<StatusDB>,
     account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
-    state: ModalBottomSheetState,
+    state: BottomSheetState,
     isReplying: (Boolean) -> Unit,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit
 ) {
 
     val lazyListState = ui.rememberLazyListState()
     LazyColumn(state = lazyListState) {
-        if (ui.itemCount == 0) {
-            items(5) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(16.dp)
-                        .placeholder(
-                            visible = true,
-                            highlight = PlaceholderHighlight.shimmer(),
-                        )
-                ) {
-
-                }
-            }
-        } else {
-            items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
-                it?.mapStatus()?.let { ui ->
-                    TimelineCard(
-                        goToProfile,
-                        false,
-                        ui,
-                        replyToStatus,
-                        boostStatus,
-                        favoriteStatus,
-                        state,
-                        goToConversation,
-                        isReplying,
-                        false
-                    )
-                }
+        items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
+            it?.mapStatus().let { ui ->
+                TimelineCard(
+                    goToProfile,
+                    ui,
+                    replyToStatus,
+                    boostStatus,
+                    favoriteStatus,
+                    state,
+                    goToConversation,
+                    isReplying,
+                    false,
+                    onProfileClick = onProfileClick
+                )
             }
         }
     }

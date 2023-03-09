@@ -53,6 +53,7 @@ data class UI(
     val boosted: Boolean,
     val inReplyTo: String?,
     val accountId: String?,
+    val boostedById: String?,
 )
 
 enum class ReplyType {

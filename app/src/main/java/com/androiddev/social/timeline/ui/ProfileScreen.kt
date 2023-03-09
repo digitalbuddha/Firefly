@@ -16,8 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.Indicator
@@ -25,7 +23,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberBackdropScaffoldState
-import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -252,6 +250,9 @@ private fun posts(
         ) { page ->
 
             TimelineRows(
+                goToProfile = { accountId: String ->
+                    navController.navigate("profile/${code}/${accountId}")
+                },
                 ui = statuses,
                 account = account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
@@ -279,19 +280,14 @@ private fun posts(
                     )
 
                 },
-                state = rememberModalBottomSheetState(
-                    ModalBottomSheetValue.Hidden,
-                    SwipeableDefaults.AnimationSpec,
-                    skipHalfExpanded = true
-                ),
+                state = rememberBottomSheetScaffoldState().bottomSheetState,
                 isReplying = { },
                 goToConversation = { status: UI ->
                     navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
-                },
-                goToProfile = { status: UI ->
-                    navController.navigate("profile/${code}/${status.accountId}")
                 }
-            )
+            ) { accountId, _ ->
+                navController.navigate("profile/${code}/${accountId}")
+            }
         }
     }
 }

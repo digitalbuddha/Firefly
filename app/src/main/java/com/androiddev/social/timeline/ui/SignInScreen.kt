@@ -23,8 +23,7 @@ fun SignInScreen(
     val context = LocalContext.current
     val component = retain(key = server) { NoAuthComponent(context) } as AuthOptionalInjector
     val signInPresenter = component.signInPresenter()
-    //TODO MIKE: check if we need to put the domain here manually
-    val accessToken = signInPresenter.model.accessTokenRequest//?.copy(domain = server)
+    val accessToken = signInPresenter.model.accessTokenRequest
 
     LaunchedEffect(server) {
         signInPresenter.start()

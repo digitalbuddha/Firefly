@@ -11,7 +11,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -70,7 +69,6 @@ fun getUserComponent(code: String): UserComponent {
 fun Navigator(
     navController: NavHostController,
     scope: CoroutineScope,
-    sheetState: ModalBottomSheetState,
     onChangeTheme: () -> Unit,
 ) {
 
@@ -97,13 +95,13 @@ fun Navigator(
                         userComponent,
                         onChangeTheme,
                         onNewAccount = { navController.navigate("selectServer") },
-                        onProfileClick = { account, isCurrent ->
+                        onProfileClick = { accountId, isCurrent ->
                             if (isCurrent)
                                 navController.navigate(
-                                    "profile/${it.arguments?.getString("code")}/${account.id}"
+                                    "profile/${it.arguments?.getString("code")}/${accountId}"
                                 )
                             else
-                                navController.navigate("login/${account.domain}")
+                                navController.navigate("login/${it.arguments?.getString("server")}")
                         },
                         goToMentions = {
                             navController.navigate("mentions/${it.arguments?.getString("code")}")
@@ -114,8 +112,8 @@ fun Navigator(
                         goToConversation = { status: UI ->
                             navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                         }
-                    ) { status: UI ->
-                        navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                    ) { accountId: String ->
+                        navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                     }
                 }
             }
@@ -136,8 +134,8 @@ fun Navigator(
                                 navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                             },
                             true,
-                            goToProfile = { status: UI ->
-                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                            goToProfile = { accountId: String ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                             }
                         )
                     }
@@ -192,8 +190,8 @@ fun Navigator(
                     ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                     CompositionLocalProvider(LocalAuthComponent provides component) {
                         ConversationScreen(
-                            navController, statusId, type, goToProfile = { status ->
-                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
+                            navController, statusId, type, goToProfile = { accountId ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                             }
                         )
                     }
@@ -218,9 +216,10 @@ fun Navigator(
                                     //                                popUpTo("timeline")
                                 }
                             },
-                            { status: UI ->
-                                navController.navigate("profile/${it.arguments?.getString("code")}/${status.accountId}")
-                            }
+                            { accountId: String ->
+                                navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
+                            },
+
                         )
                     }
                 }
@@ -233,7 +232,7 @@ fun Navigator(
             SplashScreen(navController)
         }
 
-        bottomSheet("selectServer") {
+        composable("selectServer") {
             ServerSelectScreen { server ->
                 scope.launch {
                     navController.navigate("login/$server")
