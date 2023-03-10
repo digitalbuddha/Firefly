@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Ebony" parent="Theme.MaterialComponents.DayNight" />
+    <style name="Theme.Firefly" parent="Theme.MaterialComponents.DayNight" />
     <style name="Theme.Splash" parent="Theme.MaterialComponents.DayNight" />
 </resources>

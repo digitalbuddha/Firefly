@@ -29,8 +29,7 @@ import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @Composable
 fun AccountChooser(
     onProfileClick: (accountId: String, isCurrent:Boolean) -> Unit = {a,b->},

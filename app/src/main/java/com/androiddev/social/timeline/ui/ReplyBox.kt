@@ -2,10 +2,8 @@ package com.androiddev.social.timeline.ui
 
 import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.Companion.isPhotoPickerAvailable
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -20,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -56,11 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
+import coil.compose.LocalImageLoader
 import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.launch
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 enum class InputSelector {
     NONE,
     MAP,
@@ -167,7 +164,7 @@ fun UserInput(
                 onClearSelector = { currentInputSelector = InputSelector.NONE },
                 onTextAdded = { textState = textState.addText(it) },
                 connection = connection,
-                uris = uris,
+                { uris.add(it) },
                 status = status,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile
@@ -229,9 +226,10 @@ private fun SelectorExpanded(
     onClearSelector: () -> Unit,
     onTextAdded: (String) -> Unit,
     connection: NestedScrollConnection?,
-    uris: SnapshotStateList<Uri>,
+    addUri: (Uri) -> Unit = {},
     status: UI?,
     goToConversation: (UI) -> Unit = {},
+
     goToProfile: (String) -> Unit
 ) {
     val currentSelectorLocal = currentSelector
@@ -252,7 +250,7 @@ private fun SelectorExpanded(
             InputSelector.REPLIES  ->
                 status?.let { After(status = it, goToConversation = goToConversation,
                     goToProfile = goToProfile) }
-            InputSelector.PICTURE -> PhotoPickerResultComposable(uris) {
+            InputSelector.PICTURE -> PhotoPickerResultComposable(addUri) {
                 onClearSelector()
             }
 //            InputSelector.MAP -> FunctionalityNotAvailablePanel()
@@ -278,32 +276,32 @@ fun FunctionalityNotAvailablePanel() {
 }
 
 @Composable
-fun PhotoPickerResultComposable(uris: SnapshotStateList<Uri>, clearFocus: () -> Unit) {
+fun PhotoPickerResultComposable(addUri: (Uri) -> Unit, clearFocus: () -> Unit) {
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            it.data?.data?.let { it1 -> uris.add(it1) }
+            it.data?.data?.let { it1 -> addUri(it1) }
             clearFocus()
         }
 
     LaunchedEffect(key1 = Unit) {
         val intent: Intent
-        val usePhotoPicker = isPhotoPickerAvailable()
-        if (usePhotoPicker) {
-            intent = Intent(MediaStore.ACTION_PICK_IMAGES)
-            intent.putExtra(
-                MediaStore.EXTRA_PICK_IMAGES_MAX,
-                4
-            )
-        } else {
+//        val usePhotoPicker = isPhotoPickerAvailable()
+//        if (usePhotoPicker) {
+//            intent = Intent(MediaStore.ACTION_PICK_IMAGES)
+//            intent.putExtra(
+//                MediaStore.EXTRA_PICK_IMAGES_MAX,
+//                8
+//            )
+//        } else {
             intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             intent.type = "*/*"
-        }
-
-        if (!usePhotoPicker) {
+//        }
+//
+//        if (!usePhotoPicker) {
             // If photo picker is being used these are the default mimetypes.
             intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
-        }
+//        }
 
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         launcher.launch(intent)
@@ -364,7 +362,7 @@ private fun UserInputSelector(
 
         val buttonColors = ButtonDefaults.buttonColors(
             disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .4f),
-            disabledContentColor = colorScheme.tertiary,
+            disabledContentColor = colorScheme.primary,
 //            containerColor = MaterialTheme.colorScheme.tertiary
         )
         var clicked by remember { mutableStateOf(false) }
@@ -487,13 +485,13 @@ private fun UserInputText(
         horizontalArrangement = Arrangement.End
     ) {
         Surface {
-            Row(modifier = Modifier.background(colorScheme.onTertiaryContainer.copy(alpha = .9f))) {
+            Row(modifier = Modifier.background(colorScheme.surfaceVariant.copy(alpha = .9f))) {
 
                 var visibility by remember { mutableStateOf(defaultVisiblity) }
 
                 Box(
                     modifier = Modifier
-                        .heightIn(min=60.dp)
+                        .heightIn(min = 60.dp)
                         .fillMaxWidth(.75f)
                         .align(Alignment.Bottom)
 //                        .background(Color.Red)
@@ -508,7 +506,11 @@ private fun UserInputText(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .padding(start = PaddingSize1, bottom = PaddingSize2, top = PaddingSize2)
+                            .padding(
+                                start = PaddingSize1,
+                                bottom = PaddingSize2,
+                                top = PaddingSize2
+                            )
                             .align(Alignment.TopStart)
                             .onFocusChanged { state ->
                                 if (lastFocusState != state.isFocused) {
@@ -524,7 +526,7 @@ private fun UserInputText(
                         maxLines = 10,
                         minLines = 1,
                         cursorBrush = SolidColor(LocalContentColor.current),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
                     )
 
 
@@ -532,11 +534,15 @@ private fun UserInputText(
                         Text(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = PaddingSize3, bottom = PaddingSize2, top = PaddingSize2)
+                                .padding(
+                                    start = PaddingSize3,
+                                    bottom = PaddingSize2,
+                                    top = PaddingSize2
+                                )
                                 .wrapContentWidth(),
                             text = "Be Heard",
                             maxLines = 1,
-                            style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.secondaryContainer)
+                            style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
                         )
                     }
                 }
@@ -627,7 +633,7 @@ fun EmojiTable(
     Column(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = .8f))
+            .background(Color.Transparent)
     ) {
         repeat(4) { x ->
             Row(

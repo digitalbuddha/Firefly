@@ -20,7 +20,7 @@
 //
 //    @Test
 //    fun timeLineTest() = runTest {
-//        val result = api.newStatus(bearer, "Hello World from Ebony")
+//        val result = api.newStatus(bearer, "Hello World from Firefly")
 //        assertThat(result.id).isNotNull()
 //    }
 ////

@@ -6,7 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.androiddev.social.AuthOptionalComponent
-import com.androiddev.social.EbonyApp
+import com.androiddev.social.FireflyApp
 import com.androiddev.social.auth.ui.SignInContent
 import com.androiddev.social.auth.ui.SignInPresenter
 import dev.marcellogalhardo.retained.compose.retain
@@ -62,4 +62,4 @@ fun SignInScreen(
 }
 
 fun NoAuthComponent(context: Context) =
-    ((context.applicationContext as EbonyApp).component as AuthOptionalComponent.ParentComponent).createAuthOptionalComponent()
+    ((context.applicationContext as FireflyApp).component as AuthOptionalComponent.ParentComponent).createAuthOptionalComponent()

@@ -39,11 +39,11 @@
             <KeyAttribute
                 motion:motionTarget="@+id/imageView"
                 motion:framePosition="100"
-                android:scaleX="50.0" />
+                android:scaleX="200.0" />
             <KeyAttribute
                 motion:motionTarget="@+id/imageView"
                 motion:framePosition="100"
-                android:scaleY="70.0" />
+                android:scaleY="280.0" />
         </KeyFrameSet>
     </Transition>
 

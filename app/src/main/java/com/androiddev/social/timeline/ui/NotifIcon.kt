@@ -24,8 +24,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi

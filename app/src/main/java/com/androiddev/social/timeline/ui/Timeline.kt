@@ -4,6 +4,7 @@ package com.androiddev.social.timeline.ui
 
 import android.net.Uri
 import androidx.compose.animation.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,8 +34,6 @@ import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.StatusDB
-import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
 import dev.marcellogalhardo.retained.compose.retain
@@ -81,16 +80,18 @@ fun TimelineScreen(
         LaunchedEffect(key1 = accessTokenRequest) {
             submitPresenter.start()
         }
-        val state = rememberBottomSheetScaffoldState(
-//            initialValue = ModalBottomSheetValue.Hidden,
+        val state = rememberModalBottomSheetState(
+            initialValue = ModalBottomSheetValue.Hidden,
         )
         var replying by remember { mutableStateOf(false) }
         var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
-        if (!state.bottomSheetState.isExpanded) replying = false
-
+        var refresh: Boolean by remember { mutableStateOf(false) }
+        if (!state.isVisible) replying = false
         Scaffold(
             topBar = {
-                TopAppBar(modifier = Modifier,
+                TopAppBar(modifier = Modifier.clickable {
+                    refresh = true
+                },
                     backgroundColor = MaterialTheme.colorScheme.background,
 
                     title = {
@@ -118,29 +119,32 @@ fun TimelineScreen(
                             }
 
                             Box(Modifier.align(Alignment.CenterVertically)) {
-                                TabSelector { it ->
-                                    tabToLoad = when (it) {
-                                        FeedType.Home.type -> {
-                                            FeedType.Home
-                                        }
+                                TabSelector(
+                                    { it ->
+                                        tabToLoad = when (it) {
+                                            FeedType.Home.type -> {
+                                                FeedType.Home
+                                            }
 
-                                        FeedType.Local.type -> {
-                                            FeedType.Local
-                                        }
+                                            FeedType.Local.type -> {
+                                                FeedType.Local
+                                            }
 
-                                        FeedType.Federated.type -> {
-                                            FeedType.Federated
-                                        }
+                                            FeedType.Federated.type -> {
+                                                FeedType.Federated
+                                            }
 
-                                        FeedType.Trending.type -> {
-                                            FeedType.Trending
-                                        }
+                                            FeedType.Trending.type -> {
+                                                FeedType.Trending
+                                            }
 
-                                        else -> {
-                                            FeedType.Home
+                                            else -> {
+                                                FeedType.Home
+                                            }
                                         }
-                                    }
-                                }
+                                    }, {
+                                        refresh = true
+                                    })
                             }
                             Search()
                         }
@@ -173,21 +177,20 @@ fun TimelineScreen(
                     FAB(MaterialTheme.colorScheme) {
                         replying = true
                         scope.launch {
-                            state.bottomSheetState.expand()
+                            state.show()
                         }
                     }
                 }
             }) { padding ->
             Box() {
-                BottomSheetScaffold(
-                    backgroundColor = Color.Transparent,
+                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     sheetElevation = PaddingSize2,
-                    scaffoldState = state,
+                    sheetState = state,
                     sheetContent = {
                         var done by remember { mutableStateOf(false) }
                         if (done) {
                             LaunchedEffect(Unit) {
-                                state.bottomSheetState.collapse()
+                                state.hide()
                             }
                         }
                         UserInput(
@@ -221,13 +224,14 @@ fun TimelineScreen(
                                 FeedType.Home,
                                 items = model.homeStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state.bottomSheetState,
+                                state,
                                 goToConversation,
                                 isReplying = {
                                     replying = it
                                 },
-                                onProfileClick = onProfileClick
-
+                                onProfileClick = onProfileClick,
+                                refresh,
+                                { refresh = false }
                             )
                         }
 
@@ -240,10 +244,13 @@ fun TimelineScreen(
                                 FeedType.Local,
                                 model.localStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state.bottomSheetState,
+                                state,
                                 goToConversation,
                                 { replying = it },
-                                onProfileClick
+                                onProfileClick,
+                                refresh,
+                                { refresh = false }
+
                             )
                         }
 
@@ -256,10 +263,12 @@ fun TimelineScreen(
                                 FeedType.Federated,
                                 model.federatedStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state.bottomSheetState,
+                                state,
                                 goToConversation,
                                 { replying = it },
                                 onProfileClick,
+                                refresh,
+                                { refresh = false }
                             )
                         }
 
@@ -272,10 +281,12 @@ fun TimelineScreen(
                                 FeedType.Trending,
                                 model.trendingStatuses?.collectAsLazyPagingItems(),
                                 account = model.account,
-                                state.bottomSheetState,
+                                state,
                                 goToConversation,
                                 { replying = it },
                                 onProfileClick,
+                                refresh,
+                                { refresh = false }
                             )
                         }
 
@@ -303,16 +314,20 @@ private fun timelineScreen(
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
-    items: LazyPagingItems<StatusDB>?,
+    items: LazyPagingItems<UI>?,
     account: Account?,
-    state: BottomSheetState,
+    state: ModalBottomSheetState,
     goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
+    refresh: Boolean,
+    doneRefreshing: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = tabToLoad, key2 = domain) {
-        events.tryEmit(TimelinePresenter.Load(tabToLoad))
+        events.tryEmit(TimelinePresenter.Load(tabToLoad, colorScheme = colorScheme))
     }
+
 
     val refreshing = items?.loadState?.refresh is LoadState.Loading
     val pullRefreshState = rememberPullRefreshState(refreshing, {
@@ -324,7 +339,16 @@ private fun timelineScreen(
             .pullRefresh(pullRefreshState)
             .fillMaxSize()
     ) {
+
         items?.let {
+            val lazyListState = items.rememberLazyListState()
+            if (refresh) {
+                LaunchedEffect(key1 = Unit) {
+                    lazyListState.scrollToItem(0)
+                    items.refresh()
+                    doneRefreshing()
+                }
+            }
             LaunchedEffect(key1 = tabToLoad, key2 = domain) {
                 //very unexact way to run after the first append/prepend ran
                 //otherwise infinite scroll never calls append on first launch
@@ -362,7 +386,8 @@ private fun timelineScreen(
                 state,
                 isReplying,
                 goToConversation = goToConversation,
-                onProfileClick = onProfileClick
+                onProfileClick = onProfileClick,
+                lazyListState
             )
         }
         CustomViewPullRefreshView(
@@ -388,34 +413,32 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
 @Composable
 fun TimelineRows(
     goToProfile: (String) -> Unit,
-    ui: LazyPagingItems<StatusDB>,
+    ui: LazyPagingItems<UI>,
     account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
-    state: BottomSheetState,
+    state: ModalBottomSheetState,
     isReplying: (Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
-    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
+    lazyListState: LazyListState
 ) {
 
-    val lazyListState = ui.rememberLazyListState()
     LazyColumn(state = lazyListState) {
-        items(items = ui, key = { "${it.originalId}  ${it.reblogsCount} ${it.repliesCount}" }) {
-            it?.mapStatus().let { ui ->
-                TimelineCard(
-                    goToProfile,
-                    ui,
-                    replyToStatus,
-                    boostStatus,
-                    favoriteStatus,
-                    state,
-                    goToConversation,
-                    isReplying,
-                    false,
-                    onProfileClick = onProfileClick
-                )
-            }
+        items(items = ui, key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
+            TimelineCard(
+                goToProfile,
+                it,
+                replyToStatus,
+                boostStatus,
+                favoriteStatus,
+                state,
+                goToConversation,
+                isReplying,
+                false,
+                onProfileClick = onProfileClick
+            )
         }
     }
 }

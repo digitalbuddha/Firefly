@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.material3.ColorScheme
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
@@ -23,7 +24,7 @@ abstract class ConversationPresenter :
     ) {
     sealed interface ConversationEvent
 
-    data class Load(val statusId: String, val type: FeedType) : ConversationEvent
+    data class Load(val statusId: String, val type: FeedType, val colorScheme: ColorScheme) : ConversationEvent
 
     data class ConversationModel(
         val conversations: Map<String, ConvoUI> = emptyMap(),
@@ -53,7 +54,7 @@ class RealConversationPresenter @Inject constructor(
                         statusRepository.get(FeedStoreRequest(event.statusId, event.type))
                     }
                     if (status.isSuccess) currentConvo =
-                        currentConvo.copy(status = status.getOrThrow().mapStatus())
+                        currentConvo.copy(status = status.getOrThrow().mapStatus(event.colorScheme))
                     val conversations = model.conversations.toMutableMap()
                     conversations.put(event.statusId, currentConvo)
                     model = model.copy(conversations = conversations)

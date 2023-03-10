@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
@@ -27,12 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.theme.ThickSm
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @Composable
-fun TabSelector(onClick: (String) -> Unit) {
+fun TabSelector(onClick: (String) -> Unit, onRefreshNeeded:()->Unit) {
     var expanded by remember { mutableStateOf(false) }
     val items = listOf(
         "Home" to R.drawable.house,
@@ -46,22 +47,23 @@ fun TabSelector(onClick: (String) -> Unit) {
         Image(
             modifier = Modifier
                 .size(PaddingSize4)
+                .padding(4.dp)
                 .align(CenterVertically),
             painter = painterResource(items[selectedIndex].second),
             contentDescription = "",
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
         Text(
             modifier = Modifier.align(CenterVertically),
             text = items[selectedIndex].first,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge
         )
         Icon(
             imageVector = Icons.Outlined.ArrowDropDown,
             contentDescription = "down arrow",
             modifier = Modifier.align(Bottom),
-            tint = MaterialTheme.colorScheme.secondary
+            tint = MaterialTheme.colorScheme.primary
         )
         DropdownMenu(
             expanded = expanded,
@@ -86,9 +88,9 @@ fun TabSelector(onClick: (String) -> Unit) {
                             modifier = Modifier.size(PaddingSize4),
                             painter = painterResource(items[index].second),
                             contentDescription = "",
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
-                        Text(text = " " + items[index].first)
+                        Text(text = " " + items[index].first, color = MaterialTheme.colorScheme.primary)
                     }
 
                 })

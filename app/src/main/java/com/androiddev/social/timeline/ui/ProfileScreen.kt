@@ -16,6 +16,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.Indicator
@@ -23,7 +25,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberBackdropScaffoldState
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,12 +50,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.androiddev.social.theme.EbonyTheme
+import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.StatusDB
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -99,7 +100,7 @@ fun ProfileScreen(
         presenter.handle(ProfilePresenter.Load(accountId))
     }
 
-    EbonyTheme {
+    FireflyTheme {
         var clicked by remember { mutableStateOf(false) }
 
         val scaffoldState = rememberBackdropScaffoldState(BackdropValue.Concealed)
@@ -139,11 +140,13 @@ fun ProfileScreen(
             frontLayerContent = {
                 val userStatuses = homePresenter.model.userWithRepliesStatuses
                 val account = presenter.model.account
+                val colorScheme = MaterialTheme.colorScheme
                 LaunchedEffect(key1 = accountId) {
                     homePresenter.handle(
                         TimelinePresenter.Load(
                             FeedType.UserWithReplies,
-                            accountId
+                            accountId,
+                            colorScheme
                         )
                     )
                 }
@@ -185,7 +188,7 @@ fun ProfileScreen(
 private fun posts(
     navController: NavHostController,
     account: Account?,
-    statuses: LazyPagingItems<StatusDB>,
+    statuses: LazyPagingItems<UI>,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
     changeHeight: (Int) -> Unit
@@ -280,14 +283,20 @@ private fun posts(
                     )
 
                 },
-                state = rememberBottomSheetScaffoldState().bottomSheetState,
+                state = rememberModalBottomSheetState(
+                    ModalBottomSheetValue.Hidden,
+                    SwipeableDefaults.AnimationSpec,
+                    skipHalfExpanded = true
+                ),
                 isReplying = { },
                 goToConversation = { status: UI ->
                     navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
-                }
-            ) { accountId, _ ->
-                navController.navigate("profile/${code}/${accountId}")
-            }
+                },
+                { accountId, _ ->
+                    navController.navigate("profile/${code}/${accountId}")
+                },
+                statuses.rememberLazyListState()
+            )
         }
     }
 }
@@ -383,7 +392,8 @@ private fun profile(presenter: ProfilePresenter) {
                     account.note,
                     emptyList(),
                     emptyList(),
-                    account.emojis
+                    account.emojis,
+                    MaterialTheme.colorScheme
                 )
                 val scroll = rememberScrollState(0)
 

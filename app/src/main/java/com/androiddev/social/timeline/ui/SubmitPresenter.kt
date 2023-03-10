@@ -22,7 +22,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okio.BufferedSink
-import social.androiddev.R
+import social.androiddev.firefly.R
 import java.io.IOException
 import java.io.InputStream
 import java.util.Date
@@ -47,6 +47,8 @@ abstract class SubmitPresenter :
         SubmitEvent
 
     data class FavoriteMessage(val statusId: String, val feedType: FeedType) :
+        SubmitEvent
+ data class BookmarkMessage(val statusId: String) :
         SubmitEvent
 
     data class SubmitModel(
@@ -144,6 +146,23 @@ class RealSubmitPresenter @Inject constructor(
                             statusDao.insertAll(
                                 listOf(result.getOrThrow().toStatusDb(event.feedType))
                             )
+                        }
+                    }
+                }
+            }
+            is BookmarkMessage -> {
+                val result = kotlin.runCatching {
+                    api.bookmarkStatus(
+                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                        id = event.statusId
+                    )
+                }
+                when {
+                    result.isSuccess -> {
+                        withContext(Dispatchers.IO) {
+//                            statusDao.insertAll(
+//                                listOf(result.getOrThrow().toStatusDb(event.feedType))
+//                            )
                         }
                     }
                 }

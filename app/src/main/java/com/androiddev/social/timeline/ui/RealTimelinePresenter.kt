@@ -1,16 +1,19 @@
 package com.androiddev.social.timeline.ui
 
+import androidx.compose.material3.ColorScheme
 import androidx.paging.*
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.*
+import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -39,7 +42,7 @@ class RealTimelinePresenter @Inject constructor(
                     kotlin.runCatching {
                         api.accountVerifyCredentials(authHeader = " Bearer ${oauthRepository.getCurrent()}")
                     }
-                result?.getOrNull()?.let {
+                result.getOrNull()?.let {
                     model = model.copy(account = it)
                 }
                 when (event.feedType) {
@@ -52,9 +55,15 @@ class RealTimelinePresenter @Inject constructor(
                             config = pagingConfig,
                             remoteMediator = remoteMediator
                         )
-                        { statusDao.getTimeline(FeedType.Home.type) }
+                        {
+                            statusDao.getTimeline(FeedType.Home.type)
+                        }
                             .flow
-                        model = model.copy(homeStatuses = flow.cachedIn(scope))
+                        model = model.copy(homeStatuses = flow.map {
+                            it.map {
+                                it.mapStatus(event.colorScheme)
+                            }
+                        }.cachedIn(scope))
                     }
 
                     FeedType.Local -> {
@@ -69,8 +78,9 @@ class RealTimelinePresenter @Inject constructor(
                         }.flow
 
                         model = model.copy(
-                            localStatuses = flow.cachedIn(scope)
-                        )
+                            localStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
                     }
 
                     FeedType.Federated -> {
@@ -85,8 +95,10 @@ class RealTimelinePresenter @Inject constructor(
                         }.flow
 
                         model = model.copy(
-                            federatedStatuses = flow.cachedIn(scope)
-                        )
+                            federatedStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
+
                     }
 
                     FeedType.Trending -> {
@@ -101,8 +113,10 @@ class RealTimelinePresenter @Inject constructor(
                         }.flow
 
                         model = model.copy(
-                            trendingStatuses = flow.cachedIn(scope)
-                        )
+                            trendingStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
+
                     }
 
                     FeedType.UserWithReplies -> {
@@ -119,12 +133,17 @@ class RealTimelinePresenter @Inject constructor(
                             ),
                             remoteMediator = remoteMediator
                         ) {
-                            statusDao.getUserTimeline(FeedType.UserWithReplies.type, event.accountId)
+                            statusDao.getUserTimeline(
+                                FeedType.UserWithReplies.type,
+                                event.accountId
+                            )
                         }.flow
 
                         model = model.copy(
-                            userWithRepliesStatuses = flow.cachedIn(scope)
-                        )
+                            userWithRepliesStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
+
                     }
 
                     FeedType.UserWithMedia -> {
@@ -141,8 +160,10 @@ class RealTimelinePresenter @Inject constructor(
                         }.flow
 
                         model = model.copy(
-                            userWithMediaStatuses = flow.cachedIn(scope)
-                        )
+                            userWithMediaStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
+
                     }
 
                     FeedType.User -> {
@@ -158,8 +179,10 @@ class RealTimelinePresenter @Inject constructor(
                         }.flow
 
                         model = model.copy(
-                            userStatuses = flow.cachedIn(scope)
-                        )
+                            userStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope))
+
                     }
 
                     else -> {}
@@ -175,19 +198,19 @@ abstract class TimelinePresenter :
         HomeModel(true)
     ) {
     sealed interface HomeEvent
-    data class Load(val feedType: FeedType, val accountId: String? = null) : HomeEvent
+    data class Load(val feedType: FeedType, val accountId: String? = null, val colorScheme: ColorScheme) : HomeEvent
 
 
     data class HomeModel(
         val loading: Boolean,
-        val homeStatuses: Flow<PagingData<StatusDB>>? = null,
+        val homeStatuses: Flow<PagingData<UI>>? = null,
         val account: Account? = null,
-        val federatedStatuses: Flow<PagingData<StatusDB>>? = null,
-        val trendingStatuses: Flow<PagingData<StatusDB>>? = null,
-        val localStatuses: Flow<PagingData<StatusDB>>? = null,
-        val userStatuses: Flow<PagingData<StatusDB>>? = null,
-        val userWithMediaStatuses: Flow<PagingData<StatusDB>>? = null,
-        val userWithRepliesStatuses: Flow<PagingData<StatusDB>>? = null
+        val federatedStatuses: Flow<PagingData<UI>>? = null,
+        val trendingStatuses: Flow<PagingData<UI>>? = null,
+        val localStatuses: Flow<PagingData<UI>>? = null,
+        val userStatuses: Flow<PagingData<UI>>? = null,
+        val userWithMediaStatuses: Flow<PagingData<UI>>? = null,
+        val userWithRepliesStatuses: Flow<PagingData<UI>>? = null,
     )
 
     sealed interface HomeEffect

@@ -26,12 +26,13 @@ import com.androiddev.social.timeline.data.Mention
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
 import com.androiddev.social.timeline.ui.AvatarImage
+import com.androiddev.social.ui.util.EmojiText
 
 data class UI(
     val imageUrl: String? = null,
     val displayName: String = "FriendlyMike",
     val userName: String = "FriendlyMike@androiddev.social",
-    val content: String = "",
+    private val content: String = "",
     val replyCount: Int = 0,
     val boostCount: Int = 0,
     val favoriteCount: Int = 0,
@@ -54,6 +55,11 @@ data class UI(
     val inReplyTo: String?,
     val accountId: String?,
     val boostedById: String?,
+    val contentEmojiText: EmojiText?,
+    val boostedEmojiText: EmojiText?,
+    val accountEmojiText: EmojiText?,
+    val originalId: String,
+    val bookmarked: Boolean
 )
 
 enum class ReplyType {
@@ -67,8 +73,8 @@ fun String.parseAsMastodonHtml(): Spanned {
         .replace("<br/> ", "<br/>&nbsp;")
         .replace("  ", "&nbsp;&nbsp;")
         .parseAsHtml()
-    /* Html.fromHtml returns trailing whitespace if the html ends in a </p> tag, which
-     * most status contents do, so it should be trimmed. */
+        /* Html.fromHtml returns trailing whitespace if the html ends in a </p> tag, which
+         * most status contents do, so it should be trimmed. */
         .trimTrailingWhitespace()
 
 }

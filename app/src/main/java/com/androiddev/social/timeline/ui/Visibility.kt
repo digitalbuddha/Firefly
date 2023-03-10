@@ -35,7 +35,7 @@ fun Visibility( defaultVisibility:String, onClick: (String) -> Unit) {
             colors = AssistChipDefaults.assistChipColors(
 
                 containerColor = MaterialTheme.colorScheme.surface,
-                leadingIconContentColor = MaterialTheme.colorScheme.secondary, labelColor = MaterialTheme.colorScheme.tertiary
+                leadingIconContentColor = MaterialTheme.colorScheme.secondary, labelColor = MaterialTheme.colorScheme.primary
             ),
             shape = RoundedCornerShape(50, 50, 50, 50),
             onClick = {

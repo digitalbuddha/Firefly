@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ebony</string>
+    <string name="app_name">Firefly</string>
 
     <plurals name="fuzzydatetime__seconds_ago">
         <item quantity="zero">just now</item>

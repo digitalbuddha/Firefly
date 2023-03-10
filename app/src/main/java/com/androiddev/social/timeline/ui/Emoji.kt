@@ -3,19 +3,19 @@ package com.androiddev.social.timeline.ui
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.sp
 import com.androiddev.social.theme.PaddingSize2_5
 import com.androiddev.social.timeline.data.Emoji
+import com.androiddev.social.ui.util.EmojiText
 
 @Composable
 fun inlineEmojis(
     unformatted: String,
     emojis: List<Emoji>
-): Pair<MutableMap<String, InlineTextContent>, AnnotatedString> {
+): EmojiText {
     val inlineContentMap: MutableMap<String, InlineTextContent> = mutableMapOf()
     val text = buildAnnotatedString {
         val split = unformatted.split(":").filter { group -> group != "" }
@@ -34,5 +34,5 @@ fun inlineEmojis(
             }
         }
     }
-    return Pair(inlineContentMap, text)
+    return EmojiText(inlineContentMap, text)
 }

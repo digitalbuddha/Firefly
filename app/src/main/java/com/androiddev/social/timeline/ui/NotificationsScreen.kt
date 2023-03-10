@@ -33,8 +33,7 @@ import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NotificationsScreen(
@@ -105,7 +104,7 @@ fun NotificationsScreen(
                     }
                     card(
                         modifier = Modifier.background(Color.Transparent),
-                        status = it.status!!.toStatusDb(FeedType.Home).mapStatus(),
+                        status = it.status!!.toStatusDb(FeedType.Home).mapStatus(colorScheme),
                         events = component.submitPresenter().events,
                         showInlineReplies = false,
                         goToConversation = goToConversation,

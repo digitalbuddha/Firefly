@@ -3,9 +3,6 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +10,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.TextButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,8 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -39,7 +34,7 @@ import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.launch
-import social.androiddev.R
+import social.androiddev.firefly.R
 
 @Composable
 fun ButtonBar(
@@ -57,11 +52,14 @@ fun ButtonBar(
     showReply: Boolean,
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    bookmarked: Boolean,
+    onBookmark: () -> Unit
 ) {
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(
+            TextButton(
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                 contentPadding = PaddingValues(PaddingSize1, 0.dp),
                 border = BorderStroke(ThickSm, Color.Transparent),
                 onClick = onReply
@@ -81,10 +79,24 @@ fun ButtonBar(
                 if (favorited) R.drawable.starfilled else R.drawable.star,
                 favoriteCount
             )
+            TextButton(
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                contentPadding = PaddingValues(PaddingSize1, 0.dp),
+                border = BorderStroke(ThickSm, Color.Transparent),
+                onClick = onBookmark
+            ) {
+                Image(
+                    modifier = Modifier.size(PaddingSize3),
+                    painter = painterResource(if (!bookmarked) R.drawable.bookmark else R.drawable.bookmarkfilled),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                )
+            }
+
             if ((replyCount != null && replyCount > 0) || hasParent) {
-                OutlinedButton(
+                TextButton(
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
-                    border = BorderStroke(ThickSm, Color.Transparent),
                     onClick = {
                         onShowReplies()
                     }
@@ -97,15 +109,16 @@ fun ButtonBar(
                     )
                     replyCount?.let {
                         Text(
+                            color = MaterialTheme.colorScheme.primary,
                             text = " $it"
                         )
                     }
                 }
             } else {
                 //placeholder I am bad at code
-                OutlinedButton(
+                TextButton(
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
-                    border = BorderStroke(ThickSm, Color.Transparent),
                     onClick = {
                     }
                 ) {
@@ -136,19 +149,12 @@ private fun SpringyButton(
     var clicked by remember { mutableStateOf(false) }
     var localCount by remember { mutableStateOf(count) }
 
-    val imageSize: Float by animateFloatAsState(
-        if (clicked) 1.1f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioHighBouncy,
-            stiffness = Spring.StiffnessMedium // with medium speed
-        )
-    )
-    if (imageSize == 1.1f) clicked = false
+    val imageSize = 1
     val scope = rememberCoroutineScope()
 
-    OutlinedButton(
+    TextButton(
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
         contentPadding = PaddingValues(PaddingSize1, 0.dp),
-        border = BorderStroke(ThickSm, Color.Transparent),
         onClick = {
             clicked = !clicked
             scope.launch {
@@ -161,17 +167,14 @@ private fun SpringyButton(
         Image(
             modifier = Modifier
                 .padding(end = PaddingSize0_5)
-                .size(iconSize)
-                .scale(1 * imageSize)
-                .rotate(imageSize * -45f)
-                .offset(y = (1 * imageSize).dp, x = (2 * imageSize).dp)
-                .rotate(45f),
+                .size(iconSize),
             painter = painterResource(icon),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
         )
         localCount?.let {
             Text(
+                color = MaterialTheme.colorScheme.primary,
                 text = " $it"
             )
         }

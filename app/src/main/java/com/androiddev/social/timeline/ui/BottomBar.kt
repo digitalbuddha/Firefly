@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.theme.ThickSm
-import social.androiddev.R
+import social.androiddev.firefly.R
 
 @Composable
 fun BottomBar(
@@ -42,7 +42,7 @@ fun BottomBar(
                 modifier = Modifier.size(size.dp),
                 painter = painterResource(R.drawable.at),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
         }
 
@@ -65,7 +65,7 @@ fun BottomBar(
                     .rotate(0f),
                 painter = painterResource(R.drawable.notification),
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
             )
         }
     }

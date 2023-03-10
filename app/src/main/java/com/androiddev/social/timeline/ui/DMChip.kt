@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize2
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DirectMessage(directMessage: Boolean) {

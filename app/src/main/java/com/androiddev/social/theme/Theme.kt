@@ -72,7 +72,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun EbonyTheme(
+fun FireflyTheme(
     isDarkTheme: Boolean = isSystemInDarkTheme(),
     isDynamicColor: Boolean = true,
     content: @Composable () -> Unit

@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.androiddev.social.theme.EbonyTheme
+import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.ThickMd
 
@@ -31,7 +31,7 @@ fun SignInContent(
     onCloseClicked: () -> Unit,
     shouldCancelLoadingUrl: (url: String) -> Boolean
 ) {
-    EbonyTheme {
+    FireflyTheme {
         Box(Modifier.heightIn(min = 1.dp))
         Column(
             modifier = modifier.wrapContentHeight().background(Color.Transparent)

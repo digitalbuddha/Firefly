@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,8 +51,7 @@ import com.androiddev.social.theme.PaddingSize4
 import com.androiddev.social.ui.util.VideoPlayer
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @Composable
 fun AvatarImage(
     size: Dp = PaddingSize4,
@@ -173,7 +171,7 @@ fun ContentImage(
                                     }
                                 }
                                 .fillMaxSize()
-                                .aspectRatio(1f)
+//                                .aspectRatio(1f)
                                 .padding(0.dp)
                                 .clip(shape = RoundedCornerShape(4, 4, 4, 4))
 //                                .clickable { clicked = false }
@@ -181,7 +179,7 @@ fun ContentImage(
                             transform = AsyncImagePainter.DefaultTransform,
                             onState = { },
                             alignment = Alignment.Center,
-                            contentScale = ContentScale.FillWidth,
+                            contentScale = ContentScale.Inside,
                             alpha = DefaultAlpha,
                             colorFilter = null,
                             filterQuality = DrawScope.DefaultFilterQuality
@@ -210,15 +208,15 @@ fun ContentImage(
             imageLoader = LocalImageLoader.current,
             modifier = modifier
                 .fillMaxWidth()
-                .aspectRatio(1f)
-                .padding(0.dp)
+//                .aspectRatio(1f)
+                .padding(vertical = 4.dp)
                 .clip(shape = RoundedCornerShape(4, 4, 4, 4))
                 .clickable { clicked = true }
                 .background(Color.Transparent),
             transform = AsyncImagePainter.DefaultTransform,
             onState = { },
             alignment = Alignment.Center,
-            contentScale = ContentScale.FillWidth,
+            contentScale = ContentScale.Inside,
             alpha = DefaultAlpha,
             colorFilter = null,
             filterQuality = DrawScope.DefaultFilterQuality

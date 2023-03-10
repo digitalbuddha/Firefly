@@ -40,7 +40,7 @@ fun MentionsScreen(
     LaunchedEffect(key1 = userComponent.request()) {
         component.mentionsPresenter().handle(MentionsPresenter.Load)
     }
-    val statuses = mentionsPresenter.model.statuses.map { it.toStatusDb(FeedType.Home).mapStatus() }
+    val statuses = mentionsPresenter.model.statuses.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
     LaunchedEffect(key1 = userComponent.request()) {
         component.submitPresenter().start()
     }

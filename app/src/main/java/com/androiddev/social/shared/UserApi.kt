@@ -100,6 +100,12 @@ interface UserApi {
         @Path("id") id: String,
     ): Status
 
+    @POST("/api/v1/statuses/{id}/bookmark")
+    suspend fun bookmarkStatus(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
+
     @GET("api/v1/accounts/verify_credentials")
     suspend fun accountVerifyCredentials(
         @Header("Authorization") authHeader: String?,

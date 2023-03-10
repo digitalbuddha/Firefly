@@ -12,8 +12,10 @@ import android.text.style.URLSpan
 import android.util.Log
 import android.view.View
 import androidx.annotation.VisibleForTesting
+import androidx.compose.material3.ColorScheme
 import androidx.core.net.toUri
 import com.androiddev.social.timeline.ui.model.UI
+import com.androiddev.social.ui.util.emojiText
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
@@ -60,12 +62,12 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         favorited = status.favourited ?: false,
         boosted = status.reblogged ?: false,
         inReplyTo = status.inReplyToId,
-
+        bookmarked = status.bookmarked?:false
         )
 }
 
 
-fun StatusDB.mapStatus(): UI {
+fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
     val status = this
 
     val createdAt = Instant.fromEpochMilliseconds(status.createdAt)
@@ -145,7 +147,32 @@ fun StatusDB.mapStatus(): UI {
         favorited = status.favorited,
         boosted = status.boosted,
         inReplyTo = status.inReplyTo,
-        accountId = status.accountId
+        accountId = status.accountId,
+        originalId = status.originalId,
+        bookmarked = status.bookmarked,
+                contentEmojiText = emojiText(
+            status.content,
+            status.mentions,
+            status.tags,
+            status.emoji,
+            colorScheme
+        ),
+        accountEmojiText = emojiText(
+            status.displayName,
+            emptyList(),
+            emptyList(),
+            status.accountEmojis,
+            colorScheme
+        ),
+        boostedEmojiText = status.boostedBy?.let {
+            emojiText(
+                it,
+                emptyList(),
+                emptyList(),
+                status.boostedEmojis,
+                colorScheme
+            )
+        },
     )
 }
 

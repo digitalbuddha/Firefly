@@ -34,7 +34,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
-import social.androiddev.R
+import social.androiddev.firefly.R
 import kotlin.math.abs
 
 @Composable

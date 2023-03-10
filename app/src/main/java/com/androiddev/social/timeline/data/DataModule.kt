@@ -12,7 +12,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import social.androiddev.BuildConfig
+import social.androiddev.firefly.BuildConfig
 import java.util.concurrent.TimeUnit
 
 @ContributesTo(AppScope::class)

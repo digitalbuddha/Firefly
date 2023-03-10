@@ -33,13 +33,14 @@ fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (String) -> U
     LaunchedEffect(key1 = status) {
         presenter.start()
     }
+    val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = status) {
-        presenter.handle(ConversationPresenter.Load(status.remoteId, status.type))
+        presenter.handle(ConversationPresenter.Load(status.remoteId, status.type, colorScheme))
     }
     val afterStatus =
         presenter.model.conversations.get(status.remoteId)?.after
     val after =
-        afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
+        afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
 
 
     InnerLazyColumn(after, goToConversation,goToProfile)

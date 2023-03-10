@@ -23,7 +23,7 @@ import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.dialog
 import com.androiddev.social.AuthRequiredComponent
-import com.androiddev.social.EbonyApp
+import com.androiddev.social.FireflyApp
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.UserManagerProvider
@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun getUserComponent(accessTokenRequest: AccessTokenRequest): UserComponent {
     val userManager =
-        ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
+        ((LocalContext.current.applicationContext as FireflyApp).component as UserManagerProvider).getUserManager()
     return userManager.userComponentFor(
         accessTokenRequest = accessTokenRequest
     )
@@ -55,7 +55,7 @@ fun getUserComponent(accessTokenRequest: AccessTokenRequest): UserComponent {
 @Composable
 fun getUserComponent(code: String): UserComponent {
     val userManager =
-        ((LocalContext.current.applicationContext as EbonyApp).component as UserManagerProvider).getUserManager()
+        ((LocalContext.current.applicationContext as FireflyApp).component as UserManagerProvider).getUserManager()
     return userManager.userComponentFor(
         code = code
     )
@@ -226,9 +226,7 @@ fun Navigator(
             }
         }
         composable(
-            "splash",
-            enterTransition = { fadeIn() },
-            exitTransition = { slideOutOfContainer(AnimatedContentScope.SlideDirection.End) }) {
+            "splash") {
             SplashScreen(navController)
         }
 

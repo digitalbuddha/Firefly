@@ -16,7 +16,7 @@ import dagger.Component
 import javax.inject.Scope
 import kotlin.reflect.KClass
 
-class EbonyApp : Application() {
+class FireflyApp : Application() {
     val component by lazy {
         (DaggerSkeletonComponent.factory().create(this as Application, this) as AppComponent.AppParentComponent).appComponent()
     }
@@ -32,7 +32,7 @@ interface SkeletonComponent  {
     interface Factory {
         fun create(
             @BindsInstance app2: Application,
-            @BindsInstance ebonyApp: EbonyApp,
+            @BindsInstance fireflyApp: FireflyApp,
         ): SkeletonComponent
     }
 }

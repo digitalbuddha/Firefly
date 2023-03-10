@@ -13,8 +13,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.constraintlayout.motion.widget.MotionLayout
 import com.androiddev.social.timeline.ui.MainActivity
-import social.androiddev.R
-
+import social.androiddev.firefly.R
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
 class SplashActivity : Activity() {

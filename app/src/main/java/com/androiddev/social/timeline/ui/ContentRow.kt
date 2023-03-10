@@ -17,8 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.material.BottomSheetState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize10
@@ -49,18 +51,13 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.LinkListener
-import com.androiddev.social.timeline.data.Status
-import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
-import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.material3.shimmer
 import me.saket.swipe.SwipeAction
-import social.androiddev.R
+import social.androiddev.firefly.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
@@ -69,7 +66,7 @@ fun TimelineCard(
     ui: UI?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit, boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
-    state: BottomSheetState?,
+    state: ModalBottomSheetState?,
     goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
     showInlineReplies: Boolean,
@@ -101,27 +98,26 @@ fun TimelineCard(
 
                 val provider = LocalAuthComponent.current.conversationPresenter().get()
                 var presenter by remember { mutableStateOf(provider) }
-                val submitPresenter = LocalAuthComponent.current.submitPresenter()
-                val beforeStatus: List<Status>? =
-                    presenter.model.conversations[ui.remoteId]?.before
+//                val beforeStatus: List<Status>? =
+//                    presenter.model.conversations[ui.remoteId]?.before
 
-                val before: MutableList<UI>? =
-                    beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus() }
-                        ?.toMutableList()
+//                val before: MutableList<UI>? =
+//                    beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
+//                        ?.toMutableList()
                 var showingReplies by remember { mutableStateOf(false) }
-                this@Column.AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
-                    var showParent by remember { mutableStateOf(false) }
-
-                    //            if (!showParent)
-                    //                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
-                    this@Column.AnimatedVisibility(showParent) {
-                        InnerLazyColumn(
-                            before,
-                            goToConversation = goToConversation,
-                            goToProfile = goToProfile
-                        )
-                    }
-                }
+//                this@Column.AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
+//                    var showParent by remember { mutableStateOf(false) }
+//
+//                    //            if (!showParent)
+//                    //                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
+//                    this@Column.AnimatedVisibility(showParent) {
+//                        InnerLazyColumn(
+//                            before,
+//                            goToConversation = goToConversation,
+//                            goToProfile = goToProfile
+//                        )
+//                    }
+//                }
 
                 UserInfo(ui, goToProfile, onProfileClick = onProfileClick)
                 Row(
@@ -131,17 +127,12 @@ fun TimelineCard(
                 ) {
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val (mapping, text) = emojiText(
-                            ui.content,
-                            ui.mentions,
-                            ui.tags,
-                            ui.contentEmojis
-                        )
+                        val (mapping, text) = ui.contentEmojiText!!
                         var clicked by remember(ui) { mutableStateOf(false) }
                         var showReply by remember(ui) { mutableStateOf(false) }
                         if (clicked) {
                             LaunchedEffect(Unit) {
-                                state?.collapse()
+                                state?.hide()
                             }
                         }
 
@@ -156,7 +147,7 @@ fun TimelineCard(
                                 .fillMaxWidth(),
                             text = text,
                             onClick = {
-                                if (ui.inReplyTo != null) {
+                                if (ui.inReplyTo != null || ui.replyCount>0) {
                                     goToConversation(ui)
                                     clicked = false
                                 } else {
@@ -227,46 +218,56 @@ fun TimelineCard(
                                 )
                             }
                         }
-                        AnimatedVisibility(true) {
 
-                            Column() {
 
-                                ButtonBar(
-                                    ui,
-                                    ui.replyCount,
-                                    ui.boostCount,
-                                    ui.favoriteCount,
-                                    ui.favorited,
-                                    ui.boosted,
-                                    ui.inReplyTo != null,
-                                    showInlineReplies,
-                                    onBoost = {
-                                        boostStatus(ui.remoteId)
-                                    },
-                                    onFavorite = {
-                                        favoriteStatus(ui.remoteId)
-                                    },
-                                    onReply = {
-                                        showReply = !showReply
-                                        isReplying(showReply)
-                                    },
-                                    showReply = showingReplies,
-                                    onShowReplies = {
-                                        showingReplies = !showingReplies
-                                        goToConversation(ui)
-                                    },
-                                    goToConversation = {
-                                        goToConversation(ui)
-                                    },
-                                    goToProfile = goToProfile
-                                )
-                            }
+                        Column() {
 
+                            val current = LocalAuthComponent.current
+                            var justBookmarked by remember { mutableStateOf(false) }
+
+                            ButtonBar(
+                                ui,
+                                ui.replyCount,
+                                ui.boostCount,
+                                ui.favoriteCount,
+                                ui.favorited,
+                                ui.boosted,
+                                ui.inReplyTo != null,
+                                showInlineReplies,
+                                onBoost = {
+                                    boostStatus(ui.remoteId)
+                                },
+                                onFavorite = {
+                                    favoriteStatus(ui.remoteId)
+                                },
+                                onReply = {
+                                    showReply = !showReply
+                                    isReplying(showReply)
+                                },
+                                showReply = showingReplies,
+                                onShowReplies = {
+                                    showingReplies = !showingReplies
+                                    goToConversation(ui)
+                                },
+                                goToConversation = {
+                                    goToConversation(ui)
+                                },
+                                goToProfile = goToProfile,
+                                bookmarked = ui.bookmarked || justBookmarked,
+                                onBookmark = {
+                                    justBookmarked = true
+                                    current.submitPresenter()
+                                        .handle(SubmitPresenter.BookmarkMessage(ui.remoteId))
+                                }
+                            )
                         }
+
                     }
                 }
             }
         }
+        Divider()
+
     }
 }
 
@@ -277,22 +278,22 @@ fun UserInfo(
     goToProfile: (String) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> }
 ) {
-    Row(Modifier.fillMaxWidth().padding(bottom = PaddingSize1),
-        horizontalArrangement = Arrangement.Center) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = PaddingSize1, start =60.dp)
+    ) {
         if (ui.directMessage) {
             DirectMessage(ui.directMessage)
         }
         if (ui.boostedBy != null)
-            Boosted(
-                "${ui.boostedBy}",
+            Boosted(ui.boostedEmojiText, R.drawable.rocket3,
                 ui.boostedAvatar,
-                ui.boostedEmojis,
-                R.drawable.rocket3,
                 containerColor = colorScheme.surface,
                 onClick = {
                     onProfileClick(ui.boostedById!!, true)
-                }
-            )
+                })
+
     }
     Row(
         Modifier
@@ -305,11 +306,6 @@ fun UserInfo(
     ) {
         ui.avatar?.let { AvatarImage(PaddingSize7, it, onClick = { goToProfile(ui.accountId!!) }) }
         ui.accountEmojis?.let {
-            val (inlineContentMap, text) = inlineEmojis(
-                ui.displayName,
-                it
-            )
-
             Column(Modifier.padding(start = PaddingSize1)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -323,10 +319,9 @@ fun UserInfo(
                             .padding(bottom = PaddingSize0_5)
                             .fillMaxWidth(.6f)
                             .align(Alignment.Top),
-                        text = text,
+                        text = ui.accountEmojiText!!.text,
                         style = MaterialTheme.typography.bodyLarge,
-                        inlineContent = inlineContentMap,
-
+                        inlineContent = ui.accountEmojiText.mapping,
                         )
                 }
                 Row(
@@ -341,11 +336,10 @@ fun UserInfo(
                     Text(
                         color = colorScheme.secondary,
                         text = ui.timePosted,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                     )
 
                 }
-
             }
 
 

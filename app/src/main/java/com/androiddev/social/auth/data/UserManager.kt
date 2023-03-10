@@ -20,7 +20,7 @@ interface UserManagerProvider {
 
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
-class RealUserManager @Inject constructor(val app: EbonyApp) : UserManager {
+class RealUserManager @Inject constructor(val app: FireflyApp) : UserManager {
     val cache = CacheBuilder<String, UserComponent>()
         .build()
     val atomicReference = AtomicReference<UserComponent>()

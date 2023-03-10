@@ -23,7 +23,7 @@ import coil.decode.VideoFrameDecoder
 import com.androiddev.social.AuthOptionalComponent.ParentComponent
 import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.AuthRequiredScope
-import com.androiddev.social.EbonyApp
+import com.androiddev.social.FireflyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.theme.*
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -31,7 +31,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.squareup.anvil.annotations.ContributesTo
-import social.androiddev.R
+import social.androiddev.firefly.R
 import javax.inject.Provider
 
 
@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(LocalImageLoader provides loader) {
                 var isDynamicTheme by remember { mutableStateOf(true) }
-                EbonyTheme(isDynamicColor = isDynamicTheme) {
+                FireflyTheme(isDynamicColor = isDynamicTheme) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -137,8 +137,8 @@ class MainActivity : ComponentActivity() {
 
 
     fun noAuthComponent() =
-        ((applicationContext as EbonyApp).component as ParentComponent).createAuthOptionalComponent()
+        ((applicationContext as FireflyApp).component as ParentComponent).createAuthOptionalComponent()
 
     fun AuthComponent() =
-        ((applicationContext as EbonyApp).component as ParentComponent).createAuthOptionalComponent()
+        ((applicationContext as FireflyApp).component as ParentComponent).createAuthOptionalComponent()
 }
