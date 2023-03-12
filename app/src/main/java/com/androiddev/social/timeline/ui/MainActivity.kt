@@ -25,6 +25,7 @@ import com.androiddev.social.AuthOptionalScope
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.FireflyApp
 import com.androiddev.social.auth.ui.SignInPresenter
+import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.theme.*
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
@@ -46,6 +47,7 @@ interface AuthOptionalInjector {
 interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
     fun profilePresenter(): ProfilePresenter
+    fun searchPresenter(): SearchPresenter
     fun homePresenter(): Provider<TimelinePresenter>
     fun mentionsPresenter(): MentionsPresenter
     fun notificationPresenter(): NotificationPresenter

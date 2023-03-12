@@ -2,14 +2,9 @@ package com.androiddev.social.timeline.ui
 
 import android.content.Context
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.androiddev.social.auth.data.AccessTokenRequest
@@ -38,18 +33,6 @@ fun SplashScreen(navController: NavHostController) {
             navController.navigate("home/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
                 popUpTo(0)
             }
-        }
-    }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.wrapContentSize(Alignment.Center)
-        ) {
-
         }
     }
 }

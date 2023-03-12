@@ -1,0 +1,312 @@
+package com.slack.exercise.search.results
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
+import androidx.compose.material.TabRowDefaults
+import androidx.compose.material.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.androiddev.social.search.SearchPresenter
+import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.theme.PaddingSize7
+import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.Tag
+import com.androiddev.social.timeline.ui.AvatarImage
+import com.androiddev.social.timeline.ui.LocalAuthComponent
+import com.androiddev.social.timeline.ui.SubmitPresenter
+import com.androiddev.social.timeline.ui.card
+import com.androiddev.social.timeline.ui.model.UI
+import com.androiddev.social.ui.util.emojiText
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.pagerTabIndicatorOffset
+import com.google.accompanist.pager.rememberPagerState
+import social.androiddev.firefly.R
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun SearchResults(
+    results: SearchPresenter.SearchModel,
+    goToProfile: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
+) {
+    val padding = PaddingSize1
+    val pagerState = rememberPagerState()
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .scale(2f)
+            .blur(2.dp)
+            .alpha(.9f),
+        painter = painterResource(id = R.drawable.background),
+        contentDescription = null
+    )
+    Column(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
+            .padding(top = 12.dp)
+    ) {
+        TabRow(
+            // Our selected tab is our current page
+            selectedTabIndex = pagerState.currentPage,
+            // Override the indicator, using the provided pagerTabIndicatorOffset modifier
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.pagerTabIndicatorOffset(pagerState, tabPositions)
+                )
+            }
+        ) {
+            val tabs = listOf("Accounts", "Statuses", "Hashtags")
+            // Add tabs for all of our pages
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                    text = { Text(title, color = colorScheme.primary) },
+                    selected = pagerState.currentPage == index,
+                    onClick = { /* TODO */ },
+                )
+            }
+        }
+        val component = LocalAuthComponent.current
+        val submitPresenter = component.submitPresenter()
+        LaunchedEffect(key1 = Unit) {
+            submitPresenter.start()
+        }
+
+        HorizontalPager(
+            count = 3,
+            state = pagerState,
+        ) { page ->
+            when (page) {
+                0 -> {
+                    if (results.accounts != null) {
+                        AccountTab(results.accounts, goToProfile, submitPresenter)
+                    } else {
+
+
+                    }
+                }
+
+                1 -> {
+                    if (results.statuses != null) {
+                        StatusTab(
+                            results.statuses,
+                            goToProfile,
+                            goToConversation,
+                            submitPresenter
+                        )
+                    } else {
+                        Image(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .scale(2f)
+                                .blur(2.dp)
+                                .alpha(.5f),
+                            painter = painterResource(id = R.drawable.background),
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                2 -> {
+                    if (results.hashtags != null) {
+                        HashTagTab(results.hashtags, goToProfile, submitPresenter)
+                    } else {
+                        Image(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .scale(2f)
+                                .blur(2.dp)
+                                .alpha(.5f),
+                            painter = painterResource(id = R.drawable.background),
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountTab(
+    results: List<Account>,
+    goToProfile: (String) -> Unit,
+    submitPresenter: SubmitPresenter
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        items(results, key = { it.id }) {
+            Column {
+                Row(modifier = Modifier
+                    .clickable { goToProfile(it.id) }
+                    .padding(PaddingSize1)) {
+                    AvatarImage(PaddingSize7, it.avatar, onClick = { goToProfile(it.id) })
+                    Column(Modifier.padding(start = PaddingSize1)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            val text = emojiText(
+                                it.displayName,
+                                emptyList(),
+                                emptyList(),
+                                it.emojis,
+                                colorScheme
+                            )
+                            androidx.compose.material3.Text(
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.Top),
+                                text = text.text,
+                                style = MaterialTheme.typography.titleLarge,
+                                inlineContent = text.mapping,
+                            )
+                            androidx.compose.material3.Text(
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier
+                                    .align(Alignment.Top),
+                                text = "Followers ${it.followersCount}",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            androidx.compose.material3.Text(
+                                color = MaterialTheme.colorScheme.secondary,
+                                text = it.username,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+
+                            androidx.compose.material3.Text(
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier
+                                    .align(Alignment.Top),
+                                text = "Following ${it.followingCount} ",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+
+                        }
+                    }
+                }
+            }
+            Divider()
+        }
+    }
+}
+
+
+@Composable
+private fun StatusTab(
+    results: List<UI>,
+    goToProfile: (String) -> Unit,
+    goToConversation: (UI) -> Unit,
+    submitPresenter: SubmitPresenter
+) {
+    LazyColumn(
+        Modifier
+            .wrapContentHeight()
+            .padding(top = 0.dp)
+    ) {
+        items(results, key = { it.remoteId }) {
+            card(
+                modifier = Modifier.background(Color.Transparent),
+                status = it,
+                events = submitPresenter.events,
+                showInlineReplies = false,
+                goToConversation = goToConversation,
+                goToProfile = goToProfile
+            )
+        }
+    }
+}
+
+@Composable
+private fun HashTagTab(
+    results: List<Tag>,
+    goToProfile: (String) -> Unit,
+    submitPresenter: SubmitPresenter
+) {
+    LazyColumn {
+        items(results, key = { it.name }) {
+            Row(modifier = Modifier.clickable { }) {
+
+                Row {
+
+                    Image(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(R.drawable.at),
+                        contentDescription = "",
+                        colorFilter = ColorFilter.tint(colorScheme.primary)
+                    )
+                    Column {
+
+                        androidx.compose.material3.Text(
+                            style = MaterialTheme.typography.titleLarge,
+                            color = colorScheme.primary,
+                            modifier = Modifier
+                                .padding(PaddingSize0_5)
+                                .align(Alignment.CenterHorizontally),
+                            text = it.name,
+                        )
+                    }
+                    OutlinedButton(onClick = {
+                        submitPresenter.handle(SubmitPresenter.FollowTag(it.id!!))
+                    }) {
+                        Text(text = "follow", color = colorScheme.primary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

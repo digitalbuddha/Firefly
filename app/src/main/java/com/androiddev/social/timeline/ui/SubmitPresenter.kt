@@ -46,9 +46,16 @@ abstract class SubmitPresenter :
     data class BoostMessage(val statusId: String, val feedType: FeedType) :
         SubmitEvent
 
+    data class Follow(val accountId: String, val unfollow: Boolean = false) :
+        SubmitEvent
+
+    data class FollowTag(val tagId: String) :
+        SubmitEvent
+
     data class FavoriteMessage(val statusId: String, val feedType: FeedType) :
         SubmitEvent
- data class BookmarkMessage(val statusId: String) :
+
+    data class BookmarkMessage(val statusId: String) :
         SubmitEvent
 
     data class SubmitModel(
@@ -69,129 +76,175 @@ class RealSubmitPresenter @Inject constructor(
 
     override suspend fun eventHandler(event: SubmitEvent, coroutineScope: CoroutineScope): Unit =
         withContext(Dispatchers.IO) {
-        when (event) {
-            is PostMessage -> {
-                val ids: List<String> = event.uris.map { uri ->
-                    var mimeType = context.contentResolver.getType(uri)
-                    val stream = context.contentResolver.openInputStream(uri)
+            when (event) {
+                is PostMessage -> {
+                    val ids: List<String> = event.uris.map { uri ->
+                        var mimeType = context.contentResolver.getType(uri)
+                        val stream = context.contentResolver.openInputStream(uri)
 
-                    val map = MimeTypeMap.getSingleton()
-                    val fileExtension = map.getExtensionFromMimeType(mimeType)
-                    val filename = "%s_%s.%s".format(
-                        context.getString(R.string.app_name),
-                        Date().time.toString(),
-                        fileExtension
-                    )
+                        val map = MimeTypeMap.getSingleton()
+                        val fileExtension = map.getExtensionFromMimeType(mimeType)
+                        val filename = "%s_%s.%s".format(
+                            context.getString(R.string.app_name),
+                            Date().time.toString(),
+                            fileExtension
+                        )
 
 
-                    if (mimeType == null) mimeType = "multipart/form-data"
+                        if (mimeType == null) mimeType = "multipart/form-data"
 
-                    val fileDescriptor: AssetFileDescriptor? =
-                        context.getContentResolver()
-                            .openAssetFileDescriptor(uri, "r")
-                    val fileSize = fileDescriptor?.length
-                    val fileBody = ProgressRequestBody(
-                        content = stream!!,
-                        contentLength = fileSize!!,
-                        mediaType = mimeType.toMediaTypeOrNull()!!
-                    )
+                        val fileDescriptor: AssetFileDescriptor? =
+                            context.getContentResolver()
+                                .openAssetFileDescriptor(uri, "r")
+                        val fileSize = fileDescriptor?.length
+                        val fileBody = ProgressRequestBody(
+                            content = stream!!,
+                            contentLength = fileSize!!,
+                            mediaType = mimeType.toMediaTypeOrNull()!!
+                        )
 
-                    val body: MultipartBody.Part =
-                        MultipartBody.Part.createFormData("file", filename, fileBody)
+                        val body: MultipartBody.Part =
+                            MultipartBody.Part.createFormData("file", filename, fileBody)
 
-                    val uploadResult = kotlin.runCatching {
-                        api.upload(
+                        val uploadResult = kotlin.runCatching {
+                            api.upload(
+                                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                file = body
+                            )
+                        }
+                        return@map uploadResult.getOrNull()
+                    }.filterNotNull().map { it.id }
+
+                    val result = kotlin.runCatching {
+                        val status = NewStatus(
+                            mediaIds = ids,
+                            status = event.content,
+                            visibility = event.visibility.toLowerCase(),
+                            replyStatusId = event.replyStatusId,
+                        )
+                        api.newStatus(
                             authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                            file = body
+                            status = status
                         )
                     }
-                    return@map uploadResult.getOrNull()
-                }.filterNotNull().map { it.id }
-
-                val result = kotlin.runCatching {
-                    val status = NewStatus(
-                        mediaIds = ids,
-                        status = event.content,
-                        visibility = event.visibility.toLowerCase(),
-                        replyStatusId = event.replyStatusId,
-                    )
-                    api.newStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        status = status
-                    )
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+                                event.replyStatusId?.let {
+                                    statusDao.update(
+                                        event.replyCount + 1, it
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            event.replyStatusId?.let {
-                                statusDao.update(
-                                    event.replyCount + 1, it
+
+                is FavoriteMessage -> {
+                    val result = kotlin.runCatching {
+                        api.favoriteStatus(
+                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                            id = event.statusId
+                        )
+                    }
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+                                statusDao.insertAll(
+                                    listOf(result.getOrThrow().toStatusDb(event.feedType))
                                 )
                             }
                         }
                     }
                 }
-            }
 
-            is FavoriteMessage -> {
-                val result = kotlin.runCatching {
-                    api.favoriteStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        id = event.statusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            statusDao.insertAll(
-                                listOf(result.getOrThrow().toStatusDb(event.feedType))
-                            )
-                        }
+                is BookmarkMessage -> {
+                    val result = kotlin.runCatching {
+                        api.bookmarkStatus(
+                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                            id = event.statusId
+                        )
                     }
-                }
-            }
-            is BookmarkMessage -> {
-                val result = kotlin.runCatching {
-                    api.bookmarkStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        id = event.statusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
 //                            statusDao.insertAll(
 //                                listOf(result.getOrThrow().toStatusDb(event.feedType))
 //                            )
+                            }
                         }
                     }
                 }
-            }
 
-            is BoostMessage -> {
-                val result = kotlin.runCatching {
-                    api.boostStatus(
-                        authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                        id = event.statusId
-                    )
-                }
-                when {
-                    result.isSuccess -> {
-                        withContext(Dispatchers.IO) {
-                            result.getOrThrow().reblog?.let {
-                                statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
-                            }
-                            statusDao.insertAll(
-                                listOf(
-                                    result.getOrThrow().toStatusDb(event.feedType)
+                is BoostMessage -> {
+                    val result = kotlin.runCatching {
+                        api.boostStatus(
+                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                            id = event.statusId
+                        )
+                    }
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+                                result.getOrThrow().reblog?.let {
+                                    statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
+                                }
+                                statusDao.insertAll(
+                                    listOf(
+                                        result.getOrThrow().toStatusDb(event.feedType)
+                                    )
                                 )
-                            )
+                            }
+                        }
+                    }
+                }
+
+                is Follow -> {
+                    val result =
+                        if (event.unfollow) {
+                            kotlin.runCatching {
+                                api.unFollowAccount(
+                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    id = event.accountId
+                                )
+                            }
+                        } else {
+                            kotlin.runCatching {
+                                api.followAccount(
+                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    id = event.accountId
+                                )
+                            }
+
+                        }
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+
+                            }
+                        }
+                    }
+                }
+                is FollowTag -> {
+                    val result =
+                            kotlin.runCatching {
+                                api.followAccount(
+                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    id = event.tagId
+                                )
+                            }
+
+
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+
+                            }
                         }
                     }
                 }
             }
         }
-    }
 }
 
 

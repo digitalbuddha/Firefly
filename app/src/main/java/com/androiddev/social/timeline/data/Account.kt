@@ -41,6 +41,7 @@ data class Account(
     @SerialName("mute_expires_at") val muteExpiresAt: String? = null,
 
     val domain: String?=null,
+    val isFollowed: Boolean=false,
 
     )
 

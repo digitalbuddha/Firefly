@@ -102,7 +102,7 @@ fun ServerSelectScreen(
                         text = {
                             Text("Continue to Server")
                         },
-                        onClick = { onServerSelected(current) }
+                        onClick = { if(current.isNotEmpty()) onServerSelected(current) }
                     )
                 }
             }

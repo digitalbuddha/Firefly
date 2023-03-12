@@ -11,8 +11,11 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.DialogProperties
@@ -27,6 +30,8 @@ import com.androiddev.social.FireflyApp
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.UserManagerProvider
+import com.androiddev.social.search.SearchPresenter
+import com.androiddev.social.search.SearchScreen
 import com.androiddev.social.timeline.data.dataStore
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -108,6 +113,8 @@ fun Navigator(
                         },
                         goToNotifications = {
                             navController.navigate("notifications/${it.arguments?.getString("code")}")
+                        }, goToSearch = {
+                            navController.navigate("search/${it.arguments?.getString("code")}")
                         },
                         goToConversation = { status: UI ->
                             navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
@@ -176,6 +183,41 @@ fun Navigator(
 
             }
             dialog(
+                route = "search/{code}",
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+
+                ) {
+                AuthScoped(
+                    it.arguments,
+                    it.arguments?.getString("code")
+                ) { component: AuthRequiredInjector, code ->
+                    val searchPresenter = component.searchPresenter()
+                    val scope = rememberCoroutineScope()
+                    LaunchedEffect(key1 = code) {
+                        searchPresenter.start(scope)
+                    }
+                    val colorScheme = MaterialTheme.colorScheme
+                    LaunchedEffect(key1 = code) {
+                        searchPresenter.handle(SearchPresenter.Init(colorScheme))
+                    }
+                    SearchScreen(
+                        searchPresenter.model,
+                        navController = navController,
+                        onQueryChange = { searchTerm: String ->
+                            searchPresenter.onQueryTextChange(searchTerm)
+                        },
+                        goToProfile = { accountId: String ->
+                            navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
+                        },
+                        goToConversation = { status ->
+                            navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
+                        },
+                    )
+                }
+
+            }
+
+            dialog(
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 route = "conversation/{code}/{statusId}/{type}",
             ) {
@@ -220,13 +262,14 @@ fun Navigator(
                                 navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                             },
 
-                        )
+                            )
                     }
                 }
             }
         }
         composable(
-            "splash") {
+            "splash"
+        ) {
             SplashScreen(navController)
         }
 

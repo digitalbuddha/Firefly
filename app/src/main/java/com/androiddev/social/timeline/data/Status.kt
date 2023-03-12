@@ -217,9 +217,9 @@ enum class CardType {
 @Serializable
 data class Tag(
     // required attributes
+    @SerialName("id") val id: String?="",
     @SerialName("name") val name: String,
     @SerialName("url") val url: String,
-
     // optional attributes
     @SerialName("history") val history: List<History>? = emptyList(),
 )

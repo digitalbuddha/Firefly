@@ -1,5 +1,6 @@
 package com.androiddev.social.shared
 
+import com.androiddev.social.search.SearchResult
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Notification
@@ -39,6 +40,13 @@ interface UserApi {
         @Query("types[]") types: Set<String>? = setOf("mention"),
 //        @Query("exclude_types[]") excludes: Set<String>?,
     ): List<Notification>
+
+    @GET("/api/v2/search")
+    suspend fun search(
+        @Header("Authorization") authHeader: String,
+        @Query("q") searchTerm: String,
+        @Query("limit") limit: String = "40",
+    ): SearchResult
 
     @GET("/api/v1/notifications")
     suspend fun notifications(
@@ -93,6 +101,22 @@ interface UserApi {
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
     ): Status
+   @POST("/api/v1/account/{id}/follow")
+    suspend fun followAccount(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
+
+    @POST("/api/v1/tags/{id}/follow")
+    suspend fun followTag(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
+    @POST("/api/v1/account/{id}/follow")
+    suspend fun unFollowAccount(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+    ): Status
 
     @POST("/api/v1/statuses/{id}/favourite")
     suspend fun favoriteStatus(
@@ -110,6 +134,12 @@ interface UserApi {
     suspend fun accountVerifyCredentials(
         @Header("Authorization") authHeader: String?,
     ): Account
+
+    @GET("/api/v1/accounts/{id}/following")
+    suspend fun following(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") id: String,
+        ): List<Account>
 
     @Serializable
     data class UploadIds(

@@ -40,7 +40,9 @@ fun MentionsScreen(
     LaunchedEffect(key1 = userComponent.request()) {
         component.mentionsPresenter().handle(MentionsPresenter.Load)
     }
-    val statuses = mentionsPresenter.model.statuses.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
+    val statuses = mentionsPresenter.model.statuses.map {
+        it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme)
+    }
     LaunchedEffect(key1 = userComponent.request()) {
         component.submitPresenter().start()
     }
@@ -61,23 +63,23 @@ fun MentionsScreen(
                 .wrapContentHeight()
                 .padding(top = 0.dp)
         ) {
-                items(statuses, key = { it.remoteId }) {
-                    card(
-                        modifier = Modifier.background(Color.Transparent),
-                        status = it,
-                        events = component.submitPresenter().events,
-                        showInlineReplies = false,
-                        goToConversation = goToConversation,
-                        goToProfile = goToProfile
-                    )
-                }
+            items(statuses, key = { it.remoteId }) {
+                card(
+                    modifier = Modifier.background(Color.Transparent),
+                    status = it,
+                    events = component.submitPresenter().events,
+                    showInlineReplies = false,
+                    goToConversation = goToConversation,
+                    goToProfile = goToProfile
+                )
             }
         }
+    }
     CustomViewPullRefreshView(
         pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
     )
-    if(showBackBar)
-    BackBar(navController, "Mentions")
+    if (showBackBar)
+        BackBar(navController, "Mentions")
 }
 
 

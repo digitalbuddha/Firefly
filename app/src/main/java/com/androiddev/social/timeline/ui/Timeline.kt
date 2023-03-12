@@ -58,6 +58,7 @@ fun TimelineScreen(
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
     goToMentions: () -> Unit,
     goToNotifications: () -> Unit,
+    goToSearch: () -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit
 ) {
@@ -146,7 +147,9 @@ fun TimelineScreen(
                                         refresh = true
                                     })
                             }
-                            Search()
+                            Search({
+                                goToSearch()
+                            })
                         }
                     })
             },
