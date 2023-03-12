@@ -93,9 +93,23 @@ class RealSearchPresenter @Inject constructor(
                             val authHeader = " Bearer ${oauthRepository.getCurrent()}"
 //
                             val searchResults = results.requireData()
+                            val userTags =
+                                kotlin.runCatching {
+                                    userApi.followedTags(authHeader = authHeader)
+
+                                }
+                            val tags =
+                                (userTags.getOrNull() ?: emptyList<Tag>()).toSet().map { it.name }
+
                             model = SearchModel(
                                 accounts = searchResults.accounts,
-                                hashtags = searchResults.hashtags,
+                                hashtags = searchResults.hashtags.map {
+                                    if (tags.contains(it.name)) {
+                                        it.copy(isFollowing = true)
+                                    } else {
+                                        it
+                                    }
+                                },
                                 statuses = searchResults.statuses.map {
                                     it.toStatusDb(FeedType.User).mapStatus(colorScheme)
                                 })

@@ -11,7 +11,7 @@ import com.androiddev.social.search.topbar.TopBar
 import com.androiddev.social.timeline.ui.model.UI
 import com.slack.exercise.search.SearchState
 import com.slack.exercise.search.rememberSearchState
-import com.slack.exercise.search.results.SearchResults
+import com.androiddev.social.search.results.SearchResults
 
 
 /**

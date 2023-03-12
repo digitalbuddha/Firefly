@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
@@ -79,7 +80,7 @@ fun ProfileScreen(
 ) {
     val homePresenter by remember(key1 = accountId) {
         mutableStateOf(
-            component.homePresenter().get()
+            component.homePresenter()
         )
     }
     val submitPresenter = component.submitPresenter()
@@ -257,7 +258,6 @@ private fun posts(
                     navController.navigate("profile/${code}/${accountId}")
                 },
                 ui = statuses,
-                account = account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     events.tryEmit(
                         SubmitPresenter.PostMessage(
@@ -295,7 +295,7 @@ private fun posts(
                 { accountId, _ ->
                     navController.navigate("profile/${code}/${accountId}")
                 },
-                statuses.rememberLazyListState()
+                rememberLazyListState()
             )
         }
     }

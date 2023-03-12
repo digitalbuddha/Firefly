@@ -30,7 +30,7 @@ class LocalTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -79,7 +79,7 @@ class HomeTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -127,7 +127,7 @@ class FederatedTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -179,7 +179,7 @@ class TrendingRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>

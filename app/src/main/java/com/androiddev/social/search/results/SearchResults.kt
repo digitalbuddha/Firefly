@@ -1,6 +1,5 @@
-package com.slack.exercise.search.results
+package com.androiddev.social.search.results
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,29 +7,30 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Surface
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.search.SearchPresenter
@@ -49,7 +49,12 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import social.androiddev.firefly.R
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
+import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
+import com.patrykandpatrick.vico.core.entry.entryModelOf
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -60,19 +65,10 @@ fun SearchResults(
 ) {
     val padding = PaddingSize1
     val pagerState = rememberPagerState()
-    Image(
-        modifier = Modifier
-            .fillMaxSize()
-            .scale(2f)
-            .blur(2.dp)
-            .alpha(.9f),
-        painter = painterResource(id = R.drawable.background),
-        contentDescription = null
-    )
+
     Column(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 12.dp)
     ) {
         TabRow(
             // Our selected tab is our current page
@@ -84,6 +80,7 @@ fun SearchResults(
                 )
             }
         ) {
+            val scope = rememberCoroutineScope()
             val tabs = listOf("Accounts", "Statuses", "Hashtags")
             // Add tabs for all of our pages
             tabs.forEachIndexed { index, title ->
@@ -91,7 +88,7 @@ fun SearchResults(
                     modifier = Modifier.background(MaterialTheme.colorScheme.background),
                     text = { Text(title, color = colorScheme.primary) },
                     selected = pagerState.currentPage == index,
-                    onClick = { /* TODO */ },
+                    onClick = { scope.launch { pagerState.scrollToPage(index) } },
                 )
             }
         }
@@ -110,8 +107,14 @@ fun SearchResults(
                     if (results.accounts != null) {
                         AccountTab(results.accounts, goToProfile, submitPresenter)
                     } else {
+                        Surface(
+                            color = Color.Transparent,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Transparent)
+                        ) {
 
-
+                        }
                     }
                 }
 
@@ -124,15 +127,14 @@ fun SearchResults(
                             submitPresenter
                         )
                     } else {
-                        Image(
+                        Surface(
+                            color = Color.Transparent,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .scale(2f)
-                                .blur(2.dp)
-                                .alpha(.5f),
-                            painter = painterResource(id = R.drawable.background),
-                            contentDescription = null
-                        )
+                                .background(Color.Transparent)
+                        ) {
+
+                        }
                     }
                 }
 
@@ -140,15 +142,14 @@ fun SearchResults(
                     if (results.hashtags != null) {
                         HashTagTab(results.hashtags, goToProfile, submitPresenter)
                     } else {
-                        Image(
+                        Surface(
+                            color = Color.Transparent,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .scale(2f)
-                                .blur(2.dp)
-                                .alpha(.5f),
-                            painter = painterResource(id = R.drawable.background),
-                            contentDescription = null
-                        )
+                                .background(Color.Transparent)
+                        ) {
+
+                        }
                     }
                 }
             }
@@ -164,7 +165,7 @@ private fun AccountTab(
 ) {
     LazyColumn(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
     ) {
         items(results, key = { it.id }) {
             Column {
@@ -187,7 +188,7 @@ private fun AccountTab(
                             androidx.compose.material3.Text(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = colorScheme.primary,
                                 modifier = Modifier
                                     .align(Alignment.Top),
                                 text = text.text,
@@ -246,6 +247,7 @@ private fun StatusTab(
         Modifier
             .wrapContentHeight()
             .padding(top = 0.dp)
+            .fillMaxSize()
     ) {
         items(results, key = { it.remoteId }) {
             card(
@@ -266,34 +268,55 @@ private fun HashTagTab(
     goToProfile: (String) -> Unit,
     submitPresenter: SubmitPresenter
 ) {
-    LazyColumn {
+    LazyColumn(Modifier.fillMaxSize()) {
         items(results, key = { it.name }) {
-            Row(modifier = Modifier.clickable { }) {
+            Row(
+                modifier = Modifier
+                    .clickable { }
+                    .fillMaxWidth()
+                    .padding(PaddingSize1),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
 
-                Row {
+                androidx.compose.material3.Text(
+                    style = MaterialTheme.typography.titleLarge,
+                    color = colorScheme.primary,
+                    modifier = Modifier
+                        .padding(PaddingSize0_5),
+                    text = it.name,
+                )
 
-                    Image(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(R.drawable.at),
-                        contentDescription = "",
-                        colorFilter = ColorFilter.tint(colorScheme.primary)
-                    )
-                    Column {
+                val map = it.history?.map { it.uses.toInt() }?.toTypedArray()
+                if (map != null) {
+                    ProvideChartStyle(m3ChartStyle(axisLineColor = colorScheme.primary)) {
 
-                        androidx.compose.material3.Text(
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colorScheme.primary,
+                        Chart(
                             modifier = Modifier
-                                .padding(PaddingSize0_5)
-                                .align(Alignment.CenterHorizontally),
-                            text = it.name,
+                                .height(50.dp)
+                                .weight(1f),
+                            chart = lineChart(),
+                            model = entryModelOf(*map),
+                            startAxis = null,
+                            bottomAxis = null,
                         )
                     }
-                    OutlinedButton(onClick = {
-                        submitPresenter.handle(SubmitPresenter.FollowTag(it.id!!))
-                    }) {
-                        Text(text = "follow", color = colorScheme.primary)
-                    }
+                }
+                var text by remember { mutableStateOf(if (it.isFollowing == false) "follow" else "unfollow") }
+
+
+                ElevatedButton(onClick = {
+                    submitPresenter.handle(
+                        SubmitPresenter.FollowTag(
+                            it.name,
+                            it.isFollowing == true
+                        )
+                    )
+                    if (text == "unfollow") text = "follow" else text = "unfollow"
+                }) {
+                    Text(
+                        text =text,
+                        color = colorScheme.primary
+                    )
                 }
             }
         }

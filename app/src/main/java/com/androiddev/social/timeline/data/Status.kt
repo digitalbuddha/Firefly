@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 data class Status(
     // base attributes
     val id: String,
-    val boostedBy:String? = null, //displayName
-    val boostedAvatar:String? = null, //displayName
+    val boostedBy: String? = null, //displayName
+    val boostedAvatar: String? = null, //displayName
     val uri: String,
     @SerialName("created_at") val createdAt: Instant,
     val account: Account? = null,
@@ -217,11 +217,12 @@ enum class CardType {
 @Serializable
 data class Tag(
     // required attributes
-    @SerialName("id") val id: String?="",
+    @SerialName("id") val id: String? = "",
     @SerialName("name") val name: String,
     @SerialName("url") val url: String,
     // optional attributes
     @SerialName("history") val history: List<History>? = emptyList(),
+    val isFollowing: Boolean? = false
 )
 
 @Serializable

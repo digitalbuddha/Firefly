@@ -5,6 +5,7 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Status
+import com.androiddev.social.timeline.data.Tag
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import retrofit2.http.*
@@ -101,17 +102,27 @@ interface UserApi {
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
     ): Status
-   @POST("/api/v1/account/{id}/follow")
+
+    @POST("/api/v1/account/{id}/follow")
     suspend fun followAccount(
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
     ): Status
 
-    @POST("/api/v1/tags/{id}/follow")
+
+    @POST("/api/v1/tags/{name}/follow")
     suspend fun followTag(
         @Header("Authorization") authHeader: String?,
-        @Path("id") id: String,
-    ): Status
+        @Path("name") name: String,
+    ): Tag
+
+    @POST("/api/v1/tags/{name}/unfollow")
+    suspend fun unfollowTag(
+        @Header("Authorization") authHeader: String?,
+        @Path("name") name: String,
+    ): Tag
+
+
     @POST("/api/v1/account/{id}/follow")
     suspend fun unFollowAccount(
         @Header("Authorization") authHeader: String?,
@@ -139,7 +150,12 @@ interface UserApi {
     suspend fun following(
         @Header("Authorization") authHeader: String?,
         @Path("id") id: String,
-        ): List<Account>
+    ): List<Account>
+
+    @GET("/api/v1/followed_tags")
+    suspend fun followedTags(
+        @Header("Authorization") authHeader: String?,
+    ): List<Tag>
 
     @Serializable
     data class UploadIds(
@@ -154,5 +170,7 @@ interface UserApi {
         @Part description: MultipartBody.Part? = null,
         @Part focus: MultipartBody.Part? = null
     ): UploadIds
+
+
 
 }

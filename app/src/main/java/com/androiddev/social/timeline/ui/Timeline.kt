@@ -4,10 +4,12 @@ package com.androiddev.social.timeline.ui
 
 import android.net.Uri
 import androidx.compose.animation.*
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -19,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -36,8 +40,7 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
-import dev.marcellogalhardo.retained.compose.retain
-import kotlinx.coroutines.delay
+import dev.marcellogalhardo.retained.compose.retainInActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
@@ -63,12 +66,13 @@ fun TimelineScreen(
     goToProfile: (String) -> Unit
 ) {
     val component =
-        retain(
+        retainInActivity(
+            owner = LocalContext.current as ViewModelStoreOwner,
             key = accessTokenRequest.domain ?: ""
         ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     CompositionLocalProvider(LocalAuthComponent provides component) {
 
-        val homePresenter = component.homePresenter().get()
+        val homePresenter = component.homePresenter()
         val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
         val scope = rememberCoroutineScope()
@@ -344,7 +348,7 @@ private fun timelineScreen(
     ) {
 
         items?.let {
-            val lazyListState = items.rememberLazyListState()
+            val lazyListState = rememberLazyListState()
             if (refresh) {
                 LaunchedEffect(key1 = Unit) {
                     lazyListState.scrollToItem(0)
@@ -352,46 +356,40 @@ private fun timelineScreen(
                     doneRefreshing()
                 }
             }
-            LaunchedEffect(key1 = tabToLoad, key2 = domain) {
-                //very unexact way to run after the first append/prepend ran
-                //otherwise infinite scroll never calls append on first launch
-                // and I have no idea why
-                delay(200)
-                items.refresh()
-            }
-            TimelineRows(
-                goToProfile,
-                items,
-                account = account,
-                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                    submitEvents.tryEmit(
-                        SubmitPresenter.PostMessage(
-                            content = content,
-                            visibility = visiblity,
-                            replyStatusId = replyToId,
-                            replyCount = replyCount,
-                            uris = uris
+            if (items.itemCount == 0) Text(text = "Loading")
+            else
+                TimelineRows(
+                    goToProfile,
+                    items,
+                    replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                        submitEvents.tryEmit(
+                            SubmitPresenter.PostMessage(
+                                content = content,
+                                visibility = visiblity,
+                                replyStatusId = replyToId,
+                                replyCount = replyCount,
+                                uris = uris
+                            )
                         )
-                    )
-                },
-                {
-                    submitEvents.tryEmit(
-                        SubmitPresenter
-                            .BoostMessage(it, tabToLoad)
-                    )
-                },
-                {
-                    submitEvents.tryEmit(
-                        SubmitPresenter
-                            .FavoriteMessage(it, tabToLoad)
-                    )
-                },
-                state,
-                isReplying,
-                goToConversation = goToConversation,
-                onProfileClick = onProfileClick,
-                lazyListState
-            )
+                    },
+                    {
+                        submitEvents.tryEmit(
+                            SubmitPresenter
+                                .BoostMessage(it, tabToLoad)
+                        )
+                    },
+                    {
+                        submitEvents.tryEmit(
+                            SubmitPresenter
+                                .FavoriteMessage(it, tabToLoad)
+                        )
+                    },
+                    state,
+                    isReplying,
+                    goToConversation = goToConversation,
+                    onProfileClick = onProfileClick,
+                    lazyListState
+                )
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -399,17 +397,28 @@ private fun timelineScreen(
     }
 }
 
+private val SaveMap = mutableMapOf<String, ScrollKeyParams>()
+
+private data class ScrollKeyParams(
+    val value: Int
+)
+
 @Composable
-fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
-    // After recreation, LazyPagingItems first return 0 items, then the cached items.
-    // This behavior/issue is resetting the LazyListState scroll position.
-    // Below is a workaround. More info: https://issuetracker.google.com/issues/177245496.
-    return when (itemCount) {
-        // Return a different LazyListState instance.
-        0 -> remember(this) { LazyListState(0, 0) }
-        // Return rememberLazyListState (normal case).
-        else -> androidx.compose.foundation.lazy.rememberLazyListState()
+fun rememberForeverScrollState(
+    key: String,
+    initial: Int = 0
+): ScrollState {
+    val scrollState = rememberSaveable(saver = ScrollState.Saver) {
+        val scrollValue: Int = SaveMap[key]?.value ?: initial
+        SaveMap[key] = ScrollKeyParams(scrollValue)
+        return@rememberSaveable ScrollState(scrollValue)
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            SaveMap[key] = ScrollKeyParams(scrollState.value)
+        }
+    }
+    return scrollState
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -417,7 +426,6 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyListState(): LazyListState {
 fun TimelineRows(
     goToProfile: (String) -> Unit,
     ui: LazyPagingItems<UI>,
-    account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,

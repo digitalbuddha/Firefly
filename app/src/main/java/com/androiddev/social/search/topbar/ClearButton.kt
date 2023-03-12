@@ -5,6 +5,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,12 +19,16 @@ import androidx.compose.ui.text.input.TextFieldValue
  */
 @Composable
 fun ClearButton(onClearQuery: () -> Unit, searchFocused: Boolean, query: TextFieldValue) {
-  val alpha: Float by animateFloatAsState(if (searchFocused && query.text.isNotEmpty()) 1f else 0f)
-  IconButton(onClick = onClearQuery, modifier = Modifier.alpha(alpha)) {
-    Icon(
-        imageVector = Icons.Rounded.Clear,
-        contentDescription = "Clear Icon"
+    val alpha: Float by animateFloatAsState(if (searchFocused && query.text.isNotEmpty()) 1f else 0f,
+        label = ""
     )
-  }
+    IconButton(onClick = onClearQuery, modifier = Modifier.alpha(alpha)) {
+        Icon(
+            imageVector = Icons.Rounded.Clear,
+            contentDescription = "Clear Icon",
+            tint = MaterialTheme.colorScheme.primary,
+
+            )
+    }
 }
 

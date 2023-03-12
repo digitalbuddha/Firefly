@@ -18,13 +18,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.dialog
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.FireflyApp
 import com.androiddev.social.UserComponent
@@ -38,7 +36,6 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.navigation
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.bottomSheet
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
@@ -124,7 +121,7 @@ fun Navigator(
                     }
                 }
             }
-            bottomSheet(
+            composable(
                 route = "mentions/{code}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
@@ -167,7 +164,7 @@ fun Navigator(
                 }
             }
 
-            bottomSheet(
+            composable(
                 route = "profile/{code}/{accountId}",
             ) {
                 AuthScoped(it.arguments, it.arguments?.getString("code")) { component, code ->
@@ -182,9 +179,9 @@ fun Navigator(
                 }
 
             }
-            dialog(
+            composable(
                 route = "search/{code}",
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
 
                 ) {
                 AuthScoped(
@@ -217,8 +214,8 @@ fun Navigator(
 
             }
 
-            dialog(
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+            composable(
+//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 route = "conversation/{code}/{statusId}/{type}",
             ) {
                 val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
@@ -239,7 +236,7 @@ fun Navigator(
                     }
                 }
             }
-            bottomSheet(
+            composable(
 //                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 route = "notifications/{code}",
             ) {

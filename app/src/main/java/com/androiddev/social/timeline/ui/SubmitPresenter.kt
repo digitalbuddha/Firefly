@@ -49,7 +49,7 @@ abstract class SubmitPresenter :
     data class Follow(val accountId: String, val unfollow: Boolean = false) :
         SubmitEvent
 
-    data class FollowTag(val tagId: String) :
+    data class FollowTag(val tagName: String, val unfollow: Boolean = false) :
         SubmitEvent
 
     data class FavoriteMessage(val statusId: String, val feedType: FeedType) :
@@ -225,14 +225,25 @@ class RealSubmitPresenter @Inject constructor(
                         }
                     }
                 }
+
                 is FollowTag -> {
                     val result =
+                        if (event.unfollow) {
                             kotlin.runCatching {
-                                api.followAccount(
+                                api.unfollowTag(
                                     authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                                    id = event.tagId
+                                    name = event.tagName
                                 )
                             }
+                        } else {
+                            kotlin.runCatching {
+                                api.followTag(
+                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    name = event.tagName
+                                )
+                            }
+                        }
+
 
 
                     when {

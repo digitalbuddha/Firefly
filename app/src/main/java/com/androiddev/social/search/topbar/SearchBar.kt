@@ -54,7 +54,7 @@ fun SearchBar(
         SearchField(query, onQueryChange, onSearchFocusChange)
         ProgressIndicator(searching)
         ClearButton(onClearQuery, searchFocused, query)
-        SearchAllButton(onSearchAll, query)
+//        SearchAllButton(onSearchAll, query)
       }
     }
   }

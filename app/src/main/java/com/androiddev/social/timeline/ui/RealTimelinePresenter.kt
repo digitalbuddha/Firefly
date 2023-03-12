@@ -26,12 +26,55 @@ class RealTimelinePresenter @Inject constructor(
     val api: UserApi,
     val oauthRepository: OauthRepository
 ) : TimelinePresenter() {
-
+    val scope = CoroutineScope(Dispatchers.Main)
     private val pagingConfig = PagingConfig(
         pageSize = 20,
         initialLoadSize = 30,
         prefetchDistance = 10
     )
+
+
+    val homeFlow: Flow<PagingData<StatusDB>> = Pager(
+        config = pagingConfig,
+        remoteMediator = timelineRemoteMediators
+            .filterIsInstance<HomeTimelineRemoteMediator>()
+            .single()
+    )
+    {
+        statusDao.getTimeline(FeedType.Home.type)
+    }
+        .flow.cachedIn(scope)
+    val localFlow = Pager(
+        config = pagingConfig,
+        remoteMediator = timelineRemoteMediators
+            .filterIsInstance<LocalTimelineRemoteMediator>()
+            .single()
+    )
+    {
+        statusDao.getTimeline(FeedType.Local.type)
+    }
+        .flow.cachedIn(scope)
+    val federatedFlow = Pager(
+        config = pagingConfig,
+        remoteMediator = timelineRemoteMediators
+            .filterIsInstance<FederatedTimelineRemoteMediator>()
+            .single()
+    )
+    {
+        statusDao.getTimeline(FeedType.Federated.type)
+    }
+        .flow.cachedIn(scope)
+    val trendingFlow = Pager(
+        config = pagingConfig,
+        remoteMediator = timelineRemoteMediators
+            .filterIsInstance<TrendingRemoteMediator>()
+            .single()
+    )
+    {
+        statusDao.getTimeline(FeedType.Trending.type)
+    }
+        .flow.cachedIn(scope)
+
 
     override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) = withContext(
         Dispatchers.IO
@@ -47,75 +90,36 @@ class RealTimelinePresenter @Inject constructor(
                 }
                 when (event.feedType) {
                     FeedType.Home -> {
-                        val remoteMediator =
-                            timelineRemoteMediators
-                                .filterIsInstance<HomeTimelineRemoteMediator>()
-                                .single()
-                        val flow = Pager(
-                            config = pagingConfig,
-                            remoteMediator = remoteMediator
-                        )
-                        {
-                            statusDao.getTimeline(FeedType.Home.type)
-                        }
-                            .flow
-                        model = model.copy(homeStatuses = flow.map {
+                        model = model.copy(homeStatuses = homeFlow.map {
                             it.map {
                                 it.mapStatus(event.colorScheme)
                             }
-                        }.cachedIn(scope))
+                        })
                     }
 
                     FeedType.Local -> {
-                        val remoteMediator =
-                            timelineRemoteMediators.filterIsInstance<LocalTimelineRemoteMediator>()
-                                .single()
-                        val flow = Pager(
-                            config = pagingConfig,
-                            remoteMediator = remoteMediator
-                        ) {
-                            statusDao.getTimeline(FeedType.Local.type)
-                        }.flow
-
-                        model = model.copy(
-                            localStatuses = flow.map {
-                                it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                        model = model.copy(localStatuses = localFlow.map {
+                            it.map {
+                                it.mapStatus(event.colorScheme)
+                            }
+                        })
                     }
 
                     FeedType.Federated -> {
-                        val remoteMediator =
-                            timelineRemoteMediators.filterIsInstance<FederatedTimelineRemoteMediator>()
-                                .single()
-                        val flow = Pager(
-                            config = pagingConfig,
-                            remoteMediator = remoteMediator
-                        ) {
-                            statusDao.getTimeline(FeedType.Federated.type)
-                        }.flow
-
-                        model = model.copy(
-                            federatedStatuses = flow.map {
-                                it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                        model = model.copy(federatedStatuses = federatedFlow.map {
+                            it.map {
+                                it.mapStatus(event.colorScheme)
+                            }
+                        })
 
                     }
 
                     FeedType.Trending -> {
-                        val remoteMediator =
-                            timelineRemoteMediators.filterIsInstance<TrendingRemoteMediator>()
-                                .single()
-                        val flow = Pager(
-                            config = pagingConfig,
-                            remoteMediator = remoteMediator
-                        ) {
-                            statusDao.getTimeline(FeedType.Trending.type)
-                        }.flow
-
-                        model = model.copy(
-                            trendingStatuses = flow.map {
-                                it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                        model = model.copy(trendingStatuses = trendingFlow.map {
+                            it.map {
+                                it.mapStatus(event.colorScheme)
+                            }
+                        })
 
                     }
 
@@ -142,7 +146,8 @@ class RealTimelinePresenter @Inject constructor(
                         model = model.copy(
                             userWithRepliesStatuses = flow.map {
                                 it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                            }.cachedIn(scope)
+                        )
 
                     }
 
@@ -162,7 +167,8 @@ class RealTimelinePresenter @Inject constructor(
                         model = model.copy(
                             userWithMediaStatuses = flow.map {
                                 it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                            }.cachedIn(scope)
+                        )
 
                     }
 
@@ -181,7 +187,8 @@ class RealTimelinePresenter @Inject constructor(
                         model = model.copy(
                             userStatuses = flow.map {
                                 it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope))
+                            }.cachedIn(scope)
+                        )
 
                     }
 
@@ -198,7 +205,11 @@ abstract class TimelinePresenter :
         HomeModel(true)
     ) {
     sealed interface HomeEvent
-    data class Load(val feedType: FeedType, val accountId: String? = null, val colorScheme: ColorScheme) : HomeEvent
+    data class Load(
+        val feedType: FeedType,
+        val accountId: String? = null,
+        val colorScheme: ColorScheme
+    ) : HomeEvent
 
 
     data class HomeModel(
