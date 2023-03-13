@@ -22,7 +22,9 @@ class RealAccountRepository @Inject constructor(
 ) : AccountRepository {
     private val fetcher = Fetcher.of { accountId: String ->
         val token = " Bearer ${oauthRepository.getCurrent()}"
-        api.account(authHeader = token, accountId = accountId)
+        val account = api.account(authHeader = token, accountId = accountId)
+        val relationships = api.relationships(token, listOf(account.id))
+        account.copy(isFollowed = relationships.firstOrNull()?.following==true)
     }
 
     private val store = StoreBuilder.from(

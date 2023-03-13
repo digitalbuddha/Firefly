@@ -4,6 +4,7 @@ import com.androiddev.social.search.SearchResult
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Notification
+import com.androiddev.social.timeline.data.Relationship
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
 import kotlinx.serialization.Serializable
@@ -82,6 +83,12 @@ interface UserApi {
         @Query("limit") limit: Int? = 40,
     ): List<Status>
 
+    @GET("api/v1/accounts/relationships")
+    suspend fun relationships(
+        @Header("Authorization") authHeader: String,
+        @Query("id[]") accountIds: List<String>
+    ): List<Relationship>
+
     @GET("api/v1/accounts/{id}")
     suspend fun account(
         @Header("Authorization") authHeader: String,
@@ -103,11 +110,17 @@ interface UserApi {
         @Path("id") id: String,
     ): Status
 
-    @POST("/api/v1/account/{id}/follow")
-    suspend fun followAccount(
+    @POST("api/v1/accounts/{id}/follow")
+   suspend fun followAccount(
         @Header("Authorization") authHeader: String?,
-        @Path("id") id: String,
-    ): Status
+        @Path("id") accountId: String
+    ): Relationship
+
+    @POST("api/v1/accounts/{id}/unfollow")
+    suspend fun unfollowAccount(
+        @Header("Authorization") authHeader: String?,
+        @Path("id") accountId: String
+    ): Relationship
 
 
     @POST("/api/v1/tags/{name}/follow")
@@ -122,12 +135,6 @@ interface UserApi {
         @Path("name") name: String,
     ): Tag
 
-
-    @POST("/api/v1/account/{id}/follow")
-    suspend fun unFollowAccount(
-        @Header("Authorization") authHeader: String?,
-        @Path("id") id: String,
-    ): Status
 
     @POST("/api/v1/statuses/{id}/favourite")
     suspend fun favoriteStatus(

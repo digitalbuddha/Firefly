@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -27,7 +29,7 @@ import social.androiddev.firefly.R
 fun ServerSelectScreen(
     onServerSelected: (selected: String) -> Unit
 ) {
-    var current by remember { mutableStateOf("androiddev.social") }
+    var current by remember { mutableStateOf("") }
     FireflyTheme {
         Surface(
             color = colorScheme.background
@@ -47,8 +49,8 @@ fun ServerSelectScreen(
             ) {
                 Text(
                     color = colorScheme.primary,
-//                    modifier = Modifier.padding(PaddingSize2),
-                    text = "Welcome!",
+                    modifier = Modifier.padding(bottom = PaddingSize2),
+                    text = "Welcome to Firefly",
                     style = MaterialTheme.typography.headlineLarge
                 )
                 Text(
@@ -57,11 +59,16 @@ fun ServerSelectScreen(
 //                        horizontal = PaddingSize2,
 //                        vertical = PaddingSize1
 //                    ),
-                    text = "Where should we start?",
+                    text = "Enter Server Name",
                     style = MaterialTheme.typography.headlineMedium
                 )
+                val focusRequester = remember { FocusRequester() }
+                LaunchedEffect(key1 = Unit) {
+                    focusRequester.requestFocus()
+                }
 
                 TextField(modifier = Modifier
+                    .focusRequester(focusRequester =focusRequester)
                     .wrapContentHeight()
                     .fillMaxWidth(.99f)
                     .padding(top = PaddingSize8, start = PaddingSize1, end = PaddingSize1),

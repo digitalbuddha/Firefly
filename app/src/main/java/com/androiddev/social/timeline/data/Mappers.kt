@@ -62,8 +62,9 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         favorited = status.favourited ?: false,
         boosted = status.reblogged ?: false,
         inReplyTo = status.inReplyToId,
-        bookmarked = status.bookmarked?:false
-        )
+        bookmarked = status.bookmarked ?: false,
+        attachments = status.mediaAttachments ?: emptyList()
+    )
 }
 
 
@@ -150,7 +151,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
         accountId = status.accountId,
         originalId = status.originalId,
         bookmarked = status.bookmarked,
-                contentEmojiText = emojiText(
+        contentEmojiText = emojiText(
             status.content,
             status.mentions,
             status.tags,
@@ -173,6 +174,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
                 colorScheme
             )
         },
+        attachments = status.attachments
     )
 }
 

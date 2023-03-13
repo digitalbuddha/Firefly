@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
@@ -59,37 +60,37 @@ fun ButtonBar(
     Column {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             TextButton(
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                 contentPadding = PaddingValues(PaddingSize1, 0.dp),
                 border = BorderStroke(ThickSm, Color.Transparent),
                 onClick = onReply
             ) {
                 Image(
-                    modifier = Modifier.size(PaddingSize3),
+                    modifier = Modifier.size(20.dp),
                     painter = painterResource(R.drawable.reply),
                     contentDescription = "",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
                 )
             }
 
             val icon = if (boosted) R.drawable.rocketfilled else R.drawable.rocket3
-            SpringyButton(onBoost, icon, boostCount)
+            SpringyButton(onBoost, icon, boostCount, iconSize = 20.dp)
             SpringyButton(
                 onFavorite,
                 if (favorited) R.drawable.starfilled else R.drawable.star,
-                favoriteCount
+                favoriteCount,
+                iconSize = 28.dp
             )
             TextButton(
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                contentPadding = PaddingValues(PaddingSize1, 0.dp),
                 border = BorderStroke(ThickSm, Color.Transparent),
                 onClick = onBookmark
             ) {
                 Image(
-                    modifier = Modifier.size(PaddingSize3),
+                    modifier = Modifier.size(24.dp),
                     painter = painterResource(if (!bookmarked) R.drawable.bookmark else R.drawable.bookmarkfilled),
                     contentDescription = "",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
                 )
             }
 
@@ -105,7 +106,7 @@ fun ButtonBar(
                         modifier = Modifier.size(PaddingSize3),
                         painter = painterResource(R.drawable.chat),
                         contentDescription = "",
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
                     )
                     replyCount?.let {
                         Text(
@@ -117,7 +118,7 @@ fun ButtonBar(
             } else {
                 //placeholder I am bad at code
                 TextButton(
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     onClick = {
                     }
@@ -142,9 +143,9 @@ fun ButtonBar(
 private fun SpringyButton(
     onClick: () -> Unit,
     icon: Int,
-    count: Int?
+    count: Int?,
+    iconSize:Dp = PaddingSize3
 ) {
-    val iconSize = PaddingSize3
 
     var clicked by remember { mutableStateOf(false) }
     var localCount by remember { mutableStateOf(count) }
@@ -153,7 +154,7 @@ private fun SpringyButton(
     val scope = rememberCoroutineScope()
 
     TextButton(
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
         contentPadding = PaddingValues(PaddingSize1, 0.dp),
         onClick = {
             clicked = !clicked
@@ -170,11 +171,11 @@ private fun SpringyButton(
                 .size(iconSize),
             painter = painterResource(icon),
             contentDescription = "",
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary),
         )
         localCount?.let {
             Text(
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.secondary,
                 text = " $it"
             )
         }

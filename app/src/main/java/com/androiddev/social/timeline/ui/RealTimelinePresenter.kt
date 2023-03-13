@@ -111,7 +111,6 @@ class RealTimelinePresenter @Inject constructor(
                                 it.mapStatus(event.colorScheme)
                             }
                         })
-
                     }
 
                     FeedType.Trending -> {

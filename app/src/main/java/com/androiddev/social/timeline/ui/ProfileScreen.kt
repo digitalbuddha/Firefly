@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +24,7 @@ import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.Indicator
+import androidx.compose.material.TextButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -42,8 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -66,6 +71,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import social.androiddev.firefly.R
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -119,6 +125,28 @@ fun ProfileScreen(
                             text = "Profile",
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                    },
+                    actions = {
+                        val account = presenter.model.account
+                        var text by remember { mutableStateOf(if (account?.isFollowed == false) "follow" else "unfollow") }
+
+                        TextButton(
+                            onClick = {
+                                submitPresenter.handle(SubmitPresenter.Follow(accountId = accountId))
+                                text = if (text == "follow") "unfollow" else "follow"
+                            }
+                        ) {
+
+                            if (account?.isFollowed == true)
+                                Text(text = text, color = MaterialTheme.colorScheme.primary)
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp),
+                                painter =  if (text == "follow")painterResource(R.drawable.add) else painterResource(R.drawable.remove),
+                                contentDescription = "",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                            )
+                        }
                     },
                     navigationIcon = if (navController.previousBackStackEntry != null) {
                         {
@@ -328,7 +356,6 @@ private fun profile(presenter: ProfilePresenter) {
                     .background(MaterialTheme.colorScheme.background.copy(alpha = .6f))
                     .padding(16.dp)
 
-
             ) {
 
 
@@ -349,8 +376,9 @@ private fun profile(presenter: ProfilePresenter) {
                 )
 
                 ContentImage(
-                    account.avatar,
+                    listOf(account.avatar),
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(200.dp)
                         .aspectRatio(1f)
                         .align(Alignment.CenterHorizontally)

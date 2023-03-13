@@ -4,17 +4,19 @@ package com.androiddev.social.timeline.ui
 
 import android.net.Uri
 import androidx.compose.animation.*
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -40,6 +42,9 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material3.placeholder
+import com.google.accompanist.placeholder.shimmer
 import dev.marcellogalhardo.retained.compose.retainInActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -356,40 +361,38 @@ private fun timelineScreen(
                     doneRefreshing()
                 }
             }
-            if (items.itemCount == 0) Text(text = "Loading")
-            else
-                TimelineRows(
-                    goToProfile,
-                    items,
-                    replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                        submitEvents.tryEmit(
-                            SubmitPresenter.PostMessage(
-                                content = content,
-                                visibility = visiblity,
-                                replyStatusId = replyToId,
-                                replyCount = replyCount,
-                                uris = uris
-                            )
+            TimelineRows(
+                goToProfile,
+                items,
+                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                    submitEvents.tryEmit(
+                        SubmitPresenter.PostMessage(
+                            content = content,
+                            visibility = visiblity,
+                            replyStatusId = replyToId,
+                            replyCount = replyCount,
+                            uris = uris
                         )
-                    },
-                    {
-                        submitEvents.tryEmit(
-                            SubmitPresenter
-                                .BoostMessage(it, tabToLoad)
-                        )
-                    },
-                    {
-                        submitEvents.tryEmit(
-                            SubmitPresenter
-                                .FavoriteMessage(it, tabToLoad)
-                        )
-                    },
-                    state,
-                    isReplying,
-                    goToConversation = goToConversation,
-                    onProfileClick = onProfileClick,
-                    lazyListState
-                )
+                    )
+                },
+                {
+                    submitEvents.tryEmit(
+                        SubmitPresenter
+                            .BoostMessage(it, tabToLoad)
+                    )
+                },
+                {
+                    submitEvents.tryEmit(
+                        SubmitPresenter
+                            .FavoriteMessage(it, tabToLoad)
+                    )
+                },
+                state,
+                isReplying,
+                goToConversation = goToConversation,
+                onProfileClick = onProfileClick,
+                lazyListState
+            )
         }
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = refreshing
@@ -403,23 +406,6 @@ private data class ScrollKeyParams(
     val value: Int
 )
 
-@Composable
-fun rememberForeverScrollState(
-    key: String,
-    initial: Int = 0
-): ScrollState {
-    val scrollState = rememberSaveable(saver = ScrollState.Saver) {
-        val scrollValue: Int = SaveMap[key]?.value ?: initial
-        SaveMap[key] = ScrollKeyParams(scrollValue)
-        return@rememberSaveable ScrollState(scrollValue)
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            SaveMap[key] = ScrollKeyParams(scrollState.value)
-        }
-    }
-    return scrollState
-}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -436,20 +422,54 @@ fun TimelineRows(
     lazyListState: LazyListState
 ) {
 
-    LazyColumn(state = lazyListState) {
-        items(items = ui, key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
-            TimelineCard(
-                goToProfile,
-                it,
-                replyToStatus,
-                boostStatus,
-                favoriteStatus,
-                state,
-                goToConversation,
-                isReplying,
-                false,
-                onProfileClick = onProfileClick
-            )
+
+    Crossfade(targetState = ui, label = "") { item ->
+        if (item.itemCount == 0) {
+            LazyColumn {
+                items(3) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .padding(16.dp)
+                            .placeholder(
+                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                    LocalAbsoluteTonalElevation.current + 8.dp
+                                ),
+                                visible = true,
+                                shape = RoundedCornerShape(8.dp),
+                                highlight = PlaceholderHighlight.shimmer(
+                                    highlightColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                                ),
+                            )
+                    )
+
+                }
+            }
+        } else {
+
+
+            LazyColumn(state = lazyListState) {
+                items(
+                    items = item,
+                    key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
+
+                    it?.let { ui ->
+                        TimelineCard(
+                            goToProfile,
+                            ui,
+                            replyToStatus,
+                            boostStatus,
+                            favoriteStatus,
+                            state,
+                            goToConversation,
+                            isReplying,
+                            false,
+                            onProfileClick = onProfileClick
+                        )
+                    }
+                }
+            }
         }
     }
 }

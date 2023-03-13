@@ -203,16 +203,16 @@ class RealSubmitPresenter @Inject constructor(
                     val result =
                         if (event.unfollow) {
                             kotlin.runCatching {
-                                api.unFollowAccount(
+                                api.unfollowAccount(
                                     authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                                    id = event.accountId
+                                     event.accountId
                                 )
                             }
                         } else {
                             kotlin.runCatching {
                                 api.followAccount(
                                     authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                                    id = event.accountId
+                                    accountId = event.accountId
                                 )
                             }
 

@@ -1,10 +1,8 @@
 package com.androiddev.social.timeline.ui
 
 import android.content.Context
-import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.androiddev.social.auth.data.AccessTokenRequest
@@ -13,7 +11,6 @@ import java.nio.charset.StandardCharsets
 
 @Composable
 fun SplashScreen(navController: NavHostController) {
-    remember { Animatable(0f) }
     val current: Context = LocalContext.current
 
     LaunchedEffect(Unit) {

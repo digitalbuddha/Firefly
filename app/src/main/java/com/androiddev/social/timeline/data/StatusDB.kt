@@ -39,6 +39,7 @@ data class StatusDB(
     val inReplyTo: String?,
     val boostedById: String?,
     val bookmarked: Boolean,
+    val attachments: List<Attachment>
 //    var uid: Int = 0,
 )
 
@@ -68,7 +69,7 @@ interface StatusDao {
 }
 
 
-@Database(entities = [StatusDB::class], version = 14)
+@Database(entities = [StatusDB::class], version = 15)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -84,6 +85,16 @@ class Converters {
     fun fromEmoji(emoji: List<Emoji>): String {
         return Json.encodeToString(ListSerializer(Emoji.serializer()), emoji)
     }
+    @TypeConverter
+    fun fromAttachment(value: String): List<Attachment> {
+        return Json.decodeFromString(ListSerializer(Attachment.serializer()), value)
+    }
+
+    @TypeConverter
+    fun toAttachment(attachment: List<Attachment>): String {
+        return Json.encodeToString(ListSerializer(Attachment.serializer()), attachment)
+    }
+
 
     @TypeConverter
     fun toTag(value: String): List<Tag> {

@@ -39,8 +39,9 @@ fun SearchBar(
   Surface(
       modifier = modifier
           .fillMaxWidth()
+//          .background(Color.Red)
           .height(searchBarHeight)
-          .padding(top = 12.dp, bottom = 0.dp, end = 12.dp)
+          .padding(top = 4.dp, bottom = 4.dp, end = 8.dp)
           .clip(RoundedCornerShape(4.dp))
   ) {
     Box(Modifier.fillMaxSize()) {

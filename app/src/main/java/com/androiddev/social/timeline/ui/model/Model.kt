@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
 import com.androiddev.social.theme.PaddingSize2_5
+import com.androiddev.social.timeline.data.Attachment
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Mention
@@ -59,7 +60,8 @@ data class UI(
     val boostedEmojiText: EmojiText?,
     val accountEmojiText: EmojiText?,
     val originalId: String,
-    val bookmarked: Boolean
+    val bookmarked: Boolean,
+    val attachments: List<Attachment>
 )
 
 enum class ReplyType {
