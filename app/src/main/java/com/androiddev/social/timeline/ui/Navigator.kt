@@ -10,8 +10,15 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -23,13 +30,17 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.FireflyApp
 import com.androiddev.social.UserComponent
+import com.androiddev.social.accounts.AccountTab
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.UserManagerProvider
 import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.search.SearchScreen
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.dataStore
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -40,6 +51,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.marcellogalhardo.retained.compose.retain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -167,23 +179,96 @@ fun Navigator(
             composable(
                 route = "profile/{code}/{accountId}",
             ) {
+                val accountId = it.arguments?.getString("accountId")!!
                 AuthScoped(it.arguments, it.arguments?.getString("code")) { component, code ->
                     ProfileScreen(
                         component,
-                        it,
                         navController,
-                        scope,
                         code,
-                        accountId = it.arguments?.getString("accountId")!!
+                        accountId = accountId,
+                        {
+                            navController.navigate("followers/${it.arguments?.getString("code")}/$accountId")
+                        },
+                        {
+                            navController.navigate("following/${it.arguments?.getString("code")}/$accountId")
+                        },
                     )
                 }
 
             }
+
+//            composable(
+//                route = "following/{code}/{accountId}",
+//            ) {
+//                AuthScoped(it.arguments, it.arguments?.getString("code")) { component, code ->
+//                    ProfileScreen(
+//                        component,
+//                        navController,
+//                        code,
+//                        accountId = it.arguments?.getString("accountId")!!,
+//                        goToFollowers = {
+//
+//                        }
+//                    )
+//                }
+//
+//            }
+            composable(
+                route = "following/{code}/{accountId}",
+            ) {
+                val accountId = it.arguments?.getString("accountId")!!
+                AuthScoped(it.arguments, it.arguments?.getString("code")!!) { component, code ->
+                    val followerPresenter = component.followerPresenter()
+                    val scope = rememberCoroutineScope()
+
+                    LaunchedEffect(key1 = accountId) {
+                        followerPresenter.start()
+                    }
+                    LaunchedEffect(key1 = accountId) {
+                        followerPresenter.handle(FollowerPresenter.Load(accountId, true))
+                    }
+
+                    followerPresenter.model.accounts?.let {
+                        FollowerScreen(it, navController = navController, code, "Following")
+                    }
+
+                }
+
+            }
+
+            composable(
+                route = "followers/{code}/{accountId}",
+            ) {
+                val accountId = it.arguments?.getString("accountId")!!
+                AuthScoped(it.arguments, it.arguments?.getString("code")!!) { component, code ->
+                    val followerPresenter = component.followerPresenter()
+                    val scope = rememberCoroutineScope()
+
+                    LaunchedEffect(key1 = accountId) {
+                        followerPresenter.start()
+                    }
+                    LaunchedEffect(key1 = accountId) {
+                        followerPresenter.handle(
+                            FollowerPresenter.Load(
+                                accountId,
+                                following = false
+                            )
+                        )
+                    }
+
+                    followerPresenter.model.accounts?.let {
+                        FollowerScreen(it, navController = navController, code, "Followers")
+                    }
+
+                }
+
+            }
+
             composable(
                 route = "search/{code}",
 //                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
 
-                ) {
+            ) {
                 AuthScoped(
                     it.arguments,
                     it.arguments?.getString("code")
@@ -284,6 +369,46 @@ fun Navigator(
             SignInScreen(navController, scope, server)
         }
     }
+}
+
+@Composable
+fun FollowerScreen(
+    accounts: Flow<PagingData<Account>>,
+    navController: NavHostController,
+    code: String,
+    s: String
+) {
+    Column {
+        TopAppBar(
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    text = "Followers",
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            navigationIcon = {
+                if (navController.previousBackStackEntry != null) {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "search"
+                        )
+                    }
+                } else {
+                    null
+                }
+            }
+        )
+        val pagingItems = accounts.collectAsLazyPagingItems()
+        AccountTab(results = null, resultsPaging = pagingItems, goToProfile = { accountId: String ->
+            navController.navigate("profile/$code/$accountId")
+        })
+
+    }
+
+
 }
 
 

@@ -17,7 +17,6 @@ import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -28,23 +27,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.androiddev.social.accounts.AccountTab
 import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize7
-import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.Tag
-import com.androiddev.social.timeline.ui.AvatarImage
 import com.androiddev.social.timeline.ui.LocalAuthComponent
 import com.androiddev.social.timeline.ui.SubmitPresenter
 import com.androiddev.social.timeline.ui.card
 import com.androiddev.social.timeline.ui.model.UI
-import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
@@ -105,7 +99,7 @@ fun SearchResults(
             when (page) {
                 0 -> {
                     if (results.accounts != null) {
-                        AccountTab(results.accounts, goToProfile, submitPresenter)
+                        AccountTab(results = results.accounts, null, goToProfile)
                     } else {
                         Surface(
                             color = Color.Transparent,
@@ -157,84 +151,6 @@ fun SearchResults(
     }
 }
 
-@Composable
-private fun AccountTab(
-    results: List<Account>,
-    goToProfile: (String) -> Unit,
-    submitPresenter: SubmitPresenter
-) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        items(results, key = { it.id }) {
-            Column {
-                Row(modifier = Modifier
-                    .clickable { goToProfile(it.id) }
-                    .padding(PaddingSize1)) {
-                    AvatarImage(PaddingSize7, it.avatar, onClick = { goToProfile(it.id) })
-                    Column(Modifier.padding(start = PaddingSize1)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            val text = emojiText(
-                                it.displayName,
-                                emptyList(),
-                                emptyList(),
-                                it.emojis,
-                                colorScheme
-                            )
-                            androidx.compose.material3.Text(
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = colorScheme.primary,
-                                modifier = Modifier
-                                    .align(Alignment.Top),
-                                text = text.text,
-                                style = MaterialTheme.typography.titleLarge,
-                                inlineContent = text.mapping,
-                            )
-                            androidx.compose.material3.Text(
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier
-                                    .align(Alignment.Top),
-                                text = "Followers ${it.followersCount}",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            androidx.compose.material3.Text(
-                                color = MaterialTheme.colorScheme.secondary,
-                                text = it.username,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-
-                            androidx.compose.material3.Text(
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier
-                                    .align(Alignment.Top),
-                                text = "Following ${it.followingCount} ",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-
-                        }
-                    }
-                }
-            }
-            Divider()
-        }
-    }
-}
-
 
 @Composable
 private fun StatusTab(
@@ -280,7 +196,7 @@ private fun HashTagTab(
 
                 androidx.compose.material3.Text(
                     style = MaterialTheme.typography.titleLarge,
-                    color = colorScheme.primary,
+                    color = colorScheme.onSurface,
                     modifier = Modifier
                         .padding(PaddingSize0_5),
                     text = it.name,
@@ -314,8 +230,8 @@ private fun HashTagTab(
                     if (text == "unfollow") text = "follow" else text = "unfollow"
                 }) {
                     Text(
-                        text =text,
-                        color = colorScheme.primary
+                        text = text,
+                        color = colorScheme.onSurface
                     )
                 }
             }

@@ -8,9 +8,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -52,6 +54,7 @@ interface AuthRequiredInjector {
     fun mentionsPresenter(): MentionsPresenter
     fun notificationPresenter(): NotificationPresenter
     fun submitPresenter(): SubmitPresenter
+    fun followerPresenter(): FollowerPresenter
     fun conversationPresenter(): Provider<ConversationPresenter>
 }
 
@@ -112,6 +115,7 @@ class MainActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
                     ) {
                         val scope = rememberCoroutineScope()
                         val sheetState = rememberModalBottomSheetState(

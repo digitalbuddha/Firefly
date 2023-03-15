@@ -50,7 +50,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -67,7 +66,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -78,11 +76,11 @@ import social.androiddev.firefly.R
 @OptIn(ExperimentalMaterialApi::class)
 fun ProfileScreen(
     component: AuthRequiredInjector,
-    it: NavBackStackEntry,
     navController: NavHostController,
-    scope: CoroutineScope,
     code: String,
-    accountId: String
+    accountId: String,
+    goToFollowers: () -> Unit,
+    goToFollowing: () -> Unit
 ) {
     val homePresenter by remember(key1 = accountId) {
         mutableStateOf(
@@ -164,7 +162,7 @@ fun ProfileScreen(
                 )
             },
             backLayerContent = {
-                profile(presenter)
+                profile(presenter, goToFollowers, goToFollowing)
             },
             frontLayerContent = {
                 val userStatuses = homePresenter.model.userWithRepliesStatuses
@@ -330,7 +328,11 @@ private fun posts(
 }
 
 @Composable
-private fun profile(presenter: ProfilePresenter) {
+private fun profile(
+    presenter: ProfilePresenter,
+    goToFollowers: () -> Unit,
+    goToFollowing: () -> Unit
+) {
     Box(
         Modifier
             .fillMaxSize()
@@ -406,6 +408,7 @@ private fun profile(presenter: ProfilePresenter) {
                         null,
                         null,
                         modifier = Modifier.height(30.dp),
+                        onClick = goToFollowers
                     )
                     Boosted(
                         "Following ${account.followingCount}",
@@ -413,6 +416,8 @@ private fun profile(presenter: ProfilePresenter) {
                         null,
                         null,
                         modifier = Modifier.height(30.dp),
+                        onClick = goToFollowing
+
                     )
                 }
 

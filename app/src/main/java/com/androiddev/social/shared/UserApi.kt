@@ -9,6 +9,7 @@ import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.*
 
 
@@ -83,6 +84,60 @@ interface UserApi {
         @Query("limit") limit: Int? = 40,
     ): List<Status>
 
+    @GET("/api/v1/bookmarks")
+    suspend fun bookmarkedStatuses(
+        @Header("Authorization") authHeader: String,
+        @Query("limit") limit: Int? = 40,
+    ): Response<List<Status>>
+
+    @GET("/api/v1/bookmarks")
+    suspend fun bookmarkedStatuses(
+        @Header("Authorization") authHeader: String,
+        @Query("url") url: String,
+    ): Response<List<Status>>
+
+    @GET("/api/v1/favourites")
+    suspend fun favorites(
+        @Header("Authorization") authHeader: String,
+        @Query("limit") limit: Int? = 40,
+    ): Response<List<Status>>
+
+    @GET("/api/v1/favourites")
+    suspend fun favorites(
+        @Header("Authorization") authHeader: String,
+        @Query("url") url: String,
+    ): Response<List<Status>>
+
+    @GET("api/v1/accounts/{id}/followers")
+    suspend fun followers(
+        @Header("Authorization") authHeader: String,
+        @Path("id") accountId: String,
+        @Query("max_id") since: String?,
+        @Query("limit") limit: Int? = 40,
+    ): Response<List<Account>>
+
+    @GET
+    suspend fun followers(
+        @Header("Authorization") authHeader: String,
+        @Url url: String
+    ): Response<List<Account>>
+
+
+    @GET("api/v1/accounts/{id}/following")
+    suspend fun following(
+        @Header("Authorization") authHeader: String,
+        @Path("id") accountId: String,
+        @Query("max_id") since: String?,
+        @Query("limit") limit: Int? = 40,
+    ): Response<List<Account>>
+
+    @GET
+    suspend fun following(
+        @Header("Authorization") authHeader: String,
+        @Url url: String
+    ): Response<List<Account>>
+
+
     @GET("api/v1/accounts/relationships")
     suspend fun relationships(
         @Header("Authorization") authHeader: String,
@@ -111,7 +166,7 @@ interface UserApi {
     ): Status
 
     @POST("api/v1/accounts/{id}/follow")
-   suspend fun followAccount(
+    suspend fun followAccount(
         @Header("Authorization") authHeader: String?,
         @Path("id") accountId: String
     ): Relationship
@@ -153,12 +208,6 @@ interface UserApi {
         @Header("Authorization") authHeader: String?,
     ): Account
 
-    @GET("/api/v1/accounts/{id}/following")
-    suspend fun following(
-        @Header("Authorization") authHeader: String?,
-        @Path("id") id: String,
-    ): List<Account>
-
     @GET("/api/v1/followed_tags")
     suspend fun followedTags(
         @Header("Authorization") authHeader: String?,
@@ -177,7 +226,6 @@ interface UserApi {
         @Part description: MultipartBody.Part? = null,
         @Part focus: MultipartBody.Part? = null
     ): UploadIds
-
 
 
 }

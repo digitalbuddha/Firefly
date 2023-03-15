@@ -284,7 +284,7 @@ private fun getCustomSpanForMention(
     mentions: List<Mention>, span: URLSpan, listener: LinkListener
 ): ClickableSpan? {
     return mentions.firstOrNull { it.url == span.url }?.let {
-        getCustomSpanForMentionUrl(span.url, it.id, listener)
+        getCustomSpanForMentionUrl(it.id, it.id, listener)
     }
 }
 

@@ -147,6 +147,12 @@ fun TimelineScreen(
                                             FeedType.Trending.type -> {
                                                 FeedType.Trending
                                             }
+                                            FeedType.Bookmarks.type -> {
+                                                FeedType.Bookmarks
+                                            }
+                                            FeedType.Favorites.type -> {
+                                                FeedType.Favorites
+                                            }
 
                                             else -> {
                                                 FeedType.Home
@@ -156,9 +162,9 @@ fun TimelineScreen(
                                         refresh = true
                                     })
                             }
-                            Search({
+                            Search {
                                 goToSearch()
-                            })
+                            }
                         }
                     })
             },
@@ -228,7 +234,7 @@ fun TimelineScreen(
 
                     when (tabToLoad) {
                         FeedType.Home -> {
-                            timelineScreen(
+                            timelineTab(
                                 goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
@@ -248,7 +254,7 @@ fun TimelineScreen(
                         }
 
                         FeedType.Local -> {
-                            timelineScreen(
+                            timelineTab(
                                 goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
@@ -267,7 +273,7 @@ fun TimelineScreen(
                         }
 
                         FeedType.Federated -> {
-                            timelineScreen(
+                            timelineTab(
                                 goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
@@ -285,7 +291,7 @@ fun TimelineScreen(
                         }
 
                         FeedType.Trending -> {
-                            timelineScreen(
+                            timelineTab(
                                 goToProfile,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
@@ -310,6 +316,42 @@ fun TimelineScreen(
                         FeedType.UserWithReplies -> {
 
                         }
+
+                        FeedType.Bookmarks -> {
+                            timelineTab(
+                                goToProfile,
+                                accessTokenRequest.domain,
+                                homePresenter.events,
+                                submitPresenter.events,
+                                FeedType.Bookmarks,
+                                model.bookmarkedStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
+                                state,
+                                goToConversation,
+                                { replying = it },
+                                onProfileClick,
+                                refresh,
+                                { refresh = false }
+                            )
+                        }
+
+                        FeedType.Favorites -> {
+                            timelineTab(
+                                goToProfile,
+                                accessTokenRequest.domain,
+                                homePresenter.events,
+                                submitPresenter.events,
+                                FeedType.Favorites,
+                                model.favoriteStatuses?.collectAsLazyPagingItems(),
+                                account = model.account,
+                                state,
+                                goToConversation,
+                                { replying = it },
+                                onProfileClick,
+                                refresh,
+                                { refresh = false }
+                            )
+                        }
                     }
                 }
             }
@@ -320,7 +362,7 @@ fun TimelineScreen(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun timelineScreen(
+private fun timelineTab(
     goToProfile: (String) -> Unit,
     domain: String?,
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,

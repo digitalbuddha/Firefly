@@ -29,8 +29,8 @@ android {
         applicationId "social.androiddev"
         minSdk 26
         targetSdk 33
-        versionCode 8
-        versionName "0.0.6"
+        versionCode 10
+        versionName "0.0.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
