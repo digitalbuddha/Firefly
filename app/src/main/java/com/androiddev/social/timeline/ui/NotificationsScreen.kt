@@ -39,7 +39,8 @@ import social.androiddev.firefly.R
 fun NotificationsScreen(
     navController: NavHostController,
     goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -108,7 +109,8 @@ fun NotificationsScreen(
                         events = component.submitPresenter().events,
                         showInlineReplies = false,
                         goToConversation = goToConversation,
-                        goToProfile = goToProfile
+                        goToProfile = goToProfile,
+                        goToTag=goToTag
                     )
                 }
 

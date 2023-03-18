@@ -53,13 +53,27 @@ interface StatusDao {
 
 
     @Query("SELECT * FROM status ORDER BY remoteId Asc Limit 1")
-    fun getHomeTimelineLast(): StatusDB
+    fun getHomeTimelineLast(): StatusDB?
 
     @Query("SELECT * FROM status WHERE remoteId = :remoteId ORDER BY remoteId Asc Limit 1")
     fun getStatusBy(remoteId: String): Flow<StatusDB>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(users: List<StatusDB>)
+    fun insertAll(statuses: List<StatusDB>)
+
+    @Query(
+        """UPDATE status 
+            SET boosted = :boosted, reblogsCount = :replyCount, boostedAvatar = :boostedAvatar, boostedBy = :boostedName, boostedById = :boostedId
+        WHERE  (originalId = :statusId OR remoteId = :statusId)"""
+    )
+    fun setBoosted(
+        replyCount: Int,
+        statusId: String,
+        boosted: Boolean,
+        boostedId: String,
+        boostedName: String,
+        boostedAvatar: String
+    )
 
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
@@ -69,7 +83,7 @@ interface StatusDao {
 }
 
 
-@Database(entities = [StatusDB::class], version = 15)
+@Database(entities = [StatusDB::class], version = 16)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -85,6 +99,7 @@ class Converters {
     fun fromEmoji(emoji: List<Emoji>): String {
         return Json.encodeToString(ListSerializer(Emoji.serializer()), emoji)
     }
+
     @TypeConverter
     fun fromAttachment(value: String): List<Attachment> {
         return Json.decodeFromString(ListSerializer(Attachment.serializer()), value)

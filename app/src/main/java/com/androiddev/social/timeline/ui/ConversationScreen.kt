@@ -36,7 +36,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
-    navController: NavHostController, statusId: String, type: String, goToProfile: (String) -> Unit
+    navController: NavHostController, statusId: String, type: String,
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -87,7 +89,8 @@ fun ConversationScreen(
                 component.submitPresenter().events,
                 goToNowhere,
                 state,
-                goToProfile = goToProfile
+                goToProfile = goToProfile,
+                goToTag=goToTag,
             )
 
             CustomViewPullRefreshView(
@@ -104,6 +107,7 @@ private fun List<UI>.render(
     goToConversation: (UI) -> Unit,
     state: LazyListState,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
 ) {
     val statuses = this
     var shimmer by remember { mutableStateOf(true) }
@@ -133,7 +137,8 @@ private fun List<UI>.render(
                 events = mutableSharedFlow,
                 showInlineReplies = true,
                 goToConversation = goToConversation,
-                goToProfile = goToProfile
+                goToProfile = goToProfile,
+                goToTag=goToTag
             )
         }
 

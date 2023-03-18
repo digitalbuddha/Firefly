@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -25,8 +26,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize0_5
-import com.androiddev.social.theme.PaddingSize2
-
+import com.androiddev.social.theme.PaddingSize4
 
 
 data class Tab(val name: String, val image: Int, val onClick: () -> Unit)
@@ -48,7 +48,7 @@ fun TabSelectorDetail(
 
         modifier = Modifier
             .width((screenHeight).dp)
-            .height(98.dp)
+            .height(160.dp)
             .clip(RoundedCornerShape(4.dp))
 
     ) {
@@ -94,7 +94,7 @@ private fun TabContent(
 
     AssistChip(
         modifier =  Modifier
-            .height(48.dp)
+            .height(80.dp)
             .width(130.dp)
             .padding(horizontal = PaddingSize0_5, vertical = PaddingSize0_5),
         colors = AssistChipDefaults.assistChipColors(
@@ -108,13 +108,13 @@ private fun TabContent(
             Text(
                 modifier=Modifier.wrapContentSize(),
                 text = tab.name,
-                style = MaterialTheme.typography.labelSmall.copy(color = colorScheme.primary),
+                style = MaterialTheme.typography.labelLarge.copy(color = colorScheme.primary),
                 maxLines = 1
             )
         },
-        trailingIcon = {
+        leadingIcon = {
             Image(
-                modifier = Modifier.height(PaddingSize2),
+                modifier = Modifier.size(PaddingSize4),
                 painter = painterResource(tab.image),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(colorScheme.secondary),

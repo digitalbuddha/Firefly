@@ -39,21 +39,22 @@ import social.androiddev.firefly.R
 
 @Composable
 fun ButtonBar(
-    status: UI,
+    status: UI?,
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
-    favorited: Boolean,
-    boosted: Boolean,
-    hasParent: Boolean,
-    showInlineReplies: Boolean,
+    favorited: Boolean?=false,
+    boosted: Boolean?=false,
+    hasParent: Boolean?=false,
+    showInlineReplies: Boolean?=false,
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
-    showReply: Boolean,
+    showReply: Boolean?=false,
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     bookmarked: Boolean,
     onBookmark: () -> Unit
 ) {
@@ -73,11 +74,11 @@ fun ButtonBar(
                 )
             }
 
-            val icon = if (boosted) R.drawable.rocketfilled else R.drawable.rocket3
+            val icon = if (boosted == true) R.drawable.rocketfilled else R.drawable.rocket3
             SpringyButton(onBoost, icon, boostCount, iconSize = 20.dp)
             SpringyButton(
                 onFavorite,
-                if (favorited) R.drawable.starfilled else R.drawable.star,
+                if (favorited == true) R.drawable.starfilled else R.drawable.star,
                 favoriteCount,
                 iconSize = 28.dp
             )
@@ -94,7 +95,7 @@ fun ButtonBar(
                 )
             }
 
-            if ((replyCount != null && replyCount > 0) || hasParent) {
+            if ((replyCount != null && replyCount > 0) || hasParent == true) {
                 TextButton(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
@@ -132,8 +133,10 @@ fun ButtonBar(
                 }
             }
         }
-        AnimatedVisibility(visible = showReply && showInlineReplies) {
-            After(status = status, goToConversation = goToConversation, goToProfile = goToProfile)
+        AnimatedVisibility(visible = showReply == true && showInlineReplies == true) {
+            if (status != null) {
+                After(status = status, goToConversation = goToConversation, goToProfile = goToProfile, goToTag=goToTag)
+            }
         }
     }
 

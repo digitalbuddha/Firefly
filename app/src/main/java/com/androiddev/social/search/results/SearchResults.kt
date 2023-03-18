@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 fun SearchResults(
     results: SearchPresenter.SearchModel,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
 ) {
     val padding = PaddingSize1
@@ -117,6 +118,7 @@ fun SearchResults(
                         StatusTab(
                             results.statuses,
                             goToProfile,
+                            goToTag,
                             goToConversation,
                             submitPresenter
                         )
@@ -156,6 +158,7 @@ fun SearchResults(
 private fun StatusTab(
     results: List<UI>,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
     submitPresenter: SubmitPresenter
 ) {
@@ -172,7 +175,8 @@ private fun StatusTab(
                 events = submitPresenter.events,
                 showInlineReplies = false,
                 goToConversation = goToConversation,
-                goToProfile = goToProfile
+                goToProfile = goToProfile,
+                goToTag = goToTag
             )
         }
     }

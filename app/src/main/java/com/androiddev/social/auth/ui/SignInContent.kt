@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +23,7 @@ fun SignInContent(
     FireflyTheme {
         Box(Modifier.heightIn(min = 1.dp))
         Column(
-            modifier = modifier.wrapContentHeight().background(Color.Transparent)
+            modifier = modifier.fillMaxSize().background(Color.Transparent)
         ) {
 
             if (oauthAuthorizeUrl.isNotEmpty()) {

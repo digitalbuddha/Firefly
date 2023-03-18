@@ -28,7 +28,8 @@ fun MentionsScreen(
     navController: NavHostController,
     goToConversation: (UI) -> Unit,
     showBackBar: Boolean,
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -68,7 +69,8 @@ fun MentionsScreen(
                         events = component.submitPresenter().events,
                         showInlineReplies = false,
                         goToConversation = goToConversation,
-                        goToProfile = goToProfile
+                        goToProfile = goToProfile,
+                        goToTag = goToTag
                     )
                 }
             }

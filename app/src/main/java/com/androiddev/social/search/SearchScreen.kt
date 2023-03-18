@@ -7,11 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.androiddev.social.search.SearchPresenter.SearchModel
+import com.androiddev.social.search.results.SearchResults
 import com.androiddev.social.search.topbar.TopBar
 import com.androiddev.social.timeline.ui.model.UI
 import com.slack.exercise.search.SearchState
 import com.slack.exercise.search.rememberSearchState
-import com.androiddev.social.search.results.SearchResults
 
 
 /**
@@ -25,9 +25,10 @@ fun SearchScreen(
     navController: NavController,
     onQueryChange: (String) -> Unit,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
 ) {
-    SearchView(state = model, navController = navController, onQueryChange = onQueryChange, goToProfile = goToProfile, goToConversation = goToConversation)
+    SearchView(state = model, navController = navController, onQueryChange = onQueryChange, goToProfile = goToProfile, goToTag=goToTag, goToConversation = goToConversation)
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -38,6 +39,7 @@ fun SearchView(
     modifier: Modifier = Modifier,
     onQueryChange: (String) -> Unit,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
 ) {
     val searchState: SearchState = rememberSearchState()
@@ -48,7 +50,7 @@ fun SearchView(
         }
     )
     {
-        SearchResults(state, goToProfile, goToConversation)
+        SearchResults(state, goToProfile, goToTag,goToConversation)
     }
 }
 

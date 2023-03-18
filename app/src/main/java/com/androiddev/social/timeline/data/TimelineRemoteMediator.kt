@@ -30,7 +30,8 @@ class LocalTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
+
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -79,7 +80,7 @@ class HomeTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -127,7 +128,8 @@ class FederatedTimelineRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
+
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -179,7 +181,7 @@ class TrendingRemoteMediator @Inject constructor(
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository
 ) : TimelineRemoteMediator() {
-    override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
     override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
@@ -243,12 +245,12 @@ class UserRemoteMediator @Inject constructor(
                 LoadType.APPEND -> {
                     state
                     val lastItem: StatusDB? = state.lastItemOrNull()
-                    if (lastItem == null) {
+                    if (lastItem != null) {
                         return MediatorResult.Success(
                             endOfPaginationReached = true
                         )
                     }
-                    lastItem.originalId
+                    lastItem?.originalId
                 }
             }
 
@@ -381,6 +383,75 @@ class UserWithRepliesRemoteMediator @Inject constructor(
 
             MediatorResult.Success(
                 endOfPaginationReached = response.isEmpty()
+            )
+        } catch (e: IOException) {
+            MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            MediatorResult.Error(e)
+        }
+    }
+}
+
+@SingleIn(UserScope::class)
+class HashtagRemoteMediatorFactory @Inject constructor(
+    private val dao: StatusDao,
+    private val database: AppDatabase,
+    private val userApi: UserApi,
+    private val oauthRepository: OauthRepository
+) {
+
+    @OptIn(ExperimentalPagingApi::class)
+    fun from(hashtag: String) =
+        HashtagRemoteMediator(dao, database, userApi, oauthRepository, hashtag)
+}
+
+@ExperimentalPagingApi
+@SingleIn(UserScope::class)
+class HashtagRemoteMediator(
+    private val dao: StatusDao,
+    private val database: AppDatabase,
+    private val userApi: UserApi,
+    private val oauthRepository: OauthRepository,
+    private val hashtag: String
+) : TimelineRemoteMediator() {
+
+    override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
+
+    override suspend fun load(
+        loadType: LoadType, state: PagingState<Int, StatusDB>
+    ): MediatorResult {
+        return try {
+            val loadKey = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -> {
+                    state
+                    val lastItem: StatusDB? = state.lastItemOrNull()
+                    if (lastItem == null) {
+                        return MediatorResult.Success(
+                            endOfPaginationReached = true
+                        )
+                    }
+                    lastItem.originalId
+                }
+            }
+
+            val token = oauthRepository.getCurrent()
+            val response = userApi.getTagTimeline(
+                authHeader = " Bearer $token",
+                since = loadKey,
+                tag = hashtag
+            )
+
+
+            database.withTransaction {
+                dao.insertAll(response.map { it.toStatusDb(FeedType.Hashtag) }.map {
+                    it.copy(type = it.type + hashtag)
+                })
+            }
+
+            MediatorResult.Success(
+                endOfPaginationReached = false
             )
         } catch (e: IOException) {
             MediatorResult.Error(e)

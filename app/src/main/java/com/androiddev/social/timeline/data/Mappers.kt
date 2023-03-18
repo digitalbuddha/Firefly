@@ -144,7 +144,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
         accountEmojis = status.accountEmojis,
         remoteId = status.remoteId,
         boostedEmojis = status.boostedEmojis,
-        type = FeedType.valueOf(status.type),
+        type = FeedType.valueOf(if (status.type.startsWith("Hashtag")) "Hashtag" else status.type),
         favorited = status.favorited,
         boosted = status.boosted,
         inReplyTo = status.inReplyTo,
@@ -274,7 +274,7 @@ private fun getCustomSpanForTag(
     text: CharSequence, tags: List<Tag>?, span: URLSpan, listener: LinkListener
 ): ClickableSpan? {
     return getTagName(text, tags)?.let {
-        object : NoUnderlineURLSpan(span.url) {
+        object : NoUnderlineURLSpan("###TAG$it") {
             override fun onClick(view: View) = listener.onViewTag(it)
         }
     }

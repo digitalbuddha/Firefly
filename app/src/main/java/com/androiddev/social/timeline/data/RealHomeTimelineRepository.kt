@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 //    suspend fun post(newStatus: NewStatus): Status
 //}
 
-enum class FeedType(val type: String) {
+enum class FeedType(val type: String, ) {
     Home("Home"),
     Local("Local"),
 
@@ -21,6 +21,9 @@ enum class FeedType(val type: String) {
     Trending("Trending"),
     Bookmarks("Bookmarks"),
     Favorites("Favorites"),
+    Hashtag("Hashtag");
+
+    var tagName: String = ""
 //    Mention("Mention")
 //    object Favorites : FeedType("Favorites")
 }

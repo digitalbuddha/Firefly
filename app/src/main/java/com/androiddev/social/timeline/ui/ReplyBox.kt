@@ -91,7 +91,8 @@ fun UserInput(
     participants: String = " ",
     showReplies: Boolean,
     goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
@@ -167,7 +168,8 @@ fun UserInput(
                 { uris.add(it) },
                 status = status,
                 goToConversation = goToConversation,
-                goToProfile = goToProfile
+                goToProfile = goToProfile,
+                goToTag=goToTag
             )
             Row(
                 horizontalArrangement = Arrangement.Start,
@@ -229,8 +231,8 @@ private fun SelectorExpanded(
     addUri: (Uri) -> Unit = {},
     status: UI?,
     goToConversation: (UI) -> Unit = {},
-
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
@@ -249,7 +251,7 @@ private fun SelectorExpanded(
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
             InputSelector.REPLIES  ->
                 status?.let { After(status = it, goToConversation = goToConversation,
-                    goToProfile = goToProfile) }
+                    goToProfile = goToProfile, goToTag=goToTag) }
             InputSelector.PICTURE -> PhotoPickerResultComposable(addUri) {
                 onClearSelector()
             }

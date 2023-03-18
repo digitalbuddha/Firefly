@@ -189,11 +189,20 @@ class RealSubmitPresenter @Inject constructor(
                                 result.getOrThrow().reblog?.let {
                                     statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
                                 }
-                                statusDao.insertAll(
-                                    listOf(
-                                        result.getOrThrow().toStatusDb(event.feedType)
-                                    )
+                                val newStatus = result.getOrThrow()
+                                statusDao.setBoosted(
+                                    replyCount = newStatus.reblog!!.reblogsCount ?: 0,
+                                    statusId = newStatus.reblog.id,
+                                    boosted = true,
+                                    boostedId = newStatus.account!!.id,
+                                    boostedAvatar = newStatus.account.avatar,
+                                    boostedName = newStatus.account.displayName
                                 )
+//                                statusDao.insertAll(
+//                                    listOf(
+//                                        result.getOrThrow().toStatusDb(event.feedType)
+//                                    )
+//                                )
                             }
                         }
                     }
@@ -205,7 +214,7 @@ class RealSubmitPresenter @Inject constructor(
                             kotlin.runCatching {
                                 api.unfollowAccount(
                                     authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                                     event.accountId
+                                    event.accountId
                                 )
                             }
                         } else {

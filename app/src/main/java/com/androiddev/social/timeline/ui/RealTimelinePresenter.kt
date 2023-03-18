@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @ExperimentalPagingApi
@@ -23,6 +22,7 @@ import javax.inject.Inject
 @SingleIn(AuthRequiredScope::class)
 class RealTimelinePresenter @Inject constructor(
     val timelineRemoteMediators: @JvmSuppressWildcards Set<TimelineRemoteMediator>,
+    val hashtagRemoteMediatorFactory: HashtagRemoteMediatorFactory,
     val statusDao: StatusDao,
     val api: UserApi,
     val oauthRepository: OauthRepository,
@@ -94,9 +94,7 @@ class RealTimelinePresenter @Inject constructor(
         .flow.cachedIn(scope)
 
 
-    override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) = withContext(
-        Dispatchers.IO
-    ) {
+    override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
         when (event) {
             is Load -> {
                 val result =
@@ -141,10 +139,10 @@ class RealTimelinePresenter @Inject constructor(
                     }
 
                     FeedType.UserWithReplies -> {
-                        val remoteMediator =
+                        val userWithRepliesRemoteMediator =
                             timelineRemoteMediators.filterIsInstance<UserWithRepliesRemoteMediator>()
                                 .single()
-                        remoteMediator.accountId = event.accountId!!
+                        userWithRepliesRemoteMediator.accountId = event.accountId!!
 
                         val flow = Pager(
                             config = PagingConfig(
@@ -152,7 +150,7 @@ class RealTimelinePresenter @Inject constructor(
                                 initialLoadSize = 10,
                                 prefetchDistance = 10
                             ),
-                            remoteMediator = remoteMediator
+                            remoteMediator = userWithRepliesRemoteMediator
                         ) {
                             statusDao.getUserTimeline(
                                 FeedType.UserWithReplies.type,
@@ -160,49 +158,39 @@ class RealTimelinePresenter @Inject constructor(
                             )
                         }.flow
 
-                        model = model.copy(
-                            userWithRepliesStatuses = flow.map {
-                                it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope)
-                        )
-
-                    }
-
-                    FeedType.UserWithMedia -> {
-                        val remoteMediator =
+                        val remoteMediatorWithMedia =
                             timelineRemoteMediators.filterIsInstance<UserWithMediaRemoteMediator>()
                                 .single()
-                        remoteMediator.accountId = event.accountId!!
+                        remoteMediatorWithMedia.accountId = event.accountId
 
-                        val flow = Pager(
+                        val flowWithMedia = Pager(
                             config = pagingConfig,
-                            remoteMediator = remoteMediator
+                            remoteMediator = remoteMediatorWithMedia
                         ) {
                             statusDao.getUserTimeline(FeedType.UserWithMedia.type, event.accountId)
                         }.flow
 
-                        model = model.copy(
-                            userWithMediaStatuses = flow.map {
-                                it.map { it.mapStatus(event.colorScheme) }
-                            }.cachedIn(scope)
-                        )
-
-                    }
-
-                    FeedType.User -> {
                         val remoteMediator =
                             timelineRemoteMediators.filterIsInstance<UserRemoteMediator>()
                                 .single()
                         remoteMediator.accountId = event.accountId!!
-                        val flow = Pager(
+
+                        val flow2 = Pager(
                             config = pagingConfig,
                             remoteMediator = remoteMediator
                         ) {
                             statusDao.getUserTimeline(FeedType.User.type, event.accountId)
                         }.flow
 
+
                         model = model.copy(
-                            userStatuses = flow.map {
+                            userWithRepliesStatuses = flow.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope),
+                            userWithMediaStatuses = flowWithMedia.map {
+                                it.map { it.mapStatus(event.colorScheme) }
+                            }.cachedIn(scope),
+                            userStatuses = flow2.map {
                                 it.map { it.mapStatus(event.colorScheme) }
                             }.cachedIn(scope)
                         )
@@ -225,6 +213,21 @@ class RealTimelinePresenter @Inject constructor(
                                     .mapStatus(colorScheme = event.colorScheme)
                             }
                         })
+                    }
+
+                    FeedType.Hashtag -> {
+                        model = model.copy(hashtagStatuses = Pager(
+                            config = pagingConfig,
+                            remoteMediator = hashtagRemoteMediatorFactory.from(event.feedType.tagName)
+                        )
+                        {
+                            statusDao.getTimeline(FeedType.Hashtag.type + event.feedType.tagName)
+                        }
+                            .flow.cachedIn(scope).map {
+                                it.map {
+                                    it.mapStatus(colorScheme = event.colorScheme)
+                                }
+                            })
                     }
 
                     else -> {}
@@ -255,6 +258,7 @@ abstract class TimelinePresenter :
         val trendingStatuses: Flow<PagingData<UI>>? = null,
         val bookmarkedStatuses: Flow<PagingData<UI>>? = null,
         val favoriteStatuses: Flow<PagingData<UI>>? = null,
+        val hashtagStatuses: Flow<PagingData<UI>>? = null,
         val localStatuses: Flow<PagingData<UI>>? = null,
         val userStatuses: Flow<PagingData<UI>>? = null,
         val userWithMediaStatuses: Flow<PagingData<UI>>? = null,
@@ -273,8 +277,11 @@ class BookmarksPagingSource(
         params: LoadParams<String>
     ): LoadResult<String, Status> {
         try {
+
             // Start refresh at page 1 if undefined.
             val nextPageNumber = params.key
+            //we loaded all values
+//            if (nextPageNumber == "end") return LoadResult.Error(NoSuchElementException())
             val response = if (nextPageNumber == null) {
                 userApi.bookmarkedStatuses(
                     authHeader = " Bearer ${oauthRepository.getCurrent()}",

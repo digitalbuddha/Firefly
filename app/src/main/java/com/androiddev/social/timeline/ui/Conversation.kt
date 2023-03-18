@@ -26,7 +26,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (String) -> Unit) {
+fun After(status: UI, goToConversation: (UI) -> Unit,
+          goToProfile: (String) -> Unit,
+          goToTag: (String) -> Unit
+) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
 
@@ -43,15 +46,17 @@ fun After(status: UI, goToConversation: (UI) -> Unit, goToProfile: (String) -> U
         afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
 
 
-    InnerLazyColumn(after, goToConversation,goToProfile)
+    InnerLazyColumn(after, goToConversation, goToProfile, goToTag)
 }
 
 @Composable
 fun InnerLazyColumn(
     items: List<UI>?,
     goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit
-) {
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
+
+    ) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     LaunchedEffect(key1 = items) {
         submitPresenter.start()
@@ -69,7 +74,8 @@ fun InnerLazyColumn(
                         submitPresenter.events,
                         showInlineReplies = true,
                         goToConversation = goToConversation,
-                        goToProfile = goToProfile
+                        goToProfile = goToProfile,
+                        goToTag = goToTag
                     )
                 }
             }
@@ -87,6 +93,7 @@ fun card(
     showInlineReplies: Boolean,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
 
     ) {
 
@@ -97,6 +104,7 @@ fun card(
         Column {
             TimelineCard(
                 goToProfile = goToProfile,
+                goToTag = goToTag,
                 ui = eagerStatus,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     events.tryEmit(
@@ -115,7 +123,8 @@ fun card(
                         SubmitPresenter
                             .BoostMessage(it, status.type)
                     )
-                    eagerStatus = eagerStatus.copy(boostCount = eagerStatus.boostCount + 1, boosted = true)
+                    eagerStatus =
+                        eagerStatus.copy(boostCount = eagerStatus.boostCount + 1, boosted = true)
 
                 },
                 favoriteStatus = {
@@ -123,7 +132,10 @@ fun card(
                         SubmitPresenter
                             .FavoriteMessage(it, status.type)
                     )
-                    eagerStatus = eagerStatus.copy(favoriteCount = eagerStatus.favoriteCount + 1, favorited = true)
+                    eagerStatus = eagerStatus.copy(
+                        favoriteCount = eagerStatus.favoriteCount + 1,
+                        favorited = true
+                    )
 
                 },
                 state = null,

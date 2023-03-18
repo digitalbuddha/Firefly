@@ -10,20 +10,23 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.Divider
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +46,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.theme.PaddingSize0_5
@@ -51,9 +55,11 @@ import com.androiddev.social.theme.PaddingSize10
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
-import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.ui.model.UI
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material3.placeholder
+import com.google.accompanist.placeholder.shimmer
 import me.saket.swipe.SwipeAction
 import social.androiddev.firefly.R
 
@@ -61,7 +67,8 @@ import social.androiddev.firefly.R
 @Composable
 fun TimelineCard(
     goToProfile: (String) -> Unit,
-    ui: UI,
+    goToTag: (String) -> Unit,
+    ui: UI?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit, boostStatus: (String) -> Unit,
     favoriteStatus: (String) -> Unit,
     state: ModalBottomSheetState?,
@@ -87,39 +94,19 @@ fun TimelineCard(
             ),
     ) {
 
-        // actual ui for item
-        val provider = LocalAuthComponent.current.conversationPresenter().get()
-        var presenter by remember { mutableStateOf(provider) }
-//                val beforeStatus: List<Status>? =
-//                    presenter.model.conversations[ui.remoteId]?.before
 
-//                val before: MutableList<UI>? =
-//                    beforeStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
-//                        ?.toMutableList()
         var showingReplies by remember { mutableStateOf(false) }
-//                this@Column.AnimatedVisibility(showingReplies && (before?.size ?: 0) > 0) {
-//                    var showParent by remember { mutableStateOf(false) }
-//
-//                    //            if (!showParent)
-//                    //                Parent(if(showParent) "Show Parent" else "Show Replies Only") { showParent = true }
-//                    this@Column.AnimatedVisibility(showParent) {
-//                        InnerLazyColumn(
-//                            before,
-//                            goToConversation = goToConversation,
-//                            goToProfile = goToProfile
-//                        )
-//                    }
-//                }
 
         UserInfo(ui, goToProfile, onProfileClick = onProfileClick)
         Row(
             Modifier
-                .padding(bottom = PaddingSizeNone)
-                .wrapContentHeight()
+                .padding(bottom = PaddingSize1)
         ) {
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val (mapping, text) = ui.contentEmojiText!!
+                val emojiText = ui?.contentEmojiText
+                val mapping = emojiText?.mapping
+                val text = emojiText?.text
                 var clicked by remember(ui) { mutableStateOf(false) }
                 var showReply by remember(ui) { mutableStateOf(false) }
                 if (clicked) {
@@ -128,38 +115,53 @@ fun TimelineCard(
                     }
                 }
 
-
                 val uriHandler = LocalUriHandler.current
-
-                ClickableText(
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = colorScheme.onSurface,
-                    ),
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    text = text,
-                    onClick = {
-                        clicked = !clicked
-                        if (!clicked && showReply) showReply = false
-                        val annotation = text.getStringAnnotations(
-                            tag = "URL", start = it,
-                            end = it
+                        .placeholder(
+                            color = colorScheme.surfaceColorAtElevation(
+                                LocalAbsoluteTonalElevation.current + 8.dp
+                            ),
+                            visible = ui == null,
+                            shape = RoundedCornerShape(8.dp),
+                            highlight = PlaceholderHighlight.shimmer(
+                                highlightColor = colorScheme.tertiary.copy(alpha = 0.2f)
+                            ),
                         )
-                            .firstOrNull()
+                ) {
 
-                        if (annotation != null && URLUtil.isValidUrl(annotation.item)) {
-                            uriHandler.openUri(annotation.item)
-                            Log.d("Clicked URL", annotation.item)
-                        } else {
-                            if (annotation?.item != null) goToProfile(annotation.item)
-                            else if (ui.replyCount > 0 || ui.inReplyTo != null)
-                                goToConversation(ui)
-                        }
-                    },
-                    inlineContent = mapping
-                )
+                    ClickableText(
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = colorScheme.onSurface,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        text = text ?: buildAnnotatedString { },
+                        onClick = {
+                            clicked = !clicked
+                            if (!clicked && showReply) showReply = false
+                            val annotation = text!!.getStringAnnotations(
+                                tag = "URL", start = it,
+                                end = it
+                            )
+                                .firstOrNull()
 
-                ContentImage(ui.attachments.mapNotNull { it.url }) {
+                            if (annotation != null && URLUtil.isValidUrl(annotation.item)) {
+                                uriHandler.openUri(annotation.item)
+                                Log.d("Clicked URL", annotation.item)
+                            } else {
+                                if (annotation?.item?.startsWith("###TAG") == true) goToTag(annotation.item.removePrefix("###TAG"))
+                                else if (annotation?.item != null) goToProfile(annotation.item)
+                                else if (ui.replyCount > 0 || ui.inReplyTo != null)
+                                    goToConversation(ui)
+                            }
+                        },
+                        inlineContent = mapping ?: emptyMap()
+                    )
+                }
+
+
+                ContentImage(ui?.attachments?.mapNotNull { it.url } ?: emptyList()) {
                     clicked = !clicked
                 }
                 val toolbarHeight = PaddingSize6
@@ -186,54 +188,69 @@ fun TimelineCard(
                 }
                 AnimatedVisibility(visible = showReply) {
                     var mentions =
-                        ui.mentions.map { mention -> mention.username }
-                            .toMutableList()
+                        ui?.mentions?.map { mention -> mention.username }
+                            ?.toMutableList() ?: mutableListOf()
 
-                    mentions.add(ui.userName)
+                    mentions.add(ui?.userName ?: "")
                     mentions = mentions.map { "@${it}" }.toMutableList()
                     Column(modifier = Modifier.padding(top = PaddingSize2)) {
                         UserInput(
                             ui,
                             connection = nestedScrollConnection,
                             onMessageSent = { it, visibility, uris ->
-                                replyToStatus(
-                                    it,
-                                    visibility,
-                                    ui.remoteId,
-                                    ui.replyCount,
-                                    uris
-                                )
+                                ui?.let { it1 ->
+                                    replyToStatus(
+                                        it,
+                                        visibility,
+                                        it1.remoteId,
+                                        ui.replyCount,
+                                        uris
+                                    )
+                                }
                                 showReply = false
                             },
                             defaultVisiblity = "Public",
                             participants = mentions.joinToString(" "),
                             showReplies = true,
                             goToConversation = goToConversation,
-                            goToProfile = goToProfile
+                            goToProfile = goToProfile,
+                                    goToTag = goToTag
                         )
                     }
                 }
 
 
-                Column() {
+                Column(
+                    modifier = Modifier.placeholder(
+                        color = colorScheme.surfaceColorAtElevation(
+                            LocalAbsoluteTonalElevation.current + 8.dp
+                        ),
+                        visible = ui == null,
+                        shape = RoundedCornerShape(8.dp),
+                        highlight = PlaceholderHighlight.shimmer(
+                            highlightColor = colorScheme.onSurface.copy(alpha = 0.2f)
+                        ),
+                    )
+                ) {
 
                     val current = LocalAuthComponent.current
                     var justBookmarked by remember { mutableStateOf(false) }
 
+
                     ButtonBar(
                         ui,
-                        ui.replyCount,
-                        ui.boostCount,
-                        ui.favoriteCount,
-                        ui.favorited,
-                        ui.boosted,
-                        ui.inReplyTo != null,
+                        ui?.replyCount,
+                        ui?.boostCount,
+                        ui?.favoriteCount,
+                        ui?.favorited,
+                        ui?.boosted,
+                        ui?.inReplyTo != null,
                         showInlineReplies,
                         onBoost = {
-                            boostStatus(ui.remoteId)
+                            boostStatus(ui!!.remoteId)
                         },
                         onFavorite = {
-                            favoriteStatus(ui.remoteId)
+                            favoriteStatus(ui!!.remoteId)
                         },
                         onReply = {
                             showReply = !showReply
@@ -242,22 +259,23 @@ fun TimelineCard(
                         showReply = showingReplies,
                         onShowReplies = {
                             showingReplies = !showingReplies
-                            goToConversation(ui)
+                            goToConversation(ui!!)
                         },
                         goToConversation = {
-                            goToConversation(ui)
+                            goToConversation(ui!!)
                         },
                         goToProfile = goToProfile,
-                        bookmarked = ui.bookmarked || justBookmarked,
+                        goToTag = goToTag,
+                        bookmarked = ui?.bookmarked ?: false || justBookmarked,
                         onBookmark = {
                             justBookmarked = true
                             current.submitPresenter()
-                                .handle(SubmitPresenter.BookmarkMessage(ui.remoteId))
+                                .handle(SubmitPresenter.BookmarkMessage(ui!!.remoteId))
                         }
                     )
                 }
-
             }
+
         }
     }
     Divider()
@@ -267,7 +285,7 @@ fun TimelineCard(
 
 @Composable
 fun UserInfo(
-    ui: UI,
+    ui: UI?,
     goToProfile: (String) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> }
 ) {
@@ -275,11 +293,21 @@ fun UserInfo(
         Modifier
             .fillMaxWidth()
             .padding(bottom = PaddingSize1, start = 60.dp)
+//            .placeholder(
+//                color = colorScheme.surfaceColorAtElevation(
+//                    LocalAbsoluteTonalElevation.current + 8.dp
+//                ),
+//                visible = ui == null,
+//                shape = RoundedCornerShape(8.dp),
+//                highlight = PlaceholderHighlight.shimmer(
+//                    highlightColor = colorScheme.tertiary.copy(alpha = 0.2f)
+//                ),
+//            )
     ) {
-        if (ui.directMessage) {
+        if (ui?.directMessage != null) {
             DirectMessage(ui.directMessage)
         }
-        if (ui.boostedBy != null)
+        if (ui?.boostedBy != null)
             Boosted(ui.boostedEmojiText, R.drawable.rocket3,
                 ui.boostedAvatar,
                 containerColor = colorScheme.surface,
@@ -293,49 +321,69 @@ fun UserInfo(
             .fillMaxWidth()
             .padding(bottom = PaddingSize1)
             .clickable {
-                ui.accountId?.let { goToProfile(it) }
+                ui?.accountId?.let { goToProfile(it) }
             },
         horizontalArrangement = Arrangement.Start
     ) {
-        ui.avatar?.let { AvatarImage(PaddingSize7, it, onClick = { goToProfile(ui.accountId!!) }) }
-        ui.accountEmojis?.let {
-            Column(Modifier.padding(start = PaddingSize1)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = colorScheme.secondary,
-                        modifier = Modifier
-                            .padding(bottom = PaddingSize0_5)
-                            .fillMaxWidth(.6f)
-                            .align(Alignment.Top),
-                        text = ui.accountEmojiText!!.text,
-                        style = MaterialTheme.typography.bodyLarge,
-                        inlineContent = ui.accountEmojiText.mapping,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        color = colorScheme.secondary,
-                        text = ui.userName,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        color = colorScheme.secondary,
-                        text = ui.timePosted,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
+        AvatarImage(PaddingSize7, ui?.avatar, onClick = { goToProfile(ui?.accountId!!) })
+        Column(Modifier.padding(start = PaddingSize1)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = PaddingSize0_5)
+                    .placeholder(
+                        color = colorScheme.surfaceColorAtElevation(
+                            LocalAbsoluteTonalElevation.current + 8.dp
+                        ),
+                        visible = ui == null,
+                        shape = RoundedCornerShape(8.dp),
+                        highlight = PlaceholderHighlight.shimmer(
+                            highlightColor = colorScheme.onSurface.copy(alpha = 0.2f)
+                        ),
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
 
-                }
+                Text(
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = colorScheme.secondary,
+                    modifier = Modifier
+                        .fillMaxWidth(.6f)
+                        .align(Alignment.Top),
+                    text = ui?.accountEmojiText?.text ?: buildAnnotatedString { },
+                    style = MaterialTheme.typography.bodyLarge,
+                    inlineContent = ui?.accountEmojiText?.mapping ?: emptyMap(),
+                )
             }
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .placeholder(
+                        color = colorScheme.surfaceColorAtElevation(
+                            LocalAbsoluteTonalElevation.current + 8.dp
+                        ),
+                        visible = ui == null,
+                        shape = RoundedCornerShape(8.dp),
+                        highlight = PlaceholderHighlight.shimmer(
+                            highlightColor = colorScheme.onSurface.copy(alpha = 0.2f)
+                        ),
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    color = colorScheme.secondary,
+                    text = ui?.userName ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    color = colorScheme.secondary,
+                    text = ui?.timePosted ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                )
 
+            }
         }
     }
 }

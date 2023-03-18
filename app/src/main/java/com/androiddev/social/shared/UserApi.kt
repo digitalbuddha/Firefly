@@ -21,6 +21,14 @@ interface UserApi {
         @Query("max_id") since: String?
     ): List<Status>
 
+    @GET("/api/v1/timelines/tag/{tag}")
+    suspend fun getTagTimeline(
+        @Header("Authorization") authHeader: String?,
+        @Path("tag") tag: String,
+        @Query("limit") limit: String = "40",
+        @Query("max_id") since: String?
+    ): List<Status>
+
     @GET("api/v1/timelines/public")
     suspend fun getLocalTimeline(
         @Header("Authorization") authHeader: String,
@@ -90,10 +98,10 @@ interface UserApi {
         @Query("limit") limit: Int? = 40,
     ): Response<List<Status>>
 
-    @GET("/api/v1/bookmarks")
+    @GET
     suspend fun bookmarkedStatuses(
         @Header("Authorization") authHeader: String,
-        @Query("url") url: String,
+        @Url url: String,
     ): Response<List<Status>>
 
     @GET("/api/v1/favourites")
@@ -102,10 +110,10 @@ interface UserApi {
         @Query("limit") limit: Int? = 40,
     ): Response<List<Status>>
 
-    @GET("/api/v1/favourites")
+    @GET
     suspend fun favorites(
         @Header("Authorization") authHeader: String,
-        @Query("url") url: String,
+        @Url url: String,
     ): Response<List<Status>>
 
     @GET("api/v1/accounts/{id}/followers")

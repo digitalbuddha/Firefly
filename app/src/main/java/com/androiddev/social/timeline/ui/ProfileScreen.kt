@@ -58,7 +58,6 @@ import coil.request.ImageRequest
 import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize2
-import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
@@ -66,7 +65,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
@@ -126,7 +124,7 @@ fun ProfileScreen(
                     },
                     actions = {
                         val account = presenter.model.account
-                        var text by remember { mutableStateOf(if (account?.isFollowed == false) "follow" else "unfollow") }
+                        var text = if (account?.isFollowed == true) "unfollow" else "follow"
 
                         TextButton(
                             onClick = {
@@ -135,12 +133,13 @@ fun ProfileScreen(
                             }
                         ) {
 
-                            if (account?.isFollowed == true)
-                                Text(text = text, color = MaterialTheme.colorScheme.primary)
+                            Text(text = text, color = MaterialTheme.colorScheme.primary)
                             Image(
                                 modifier = Modifier
                                     .size(24.dp),
-                                painter =  if (text == "follow")painterResource(R.drawable.add) else painterResource(R.drawable.remove),
+                                painter = if (text == "follow") painterResource(R.drawable.add) else painterResource(
+                                    R.drawable.remove
+                                ),
                                 contentDescription = "",
                                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                             )
@@ -165,7 +164,9 @@ fun ProfileScreen(
                 profile(presenter, goToFollowers, goToFollowing)
             },
             frontLayerContent = {
-                val userStatuses = homePresenter.model.userWithRepliesStatuses
+                val userStatuses = homePresenter.model.userStatuses
+                val withReplies = homePresenter.model.userWithRepliesStatuses
+                val withMedia = homePresenter.model.userWithMediaStatuses
                 val account = presenter.model.account
                 val colorScheme = MaterialTheme.colorScheme
                 LaunchedEffect(key1 = accountId) {
@@ -179,21 +180,29 @@ fun ProfileScreen(
                 }
 
 
-                val pagingList = userStatuses?.collectAsLazyPagingItems()
-                LaunchedEffect(key1 = account?.id) {
-                    //very unexact way to run after the first append/prepend ran
-                    //otherwise infinite scroll never calls append on first launch
-                    // and I have no idea why
-                    delay(200)
-                    pagingList?.refresh()
-                }
-                pagingList?.let { pagingData ->
-                    val events: MutableSharedFlow<SubmitPresenter.SubmitEvent> =
-                        submitPresenter.events
-                    posts(navController = navController, account, pagingData, events, code) {
-                        scope.launch {
-                            scaffoldState.conceal()
-                        }
+                val pagingListUserStatus = userStatuses?.collectAsLazyPagingItems()
+                val pagingListWithReplies = withReplies?.collectAsLazyPagingItems()
+                val pagingListWithMedia = withMedia?.collectAsLazyPagingItems()
+//                LaunchedEffect(key1 = account?.id) {
+//                    //very unexact way to run after the first append/prepend ran
+//                    //otherwise infinite scroll never calls append on first launch
+//                    // and I have no idea why
+//                    delay(200)
+//                    pagingList?.refresh()
+//                }
+
+                val events: MutableSharedFlow<SubmitPresenter.SubmitEvent> =
+                    submitPresenter.events
+                posts(
+                    navController = navController,
+                    pagingListUserStatus,
+                    pagingListWithReplies,
+                    pagingListWithMedia,
+                    events,
+                    code
+                ) {
+                    scope.launch {
+                        scaffoldState.conceal()
                     }
                 }
             },
@@ -214,8 +223,9 @@ fun ProfileScreen(
 @Composable
 private fun posts(
     navController: NavHostController,
-    account: Account?,
-    statuses: LazyPagingItems<UI>,
+    statuses: LazyPagingItems<UI>?,
+    withReplies: LazyPagingItems<UI>?,
+    withMedia: LazyPagingItems<UI>?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
     changeHeight: (Int) -> Unit
@@ -240,7 +250,7 @@ private fun posts(
             val scope = rememberCoroutineScope()
             Tab(
                 modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                text = { Text("Posts/Replies", color = MaterialTheme.colorScheme.secondary) },
+                text = { Text("Posts", color = MaterialTheme.colorScheme.secondary) },
                 selected = pagerState.currentPage == 0,
                 onClick = {
                     scope.launch {
@@ -249,28 +259,28 @@ private fun posts(
                     }
                 }
             )
-//            Tab(
-//                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-//                text = { Text("Post/Replies", color = MaterialTheme.colorScheme.secondary) },
-//                selected = pagerState.currentPage == 0,
-//                onClick = {
-//                    scope.launch {
-//                        changeHeight(500)
-//                        pagerState.scrollToPage(1)
-//                    }
-//                },
-//            )
-//            Tab(
-//                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-//                text = { Text("Media", color = MaterialTheme.colorScheme.secondary) },
-//                selected = pagerState.currentPage == 0,
-//                onClick = {
-//                    scope.launch {
-//                        changeHeight(500)
-//                        pagerState.scrollToPage(2)
-//                    }
-//                },
-//            )
+            Tab(
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                text = { Text(" With Replies", color = MaterialTheme.colorScheme.secondary) },
+                selected = pagerState.currentPage == 0,
+                onClick = {
+                    scope.launch {
+                        changeHeight(500)
+                        pagerState.scrollToPage(1)
+                    }
+                },
+            )
+            Tab(
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                text = { Text("Media Only", color = MaterialTheme.colorScheme.secondary) },
+                selected = pagerState.currentPage == 0,
+                onClick = {
+                    scope.launch {
+                        changeHeight(500)
+                        pagerState.scrollToPage(2)
+                    }
+                },
+            )
 
         }
 
@@ -278,51 +288,69 @@ private fun posts(
             count = 3,
             state = pagerState,
         ) { page ->
+            val ui = when (page) {
+                0 -> {
+                    statuses
+                }
 
-            TimelineRows(
-                goToProfile = { accountId: String ->
-                    navController.navigate("profile/${code}/${accountId}")
-                },
-                ui = statuses,
-                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                    events.tryEmit(
-                        SubmitPresenter.PostMessage(
-                            content = content,
-                            visibility = visiblity,
-                            replyStatusId = replyToId,
-                            replyCount = replyCount,
-                            uris = uris
+                1 -> {
+                    withReplies
+                }
+
+                else -> {
+                    withMedia
+                }
+            }
+            ui?.let {
+                TimelineRows(
+                    goToProfile = { accountId: String ->
+                        navController.navigate("profile/${code}/${accountId}")
+                    },
+                    goToTag = { tag: String ->
+                        navController.navigate("tag/${code}/${tag}")
+                    },
+
+                    ui = it,
+                    replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
+                        events.tryEmit(
+                            SubmitPresenter.PostMessage(
+                                content = content,
+                                visibility = visiblity,
+                                replyStatusId = replyToId,
+                                replyCount = replyCount,
+                                uris = uris
+                            )
                         )
-                    )
-                },
-                boostStatus = {
-                    events.tryEmit(
-                        SubmitPresenter
-                            .BoostMessage(it, FeedType.User)
-                    )
+                    },
+                    boostStatus = {
+                        events.tryEmit(
+                            SubmitPresenter
+                                .BoostMessage(it, FeedType.User)
+                        )
 
-                },
-                favoriteStatus = {
-                    events.tryEmit(
-                        SubmitPresenter
-                            .FavoriteMessage(it, FeedType.User)
-                    )
+                    },
+                    favoriteStatus = {
+                        events.tryEmit(
+                            SubmitPresenter
+                                .FavoriteMessage(it, FeedType.User)
+                        )
 
-                },
-                state = rememberModalBottomSheetState(
-                    ModalBottomSheetValue.Hidden,
-                    SwipeableDefaults.AnimationSpec,
-                    skipHalfExpanded = true
-                ),
-                isReplying = { },
-                goToConversation = { status: UI ->
-                    navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
-                },
-                { accountId, _ ->
-                    navController.navigate("profile/${code}/${accountId}")
-                },
-                rememberLazyListState()
-            )
+                    },
+                    state = rememberModalBottomSheetState(
+                        ModalBottomSheetValue.Hidden,
+                        SwipeableDefaults.AnimationSpec,
+                        skipHalfExpanded = true
+                    ),
+                    isReplying = { },
+                    goToConversation = { status: UI ->
+                        navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
+                    },
+                    onProfileClick ={ accountId, _ ->
+                        navController.navigate("profile/${code}/${accountId}")
+                    },
+                    rememberLazyListState()
+                )
+            }
         }
     }
 }
@@ -356,7 +384,7 @@ private fun profile(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background.copy(alpha = .6f))
-                    .padding(16.dp)
+                    .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
 
@@ -380,7 +408,6 @@ private fun profile(
                 ContentImage(
                     listOf(account.avatar),
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(200.dp)
                         .aspectRatio(1f)
                         .align(Alignment.CenterHorizontally)

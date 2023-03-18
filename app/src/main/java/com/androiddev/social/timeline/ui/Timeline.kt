@@ -9,14 +9,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -34,6 +31,7 @@ import coil.ImageLoader
 import com.androiddev.social.AuthRequiredComponent
 import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
+import com.androiddev.social.tabselector.Tab
 import com.androiddev.social.theme.BottomBarElevation
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
@@ -42,12 +40,11 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material3.placeholder
-import com.google.accompanist.placeholder.shimmer
 import dev.marcellogalhardo.retained.compose.retainInActivity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import social.androiddev.firefly.R
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
 val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
@@ -68,7 +65,8 @@ fun TimelineScreen(
     goToNotifications: () -> Unit,
     goToSearch: () -> Unit,
     goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit
 ) {
     val component =
         retainInActivity(
@@ -95,8 +93,51 @@ fun TimelineScreen(
         )
         var replying by remember { mutableStateOf(false) }
         var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
+        var currentIndex by rememberSaveable { mutableStateOf(0) }
         var refresh: Boolean by remember { mutableStateOf(false) }
+        var expanded: Boolean by remember { mutableStateOf(false) }
         if (!state.isVisible) replying = false
+        var selectedIndex by rememberSaveable { mutableStateOf(0) }
+        val items = mutableListOf(
+            Tab(
+                "Home",
+                R.drawable.house,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Home"); selectedIndex = 0; expanded = false
+                }),
+            Tab(
+                "Local",
+                R.drawable.local,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Local"); selectedIndex = 1; expanded = false
+                }),
+            Tab(
+                "Federated",
+                R.drawable.world,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Federated"); selectedIndex = 2; expanded = false
+                }),
+            Tab(
+                "Trending",
+                R.drawable.trend,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Trending"); selectedIndex = 3; expanded = false
+                }),
+            Tab(
+                "Bookmarks",
+                R.drawable.bookmark,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Bookmarks"); selectedIndex = 4; expanded = false
+                }),
+            Tab(
+                "Favorites",
+                R.drawable.star,
+                onClick = {
+                    tabToLoad = FeedType.valueOf("Favorites"); selectedIndex = 5; expanded = false
+                }),
+
+            )
+
         Scaffold(
             topBar = {
                 TopAppBar(modifier = Modifier.clickable {
@@ -129,38 +170,7 @@ fun TimelineScreen(
                             }
 
                             Box(Modifier.align(Alignment.CenterVertically)) {
-                                TabSelector(
-                                    { it ->
-                                        tabToLoad = when (it) {
-                                            FeedType.Home.type -> {
-                                                FeedType.Home
-                                            }
-
-                                            FeedType.Local.type -> {
-                                                FeedType.Local
-                                            }
-
-                                            FeedType.Federated.type -> {
-                                                FeedType.Federated
-                                            }
-
-                                            FeedType.Trending.type -> {
-                                                FeedType.Trending
-                                            }
-                                            FeedType.Bookmarks.type -> {
-                                                FeedType.Bookmarks
-                                            }
-                                            FeedType.Favorites.type -> {
-                                                FeedType.Favorites
-                                            }
-
-                                            else -> {
-                                                FeedType.Home
-                                            }
-                                        }
-                                    }, {
-                                        refresh = true
-                                    })
+                                TabSelector(items, selectedIndex, expanded) { expanded = !expanded }
                             }
                             Search {
                                 goToSearch()
@@ -227,7 +237,8 @@ fun TimelineScreen(
                             participants = "",
                             showReplies = false,
                             goToConversation = goToConversation,
-                            goToProfile = goToProfile
+                            goToProfile = goToProfile,
+                            goToTag = goToTag
                         )
                     }) {
                     val model = homePresenter.model
@@ -236,6 +247,7 @@ fun TimelineScreen(
                         FeedType.Home -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -256,6 +268,7 @@ fun TimelineScreen(
                         FeedType.Local -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -275,6 +288,7 @@ fun TimelineScreen(
                         FeedType.Federated -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -293,6 +307,7 @@ fun TimelineScreen(
                         FeedType.Trending -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -320,6 +335,7 @@ fun TimelineScreen(
                         FeedType.Bookmarks -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -338,6 +354,7 @@ fun TimelineScreen(
                         FeedType.Favorites -> {
                             timelineTab(
                                 goToProfile,
+                                goToTag,
                                 accessTokenRequest.domain,
                                 homePresenter.events,
                                 submitPresenter.events,
@@ -352,6 +369,23 @@ fun TimelineScreen(
                                 { refresh = false }
                             )
                         }
+
+                        FeedType.Hashtag -> timelineTab(
+                            goToProfile,
+                            goToTag,
+                            accessTokenRequest.domain,
+                            homePresenter.events,
+                            submitPresenter.events,
+                            FeedType.Hashtag,
+                            model.hashtagStatuses?.collectAsLazyPagingItems(),
+                            account = model.account,
+                            state,
+                            goToConversation,
+                            { replying = it },
+                            onProfileClick,
+                            refresh,
+                            { refresh = false }
+                        )
                     }
                 }
             }
@@ -364,6 +398,7 @@ fun TimelineScreen(
 @Composable
 private fun timelineTab(
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     domain: String?,
     events: MutableSharedFlow<TimelinePresenter.HomeEvent>,
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
@@ -378,7 +413,7 @@ private fun timelineTab(
     doneRefreshing: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    LaunchedEffect(key1 = tabToLoad, key2 = domain) {
+    LaunchedEffect(key1 = tabToLoad, key2 = domain, key3 = tabToLoad.tagName) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad, colorScheme = colorScheme))
     }
 
@@ -403,8 +438,16 @@ private fun timelineTab(
                     doneRefreshing()
                 }
             }
+            LaunchedEffect(key1 = tabToLoad, key2 = domain) {
+                //very unexact way to run after the first append/prepend ran
+                //otherwise infinite scroll never calls append on first launch
+                // and I have no idea why
+                delay(200)
+                if (items.itemCount == 0) items.refresh()
+            }
             TimelineRows(
                 goToProfile,
+                goToTag,
                 items,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitEvents.tryEmit(
@@ -453,6 +496,7 @@ private data class ScrollKeyParams(
 @Composable
 fun TimelineRows(
     goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
     ui: LazyPagingItems<UI>,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (String) -> Unit,
@@ -469,49 +513,44 @@ fun TimelineRows(
         if (item.itemCount == 0) {
             LazyColumn {
                 items(3) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(250.dp)
-                            .padding(16.dp)
-                            .placeholder(
-                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                    LocalAbsoluteTonalElevation.current + 8.dp
-                                ),
-                                visible = true,
-                                shape = RoundedCornerShape(8.dp),
-                                highlight = PlaceholderHighlight.shimmer(
-                                    highlightColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                                ),
-                            )
+                    TimelineCard(
+                        goToProfile,
+                        goToTag = goToTag,
+                        null,
+                        replyToStatus,
+                        boostStatus,
+                        favoriteStatus,
+                        state,
+                        goToConversation,
+                        isReplying,
+                        false,
+                        onProfileClick = onProfileClick,
                     )
 
                 }
             }
         } else {
-
-
             LazyColumn(state = lazyListState) {
                 items(
                     items = item,
                     key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
+                    TimelineCard(
+                        goToProfile,
+                        goToTag = goToTag,
+                        it,
+                        replyToStatus,
+                        boostStatus,
+                        favoriteStatus,
+                        state,
+                        goToConversation,
+                        isReplying,
+                        false,
+                        onProfileClick = onProfileClick,
 
-                    it?.let { ui ->
-                        TimelineCard(
-                            goToProfile,
-                            ui,
-                            replyToStatus,
-                            boostStatus,
-                            favoriteStatus,
-                            state,
-                            goToConversation,
-                            isReplying,
-                            false,
-                            onProfileClick = onProfileClick
                         )
-                    }
                 }
             }
         }
     }
 }
+
