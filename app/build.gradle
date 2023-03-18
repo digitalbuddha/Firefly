@@ -16,10 +16,8 @@ repositories {
 android {
     signingConfigs {
         release {
-            storeFile file('/Users/mnakhimovich/keystore')
-            storePassword 'Qwer1234'
-            keyAlias 'firefly'
-            keyPassword 'Qwer1234'
+            storeFile file('/Users/***/keystore')
+
         }
     }
     namespace 'social.androiddev.firefly'
@@ -27,10 +25,10 @@ android {
 
     defaultConfig {
         applicationId "social.androiddev"
-        minSdk 26
+        minSdk 23
         targetSdk 33
-        versionCode 12
-        versionName "0.0.12"
+        versionCode 15
+        versionName "0.0.15"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -148,7 +146,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-navigation-animation:0.28.0"
     implementation "com.google.accompanist:accompanist-navigation-material:0.28.0"
     implementation "com.patrykandpatrick.vico:compose-m3:1.6.4"
-    implementation 'org.whispersystems:signal-protocol-android:2.7.0'
+//    implementation 'org.whispersystems:signal-protocol-android:2.7.0'
 
 
 }

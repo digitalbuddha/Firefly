@@ -131,16 +131,17 @@ fun ContentImage(
             var offsetY by remember { mutableStateOf(0f) }
             val minScale = 0.25f
             val maxScale = 3f
+            if(clicked)
             AsyncImage(
                 model = url.firstOrNull(),
                 contentDescription = "Content",
                 imageLoader = LocalImageLoader.current,
                 modifier = modifier
-                .fillMaxWidth()
+                    .fillMaxWidth()
 //                .aspectRatio(1f)
                     .padding(vertical = 4.dp)
                     .clip(shape = RoundedCornerShape(4, 4, 4, 4))
-                    .clickable { clicked = true }
+                    .clickable { clicked = !clicked }
                     .background(Transparent)
                     .graphicsLayer(
                         scaleX = zoom,
@@ -149,18 +150,18 @@ fun ContentImage(
                         translationY = offsetY,
                     )
                     .pointerInput(Unit) {
-                        detectTransformGestures(
-                            onGesture = { _, pan, gestureZoom, _ ->
-                                zoom = (zoom * gestureZoom).coerceIn(minScale, maxScale)
-                                if(zoom > 1) {
-                                    offsetX += pan.x * zoom
-                                    offsetY += pan.y * zoom
-                                }else{
-                                    offsetX = 0f
-                                    offsetY = 0f
+                            detectTransformGestures(
+                                onGesture = { _, pan, gestureZoom, _ ->
+                                    zoom = (zoom * gestureZoom).coerceIn(minScale, maxScale)
+                                    if (zoom > 1) {
+                                        offsetX += pan.x * zoom
+                                        offsetY += pan.y * zoom
+                                    } else {
+                                        offsetX = 0f
+                                        offsetY = 0f
+                                    }
                                 }
-                            }
-                        )
+                            )
                     },
                 transform = AsyncImagePainter.DefaultTransform,
                 onState = { },
@@ -169,7 +170,28 @@ fun ContentImage(
                 alpha = DefaultAlpha,
                 colorFilter = null,
                 filterQuality = DrawScope.DefaultFilterQuality
-            )
+            ) else{
+                AsyncImage(
+                    model = url.firstOrNull(),
+                    contentDescription = "Content",
+                    imageLoader = LocalImageLoader.current,
+                    modifier = modifier
+                        .fillMaxWidth()
+//                .aspectRatio(1f)
+                        .padding(vertical = 4.dp)
+                        .clip(shape = RoundedCornerShape(4, 4, 4, 4))
+                        .clickable { clicked = !clicked }
+                        .background(Transparent)
+                      ,
+                    transform = AsyncImagePainter.DefaultTransform,
+                    onState = { },
+                    alignment = Alignment.Center,
+                    contentScale = ContentScale.Fit,
+                    alpha = DefaultAlpha,
+                    colorFilter = null,
+                    filterQuality = DrawScope.DefaultFilterQuality
+                )
+            }
             if (url.size > 1) {
                 Image(
                     modifier = Modifier
@@ -263,17 +285,16 @@ fun HorizontalPagerWithOffsetTransition(modifier: Modifier = Modifier, urls: Lis
                             detectTransformGestures(
                                 onGesture = { _, pan, gestureZoom, _ ->
                                     zoom = (zoom * gestureZoom).coerceIn(minScale, maxScale)
-                                    if(zoom > 1) {
+                                    if (zoom > 1) {
                                         offsetX += pan.x * zoom
                                         offsetY += pan.y * zoom
-                                    }else{
+                                    } else {
                                         offsetX = 0f
                                         offsetY = 0f
                                     }
                                 }
                             )
-                        }
-                       ,
+                        },
                     transform = AsyncImagePainter.DefaultTransform,
                     onState = { },
                     alignment = Alignment.Center,

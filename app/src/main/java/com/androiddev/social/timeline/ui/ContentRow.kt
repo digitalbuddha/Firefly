@@ -49,6 +49,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize10
@@ -133,6 +134,7 @@ fun TimelineCard(
                     ClickableText(
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = colorScheme.onSurface,
+                            lineHeight = 18.sp
                         ),
                         modifier = Modifier
                             .fillMaxWidth(),
