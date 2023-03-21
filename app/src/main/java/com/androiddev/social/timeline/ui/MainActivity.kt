@@ -50,7 +50,7 @@ interface AuthRequiredInjector {
     fun avatarPresenter(): AvatarPresenter
     fun profilePresenter(): ProfilePresenter
     fun searchPresenter(): SearchPresenter
-    fun homePresenter():TimelinePresenter
+    fun homePresenter(): TimelinePresenter
     fun mentionsPresenter(): MentionsPresenter
     fun notificationPresenter(): NotificationPresenter
     fun submitPresenter(): SubmitPresenter
@@ -139,7 +139,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
 
 
     fun noAuthComponent() =
