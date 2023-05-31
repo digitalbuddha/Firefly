@@ -460,16 +460,16 @@ private fun timelineTab(
                         )
                     )
                 },
-                {
+                boostStatus = { statusId, boosted ->
                     submitEvents.tryEmit(
                         SubmitPresenter
-                            .BoostMessage(it, tabToLoad)
+                            .BoostMessage(statusId, tabToLoad, boosted)
                     )
                 },
-                {
+                favoriteStatus = { statusId, favourited ->
                     submitEvents.tryEmit(
                         SubmitPresenter
-                            .FavoriteMessage(it, tabToLoad)
+                            .FavoriteMessage(statusId, tabToLoad, favourited)
                     )
                 },
                 state,
@@ -499,8 +499,8 @@ fun TimelineRows(
     goToTag: (String) -> Unit,
     ui: LazyPagingItems<UI>,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
-    boostStatus: (String) -> Unit,
-    favoriteStatus: (String) -> Unit,
+    boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
+    favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     state: ModalBottomSheetState,
     isReplying: (Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
@@ -526,7 +526,6 @@ fun TimelineRows(
                         false,
                         onProfileClick = onProfileClick,
                     )
-
                 }
             }
         } else {
@@ -546,8 +545,7 @@ fun TimelineRows(
                         isReplying,
                         false,
                         onProfileClick = onProfileClick,
-
-                        )
+                    )
                 }
             }
         }

@@ -95,16 +95,16 @@ fun TagScreen(
                         )
                     )
                 },
-                {
+                boostStatus = { statusId, boosted ->
                     submitPresenter.handle(
                         SubmitPresenter
-                            .BoostMessage(it, FeedType.Hashtag)
+                            .BoostMessage(statusId, FeedType.Hashtag, boosted)
                     )
                 },
-                {
+                favoriteStatus = { statusId, favourited ->
                     submitPresenter.handle(
                         SubmitPresenter
-                            .FavoriteMessage(it, FeedType.Hashtag)
+                            .FavoriteMessage(statusId, FeedType.Hashtag, favourited)
                     )
                 },
                 rememberModalBottomSheetState(

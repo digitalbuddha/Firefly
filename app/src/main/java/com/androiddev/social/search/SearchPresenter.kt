@@ -91,7 +91,6 @@ class RealSearchPresenter @Inject constructor(
                             model = SearchModel(error = "Sorry no results found")
                         else {
                             val authHeader = " Bearer ${oauthRepository.getCurrent()}"
-//
                             val searchResults = results.requireData()
                             val userTags =
                                 kotlin.runCatching {

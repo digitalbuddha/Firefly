@@ -118,19 +118,19 @@ fun card(
                     )
                     eagerStatus = eagerStatus.copy(replyCount = eagerStatus.replyCount + 1)
                 },
-                boostStatus = {
+                boostStatus = { statusId, boosted ->
                     events.tryEmit(
                         SubmitPresenter
-                            .BoostMessage(it, status.type)
+                            .BoostMessage(statusId, status.type, boosted)
                     )
                     eagerStatus =
                         eagerStatus.copy(boostCount = eagerStatus.boostCount + 1, boosted = true)
 
                 },
-                favoriteStatus = {
+                favoriteStatus = { statusId, favourited ->
                     events.tryEmit(
                         SubmitPresenter
-                            .FavoriteMessage(it, status.type)
+                            .FavoriteMessage(statusId, status.type, favourited)
                     )
                     eagerStatus = eagerStatus.copy(
                         favoriteCount = eagerStatus.favoriteCount + 1,

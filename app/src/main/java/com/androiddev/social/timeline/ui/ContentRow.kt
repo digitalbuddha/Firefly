@@ -70,8 +70,9 @@ fun TimelineCard(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     ui: UI?,
-    replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit, boostStatus: (String) -> Unit,
-    favoriteStatus: (String) -> Unit,
+    replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
+    boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
+    favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     state: ModalBottomSheetState?,
     goToConversation: (UI) -> Unit,
     isReplying: (Boolean) -> Unit,
@@ -249,10 +250,10 @@ fun TimelineCard(
                         ui?.inReplyTo != null,
                         showInlineReplies,
                         onBoost = {
-                            boostStatus(ui!!.remoteId)
+                            boostStatus(ui!!.remoteId, ui.boosted)
                         },
                         onFavorite = {
-                            favoriteStatus(ui!!.remoteId)
+                            favoriteStatus(ui!!.remoteId, ui.favorited)
                         },
                         onReply = {
                             showReply = !showReply
