@@ -42,6 +42,7 @@ revealswipe = "1.0.0"
 store = "5.0.0-alpha03"
 swipe = "1.0.0"
 room = "2.5.0"
+me-saket-zoomable = "0.3.0"
 
 [libraries]
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -76,6 +77,8 @@ dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = 
 de-charlex-compose-revealswipe = { module = "de.charlex.compose:revealswipe", version.ref = "revealswipe" }
 espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 me-saket-swipe = { module = "me.saket.swipe:swipe", version.ref = "swipe" }
+me-saket-zoomable = { module = "me.saket.telephoto:zoomable", version.ref = "me-saket-zoomable" }
+me-saket-zoomable-coil = { module = "me.saket.telephoto:zoomable-image-coil", version.ref = "me-saket-zoomable" }
 junit = { module = "junit:junit", version.ref = "junit4" }
 junit-ext = { module = "androidx.test.ext:junit", version.ref = "junit-ext" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
@@ -91,6 +94,7 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 
 [plugins]
@@ -100,6 +104,5 @@ anvil = { id = "com.squareup.anvil", version.ref = "anvil" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlin-datetime = { id = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 firebase-crashlytics = "com.google.firebase.crashlytics:2.9.4"
 gms-googleServices = "com.google.gms.google-services:4.3.15"

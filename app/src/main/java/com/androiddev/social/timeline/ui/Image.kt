@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -56,10 +57,10 @@ import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.shimmer
 import kotlinx.coroutines.awaitCancellation
 import me.saket.telephoto.zoomable.ZoomableContentLocation
-import me.saket.telephoto.zoomable.ZoomableViewport
-import me.saket.telephoto.zoomable.ZoomableViewportState
-import me.saket.telephoto.zoomable.graphicsLayer
-import me.saket.telephoto.zoomable.rememberZoomableViewportState
+import me.saket.telephoto.zoomable.zoomable
+import me.saket.telephoto.zoomable.ZoomableState
+import me.saket.telephoto.zoomable.coil.ZoomableAsyncImage
+import me.saket.telephoto.zoomable.rememberZoomableState
 import social.androiddev.firefly.R
 
 @Composable
@@ -229,16 +230,12 @@ private fun MediaPage(
     model: MediaItem,
     modifier: Modifier = Modifier,
 ) {
-    val viewportState = rememberZoomableViewportState(maxZoomFactor = 3f)
-    ZoomableViewport(
-        modifier = modifier,
-        state = viewportState,
-        contentScale = ContentScale.Inside,
-        contentAlignment = Alignment.Center,
-    ) {
-        NormalSizedRemoteImage(viewportState, model as MediaItem.NormalSizedRemoteImage)
-
-    }
+    val viewportState = rememberZoomableState()
+    NormalSizedRemoteImage(
+        viewportState,
+        model as MediaItem.NormalSizedRemoteImage,
+        modifier,
+    )
 }
 
 
@@ -254,22 +251,16 @@ sealed interface MediaItem {
 
 @Composable
 fun NormalSizedRemoteImage(
-    viewportState: ZoomableViewportState,
-    model: MediaItem.NormalSizedRemoteImage
+    viewportState: ZoomableState,
+    model: MediaItem.NormalSizedRemoteImage,
+    modifier: Modifier = Modifier,
 ) {
-    AsyncImage(
-        modifier = Modifier
-            .graphicsLayer(viewportState.contentTransformation)
-            .fillMaxSize(),
+    ZoomableAsyncImage(
+        modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .data(model.url)
             .crossfade(true)
             .build(),
         contentDescription = null,
-        onState = {
-            viewportState.setContentLocation(
-                ZoomableContentLocation.fitInsideAndCenterAligned(it.painter?.intrinsicSize)
-            )
-        }
     )
 }

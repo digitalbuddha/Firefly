@@ -1,11 +1,9 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.anvil)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.firebase.crashlytics)
-    alias(libs.plugins.gms.googleServices)
 }
 
 repositories {
@@ -15,21 +13,11 @@ repositories {
 }
 
 android {
-    signingConfigs {
-        release {
-            storeFile file('/Users/***/keystore')
-
-        }
-    }
-    namespace 'social.androiddev.firefly'
     compileSdk 33
 
     defaultConfig {
-        applicationId "social.androiddev"
         minSdk 24
         targetSdk 33
-        versionCode 16
-        versionName "0.0.16"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -37,12 +25,6 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -99,9 +81,6 @@ dependencies {
     implementation(libs.androidx.nav.compose)
     implementation(libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)
-    implementation(libs.kotlin.datetime)
-    implementation(libs.me.saket.zoomable)
-    implementation(libs.me.saket.zoomable.coil)
 
     // If using indicators, also depend on
     api(libs.atomicfu)
@@ -113,9 +92,10 @@ dependencies {
     androidTestImplementation(libs.coroutines.test)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.assertj)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+//    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.espresso)
     androidTestImplementation(libs.junit.ext)
+//    androidTestImplementation(libs.kotlinx.datetime)
 
     def  room_version = "2.5.0"
     implementation(libs.androidx.room.runtime)
