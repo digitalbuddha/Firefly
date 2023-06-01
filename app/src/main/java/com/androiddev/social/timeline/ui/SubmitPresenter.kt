@@ -43,7 +43,7 @@ abstract class SubmitPresenter :
     ) : SubmitEvent
 
 
-    data class BoostMessage(val statusId: String, val feedType: FeedType) :
+    data class BoostMessage(val statusId: String, val feedType: FeedType, val boosted: Boolean) :
         SubmitEvent
 
     data class Follow(val accountId: String, val unfollow: Boolean = false) :
@@ -52,7 +52,7 @@ abstract class SubmitPresenter :
     data class FollowTag(val tagName: String, val unfollow: Boolean = false) :
         SubmitEvent
 
-    data class FavoriteMessage(val statusId: String, val feedType: FeedType) :
+    data class FavoriteMessage(val statusId: String, val feedType: FeedType, val favourited: Boolean) :
         SubmitEvent
 
     data class BookmarkMessage(val statusId: String) :
@@ -108,7 +108,7 @@ class RealSubmitPresenter @Inject constructor(
 
                         val uploadResult = kotlin.runCatching {
                             api.upload(
-                                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                authHeader = authHeader(),
                                 file = body
                             )
                         }
@@ -123,7 +123,7 @@ class RealSubmitPresenter @Inject constructor(
                             replyStatusId = event.replyStatusId,
                         )
                         api.newStatus(
-                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                            authHeader = authHeader(),
                             status = status
                         )
                     }
@@ -142,10 +142,17 @@ class RealSubmitPresenter @Inject constructor(
 
                 is FavoriteMessage -> {
                     val result = kotlin.runCatching {
-                        api.favoriteStatus(
-                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                            id = event.statusId
-                        )
+                        if (event.favourited) {
+                            api.unfavouriteStatus(
+                                authHeader = authHeader(),
+                                id = event.statusId
+                            )
+                        } else {
+                            api.favouriteStatus(
+                                authHeader = authHeader(),
+                                id = event.statusId
+                            )
+                        }
                     }
                     when {
                         result.isSuccess -> {
@@ -161,7 +168,7 @@ class RealSubmitPresenter @Inject constructor(
                 is BookmarkMessage -> {
                     val result = kotlin.runCatching {
                         api.bookmarkStatus(
-                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                            authHeader = authHeader(),
                             id = event.statusId
                         )
                     }
@@ -178,10 +185,17 @@ class RealSubmitPresenter @Inject constructor(
 
                 is BoostMessage -> {
                     val result = kotlin.runCatching {
-                        api.boostStatus(
-                            authHeader = " Bearer ${oauthRepository.getCurrent()}",
-                            id = event.statusId
-                        )
+                        if (event.boosted) {
+                            api.unBoostStatus(
+                                authHeader = authHeader(),
+                                id = event.statusId
+                            )
+                        } else {
+                            api.boostStatus(
+                                authHeader = authHeader(),
+                                id = event.statusId
+                            )
+                        }
                     }
                     when {
                         result.isSuccess -> {
@@ -193,16 +207,11 @@ class RealSubmitPresenter @Inject constructor(
                                 statusDao.setBoosted(
                                     replyCount = newStatus.reblog!!.reblogsCount ?: 0,
                                     statusId = newStatus.reblog.id,
-                                    boosted = true,
+                                    boosted = newStatus.reblogged ?: false,
                                     boostedId = newStatus.account!!.id,
                                     boostedAvatar = newStatus.account.avatar,
                                     boostedName = newStatus.account.displayName
                                 )
-//                                statusDao.insertAll(
-//                                    listOf(
-//                                        result.getOrThrow().toStatusDb(event.feedType)
-//                                    )
-//                                )
                             }
                         }
                     }
@@ -213,14 +222,14 @@ class RealSubmitPresenter @Inject constructor(
                         if (event.unfollow) {
                             kotlin.runCatching {
                                 api.unfollowAccount(
-                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    authHeader = authHeader(),
                                     event.accountId
                                 )
                             }
                         } else {
                             kotlin.runCatching {
                                 api.followAccount(
-                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    authHeader = authHeader(),
                                     accountId = event.accountId
                                 )
                             }
@@ -240,14 +249,14 @@ class RealSubmitPresenter @Inject constructor(
                         if (event.unfollow) {
                             kotlin.runCatching {
                                 api.unfollowTag(
-                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    authHeader = authHeader(),
                                     name = event.tagName
                                 )
                             }
                         } else {
                             kotlin.runCatching {
                                 api.followTag(
-                                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                                    authHeader = authHeader(),
                                     name = event.tagName
                                 )
                             }
@@ -265,6 +274,8 @@ class RealSubmitPresenter @Inject constructor(
                 }
             }
         }
+
+    private suspend fun authHeader() = " Bearer ${oauthRepository.getCurrent()}"
 }
 
 

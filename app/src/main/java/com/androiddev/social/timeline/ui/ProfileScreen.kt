@@ -322,17 +322,17 @@ private fun posts(
                             )
                         )
                     },
-                    boostStatus = {
+                    boostStatus = { statusId, boosted ->
                         events.tryEmit(
                             SubmitPresenter
-                                .BoostMessage(it, FeedType.User)
+                                .BoostMessage(statusId, FeedType.User, boosted)
                         )
 
                     },
-                    favoriteStatus = {
+                    favoriteStatus = { statusId, favourited ->
                         events.tryEmit(
                             SubmitPresenter
-                                .FavoriteMessage(it, FeedType.User)
+                                .FavoriteMessage(statusId, FeedType.User, favourited)
                         )
 
                     },

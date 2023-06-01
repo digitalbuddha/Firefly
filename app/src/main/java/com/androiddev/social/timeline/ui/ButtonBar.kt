@@ -74,11 +74,19 @@ fun ButtonBar(
                 )
             }
 
-            val icon = if (boosted == true) R.drawable.rocketfilled else R.drawable.rocket3
-            SpringyButton(onBoost, icon, boostCount, iconSize = 20.dp)
+            SpringyButton(
+                onBoost,
+                boosted == true,
+                R.drawable.rocketfilled,
+                R.drawable.rocket3,
+                boostCount,
+                iconSize = 20.dp
+            )
             SpringyButton(
                 onFavorite,
-                if (favorited == true) R.drawable.starfilled else R.drawable.star,
+                favorited == true,
+                R.drawable.starfilled,
+                R.drawable.star,
                 favoriteCount,
                 iconSize = 28.dp
             )
@@ -145,12 +153,14 @@ fun ButtonBar(
 @Composable
 private fun SpringyButton(
     onClick: () -> Unit,
-    icon: Int,
+    on: Boolean,
+    onIcon: Int,
+    offIcon: Int,
     count: Int?,
     iconSize:Dp = PaddingSize3
 ) {
 
-    var clicked by remember { mutableStateOf(false) }
+    var clicked by remember { mutableStateOf(on) }
     var localCount by remember { mutableStateOf(count) }
 
     val imageSize = 1
@@ -172,7 +182,7 @@ private fun SpringyButton(
             modifier = Modifier
                 .padding(end = PaddingSize0_5)
                 .size(iconSize),
-            painter = painterResource(icon),
+            painter = painterResource(if (clicked) onIcon else offIcon),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary),
         )

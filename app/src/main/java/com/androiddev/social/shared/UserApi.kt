@@ -169,56 +169,67 @@ interface UserApi {
 
     @POST("/api/v1/statuses/{id}/reblog")
     suspend fun boostStatus(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    ): Status
+
+    @POST("/api/v1/statuses/{id}/unreblog")
+    suspend fun unBoostStatus(
+        @Header("Authorization") authHeader: String,
         @Path("id") id: String,
     ): Status
 
     @POST("api/v1/accounts/{id}/follow")
     suspend fun followAccount(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Path("id") accountId: String
     ): Relationship
 
     @POST("api/v1/accounts/{id}/unfollow")
     suspend fun unfollowAccount(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Path("id") accountId: String
     ): Relationship
 
 
     @POST("/api/v1/tags/{name}/follow")
     suspend fun followTag(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Path("name") name: String,
     ): Tag
 
     @POST("/api/v1/tags/{name}/unfollow")
     suspend fun unfollowTag(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Path("name") name: String,
     ): Tag
 
-
     @POST("/api/v1/statuses/{id}/favourite")
-    suspend fun favoriteStatus(
-        @Header("Authorization") authHeader: String?,
+    suspend fun favouriteStatus(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    ): Status
+
+    @POST("/api/v1/statuses/{id}/unfavourite")
+    suspend fun unfavouriteStatus(
+        @Header("Authorization") authHeader: String,
         @Path("id") id: String,
     ): Status
 
     @POST("/api/v1/statuses/{id}/bookmark")
     suspend fun bookmarkStatus(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Path("id") id: String,
     ): Status
 
     @GET("api/v1/accounts/verify_credentials")
     suspend fun accountVerifyCredentials(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
     ): Account
 
     @GET("/api/v1/followed_tags")
     suspend fun followedTags(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
     ): List<Tag>
 
     @Serializable
@@ -229,7 +240,7 @@ interface UserApi {
     @Multipart
     @POST("api/v2/media")
     suspend fun upload(
-        @Header("Authorization") authHeader: String?,
+        @Header("Authorization") authHeader: String,
         @Part file: MultipartBody.Part,
         @Part description: MultipartBody.Part? = null,
         @Part focus: MultipartBody.Part? = null
