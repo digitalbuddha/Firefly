@@ -1,4 +1,4 @@
-package com.slack.exercise.search.topbar
+package com.androiddev.social.search.topbar
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,8 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.androiddev.social.search.topbar.SearchField
 import com.androiddev.social.theme.PaddingSize0_5
+import com.slack.exercise.search.topbar.ClearButton
+import com.slack.exercise.search.topbar.ProgressIndicator
 
 /**
  * Composable used for getting search input from a user

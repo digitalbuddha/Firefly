@@ -120,7 +120,6 @@ class RealSearchPresenter @Inject constructor(
                     }
 
                     else -> {
-
                         if (results is StoreResponse.Error.Message) {
                             model = SearchModel(error = results.errorMessageOrNull())
                         } else if (results is StoreResponse.Error) {
@@ -140,5 +139,4 @@ class RealSearchPresenter @Inject constructor(
     override fun onQueryTextChange(searchTerm: String) {
         searchInput.tryEmit(searchTerm.lowercase(Locale.getDefault()))
     }
-
 }
