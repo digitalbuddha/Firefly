@@ -379,13 +379,18 @@ fun UserInfo(
                     color = colorScheme.secondary,
                     text = ui?.userName ?: "",
                     style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                        .padding(end = PaddingSize1)
+                        .weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     color = colorScheme.secondary,
                     text = ui?.timePosted ?: "",
                     style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
                 )
-
             }
         }
     }
