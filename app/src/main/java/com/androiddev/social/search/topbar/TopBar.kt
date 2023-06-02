@@ -15,7 +15,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.slack.exercise.search.SearchState
-import com.slack.exercise.search.topbar.SearchBar
 
 @Composable
 fun TopBar(
@@ -54,7 +53,6 @@ fun TopBar(
         },
         modifier = Modifier.background(Color.White).height(40.dp),
         actions = {
-
         }
     )
 }
