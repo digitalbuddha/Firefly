@@ -6,6 +6,9 @@ import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Notification
+import com.androiddev.social.timeline.data.StatusDao
+import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.data.updateOldStatus
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -67,15 +70,22 @@ interface NotificationsRepository {
 @SingleIn(UserScope::class)
 class RealNotificationsRepository @Inject constructor(
     userApi: UserApi,
+    statusDao: StatusDao,
     oauthRepository: OauthRepository
 ) :
     NotificationsRepository {
     val store = StoreBuilder.from(
         Fetcher.of { key: Unit ->
-            userApi.notifications(
+            val notification = userApi.notifications(
                 authHeader = " Bearer ${oauthRepository.getCurrent()}",
                 offset = null
             )
+            notification.forEach { notif ->
+                notif.status?.let {status ->
+                    statusDao.updateOldStatus(status.toStatusDb())
+                }
+            }
+            notification
         }
     ).build()
 
