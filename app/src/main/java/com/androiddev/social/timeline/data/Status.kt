@@ -54,7 +54,7 @@ data class Attachment(
     val id: String,
     val type: AttachmentType,
     val url: String?,
-    @SerialName("preview_url") val previewUrl: String,
+    @SerialName("preview_url") val previewUrl: String? = null,
 
     // optional attributes
     @SerialName("remote_url") val remoteUrl: String? = null,

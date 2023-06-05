@@ -56,7 +56,7 @@ abstract class SubmitPresenter :
     data class FavoriteMessage(val statusId: String, val feedType: FeedType, val favourited: Boolean) :
         SubmitEvent
 
-    data class BookmarkMessage(val statusId: String) :
+    data class BookmarkMessage(val statusId: String, val feedType: FeedType) :
         SubmitEvent
 
     data class SubmitModel(
@@ -77,10 +77,17 @@ class RealSubmitPresenter @Inject constructor(
     val context: android.app.Application
 ) : SubmitPresenter() {
 
+    private val onGoingPostMessages = mutableSetOf<Int>()
+
     override suspend fun eventHandler(event: SubmitEvent, coroutineScope: CoroutineScope): Unit =
         withContext(Dispatchers.IO) {
             when (event) {
                 is PostMessage -> {
+                    val eventHash = event.hashCode()
+                    if (onGoingPostMessages.contains(eventHash)) {
+                        return@withContext
+                    }
+                    onGoingPostMessages.add(eventHash)
                     val ids: List<String> = event.uris.map { uri ->
                         var mimeType = context.contentResolver.getType(uri)
                         val stream = context.contentResolver.openInputStream(uri)
@@ -130,6 +137,7 @@ class RealSubmitPresenter @Inject constructor(
                             status = status
                         )
                     }
+                    onGoingPostMessages.remove(eventHash)
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
@@ -160,9 +168,9 @@ class RealSubmitPresenter @Inject constructor(
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
-                                statusDao.insertAll(
-                                    listOf(result.getOrThrow().toStatusDb(event.feedType))
-                                )
+                                result.getOrThrow().let { newStatus ->
+                                    statusDao.updateOldStatus(newStatus.toStatusDb(event.feedType))
+                                }
                             }
                         }
                     }
@@ -178,9 +186,9 @@ class RealSubmitPresenter @Inject constructor(
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
-//                            statusDao.insertAll(
-//                                listOf(result.getOrThrow().toStatusDb(event.feedType))
-//                            )
+                                result.getOrThrow().let { newStatus ->
+                                    statusDao.updateOldStatus(newStatus.toStatusDb(event.feedType))
+                                }
                             }
                         }
                     }
@@ -203,18 +211,9 @@ class RealSubmitPresenter @Inject constructor(
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
-                                result.getOrThrow().reblog?.let {
-                                    statusDao.insertAll(listOf(it.toStatusDb(event.feedType)))
+                                result.getOrThrow().let { newStatus ->
+                                    statusDao.updateOldStatus(newStatus.toStatusDb())
                                 }
-                                val newStatus = result.getOrThrow()
-                                statusDao.setBoosted(
-                                    replyCount = newStatus.reblog!!.reblogsCount ?: 0,
-                                    statusId = newStatus.reblog.id,
-                                    boosted = newStatus.reblogged ?: false,
-                                    boostedId = newStatus.account!!.id,
-                                    boostedAvatar = newStatus.account.avatar,
-                                    boostedName = newStatus.account.displayName
-                                )
                             }
                         }
                     }

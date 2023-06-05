@@ -305,7 +305,7 @@ fun TimelineCard(
                         onBookmark = {
                             justBookmarked = true
                             current.submitPresenter()
-                                .handle(SubmitPresenter.BookmarkMessage(ui!!.remoteId))
+                                .handle(SubmitPresenter.BookmarkMessage(ui!!.remoteId, ui.type))
                         }
                     )
                 }
