@@ -55,7 +55,6 @@ class LocalTimelineRemoteMediator @Inject constructor(
             val token = oauthRepository.getCurrent()
             val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey)
 
-
             database.withTransaction {
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Local) })
             }

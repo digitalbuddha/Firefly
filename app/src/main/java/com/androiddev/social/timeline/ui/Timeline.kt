@@ -66,7 +66,7 @@ fun TimelineScreen(
     goToSearch: () -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
 ) {
     val component =
         retainInActivity(
@@ -261,7 +261,7 @@ fun TimelineScreen(
                                 },
                                 onProfileClick = onProfileClick,
                                 refresh,
-                                { refresh = false }
+                                { refresh = false },
                             )
                         }
 
@@ -280,8 +280,7 @@ fun TimelineScreen(
                                 { replying = it },
                                 onProfileClick,
                                 refresh,
-                                { refresh = false }
-
+                                { refresh = false },
                             )
                         }
 
@@ -300,7 +299,7 @@ fun TimelineScreen(
                                 { replying = it },
                                 onProfileClick,
                                 refresh,
-                                { refresh = false }
+                                { refresh = false },
                             )
                         }
 
@@ -319,7 +318,7 @@ fun TimelineScreen(
                                 { replying = it },
                                 onProfileClick,
                                 refresh,
-                                { refresh = false }
+                                { refresh = false },
                             )
                         }
 
@@ -347,7 +346,7 @@ fun TimelineScreen(
                                 { replying = it },
                                 onProfileClick,
                                 refresh,
-                                { refresh = false }
+                                { refresh = false },
                             )
                         }
 
@@ -366,7 +365,7 @@ fun TimelineScreen(
                                 { replying = it },
                                 onProfileClick,
                                 refresh,
-                                { refresh = false }
+                                { refresh = false },
                             )
                         }
 
@@ -384,7 +383,7 @@ fun TimelineScreen(
                             { replying = it },
                             onProfileClick,
                             refresh,
-                            { refresh = false }
+                            { refresh = false },
                         )
                     }
                 }
@@ -410,7 +409,7 @@ private fun timelineTab(
     isReplying: (Boolean) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     refresh: Boolean,
-    doneRefreshing: () -> Unit
+    doneRefreshing: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = tabToLoad, key2 = domain, key3 = tabToLoad.tagName) {
@@ -476,7 +475,10 @@ private fun timelineTab(
                 isReplying,
                 goToConversation = goToConversation,
                 onProfileClick = onProfileClick,
-                lazyListState
+                lazyListState,
+                onVote = { statusId, pollId, choices ->
+                    submitEvents.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                },
             )
         }
         CustomViewPullRefreshView(
@@ -505,7 +507,8 @@ fun TimelineRows(
     isReplying: (Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
-    lazyListState: LazyListState
+    lazyListState: LazyListState,
+    onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
 ) {
 
 
@@ -525,6 +528,7 @@ fun TimelineRows(
                         isReplying,
                         false,
                         onProfileClick = onProfileClick,
+                        onVote = onVote,
                     )
                 }
             }
@@ -545,6 +549,7 @@ fun TimelineRows(
                         isReplying,
                         false,
                         onProfileClick = onProfileClick,
+                        onVote = onVote,
                     )
                 }
             }
