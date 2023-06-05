@@ -348,7 +348,10 @@ private fun posts(
                     onProfileClick ={ accountId, _ ->
                         navController.navigate("profile/${code}/${accountId}")
                     },
-                    rememberLazyListState()
+                    rememberLazyListState(),
+                    onVote = { statusId, pollId, choices ->
+                        events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                    },
                 )
             }
         }

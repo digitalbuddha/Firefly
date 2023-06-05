@@ -26,9 +26,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 @ExperimentalMaterialApi
 @Composable
-fun After(status: UI, goToConversation: (UI) -> Unit,
-          goToProfile: (String) -> Unit,
-          goToTag: (String) -> Unit
+fun After(
+    status: UI, goToConversation: (UI) -> Unit,
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
 ) {
     val provider = LocalAuthComponent.current.conversationPresenter().get()
     var presenter by remember { mutableStateOf(provider) }
@@ -55,8 +56,7 @@ fun InnerLazyColumn(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-
-    ) {
+) {
     val submitPresenter = LocalAuthComponent.current.submitPresenter()
     LaunchedEffect(key1 = items) {
         submitPresenter.start()
@@ -75,7 +75,7 @@ fun InnerLazyColumn(
                         showInlineReplies = true,
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,
-                        goToTag = goToTag
+                        goToTag = goToTag,
                     )
                 }
             }
@@ -94,8 +94,7 @@ fun card(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-
-    ) {
+) {
 
     var eagerStatus by remember { mutableStateOf(status) }
 
@@ -143,6 +142,9 @@ fun card(
                 isReplying = { },
                 showInlineReplies = showInlineReplies,
                 modifier = modifier,
+                onVote = { statusId, pollId, choices ->
+                    events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                },
             )
         }
     }

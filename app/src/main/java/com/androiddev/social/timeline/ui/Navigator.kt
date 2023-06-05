@@ -153,7 +153,8 @@ fun Navigator(
                         },
                         goToTag = { tag: String ->
                             navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
-                        })
+                        },
+                    )
                 }
             }
             composable(

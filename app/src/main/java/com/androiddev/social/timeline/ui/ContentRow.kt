@@ -6,35 +6,50 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.URLUtil
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -54,9 +69,12 @@ import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize10
 import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.timeline.data.LinkListener
+import com.androiddev.social.timeline.ui.model.PollHashUI
+import com.androiddev.social.timeline.ui.model.PollUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.placeholder
@@ -78,7 +96,8 @@ fun TimelineCard(
     isReplying: (Boolean) -> Unit,
     showInlineReplies: Boolean,
     modifier: Modifier = Modifier,
-    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> }
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
+    onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
 ) {
 //    SwipeableActionsBox(
 //        startActions = listOf(rocket()),
@@ -95,7 +114,6 @@ fun TimelineCard(
                 top = PaddingSize1
             ),
     ) {
-
 
         var showingReplies by remember { mutableStateOf(false) }
 
@@ -163,6 +181,22 @@ fun TimelineCard(
                     )
                 }
 
+                if (ui?.poll?.options != null && ui.poll.options.isNotEmpty()) {
+                    Log.d("qqqq", "ui id: ${ui.originalId}, ${ui.remoteId}")
+                    PollVoter(
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = colorScheme.onSurface,
+                            lineHeight = 18.sp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        poll = ui.poll,
+                        options = ui.poll.options,
+                        onClick = { choices ->
+                            onVote(ui.remoteId, ui.poll.remoteId, choices)
+                        },
+                    )
+                }
 
                 ContentImage(ui?.attachments?.mapNotNull { it.url } ?: emptyList()) {
                     clicked = !clicked
@@ -172,9 +206,7 @@ fun TimelineCard(
                     with(LocalDensity.current) {
                         toolbarHeight.roundToPx().toFloat()
                     }
-                val toolbarOffsetHeightPx =
-
-                    remember(ui) { mutableStateOf(0f) }
+                val toolbarOffsetHeightPx = remember(ui) { mutableStateOf(0f) }
                 val nestedScrollConnection = remember(ui) {
                     object : NestedScrollConnection {
                         override fun onPreScroll(
@@ -217,7 +249,7 @@ fun TimelineCard(
                             showReplies = true,
                             goToConversation = goToConversation,
                             goToProfile = goToProfile,
-                                    goToTag = goToTag
+                            goToTag = goToTag,
                         )
                     }
                 }
@@ -489,3 +521,246 @@ fun ClickableText(
     )
 }
 
+@Composable
+fun PollVoter(
+    style: TextStyle = TextStyle.Default,
+    modifier: Modifier = Modifier,
+    poll: PollUI,
+    options: List<PollHashUI>,
+    onClick: (choices: List<Int>) -> Unit,
+) {
+
+    var disabled by remember { mutableStateOf(poll.expired || (poll.voted == true && poll.ownVotes == null)) }
+
+    if (poll.multiple) {
+        MultipleChoicePollVoter(
+            style = style,
+            modifier = modifier,
+            content = poll.content,
+            ownVotes = poll.ownVotes?.toSet() ?: emptySet(),
+            options = options,
+            disabled = disabled,
+            onClick = {
+                disabled = true
+                onClick(it)
+            },
+        )
+    } else {
+        SingleChoicePollVoter(
+            style = style,
+            modifier = modifier,
+            content = poll.content,
+            ownVote = poll.ownVotes?.firstOrNull(),
+            options = options,
+            disabled = disabled,
+            onClick = {
+                disabled = true
+                onClick(listOf(it))
+            }
+        )
+    }
+}
+
+@Composable
+fun MultipleChoicePollVoter(
+    style: TextStyle,
+    modifier: Modifier,
+    content: String?,
+    ownVotes: Set<Int>,
+    options: List<PollHashUI>,
+    disabled: Boolean,
+    onClick: (List<Int>) -> Unit,
+) {
+    val selected = remember {
+        mutableStateListOf(*List(options.size) { index -> ownVotes.contains(index) }.toTypedArray())
+    }
+    var clicked by remember { mutableStateOf(disabled) }
+    val imageSize: Float by animateFloatAsState(
+        targetValue = if (clicked) 1.1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium // with medium speed
+        )
+    )
+    Column(
+        modifier = Modifier
+            .padding(PaddingSize1)
+            .fillMaxWidth()
+    ) {
+        options.forEachIndexed { index, option ->
+            MultiChoicePollOptionVoter(
+                modifier = modifier,
+                style = style,
+                selected = selected[index],
+                option = option,
+                disabled = disabled,
+                onClick = {
+                    selected[index] = !selected[index]
+                }
+            )
+        }
+        content?.let {
+            Text(
+                color = colorScheme.secondary,
+                style = if (disabled) {
+                    style.copy(color = style.color.copy(alpha = ContentAlpha.disabled))
+                } else style,
+                text = it
+            )
+        }
+
+        Button(
+            modifier = Modifier
+                .padding(end = 20.dp, top = 8.dp, bottom = 2.dp)
+                .wrapContentSize()
+                .align(Alignment.End),
+            elevation = androidx.compose.material3.ButtonDefaults.buttonElevation(
+                defaultElevation = PaddingSize3,
+                pressedElevation = PaddingSize1,
+                disabledElevation = PaddingSize3
+            ),
+            enabled = !disabled,
+            onClick = {
+                onClick(selected.mapIndexedNotNull { index, s -> if (s) index else null })
+                clicked = true
+            },
+            shape = CircleShape,
+            contentPadding = PaddingValues(PaddingSize1)
+        ) {
+            Row(Modifier.padding(4.dp)) {
+                Image(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .scale(2f * imageSize)
+                        .rotate(imageSize * -45f)
+                        .offset(y = (0).dp, x = (2).dp)
+                        .rotate(50f)
+                        .padding(start = 2.dp, end = 2.dp),
+                    painter = painterResource(R.drawable.horn),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(colorScheme.background),
+                )
+            }
+
+        }
+    }
+}
+
+@Composable
+fun SingleChoicePollVoter(
+    style: TextStyle,
+    modifier: Modifier,
+    content: String?,
+    ownVote: Int?,
+    options: List<PollHashUI>,
+    disabled: Boolean,
+    onClick: (Int) -> Unit,
+) {
+    val selected = remember {
+        mutableStateListOf(*List(options.size) { index -> ownVote == index }.toTypedArray())
+    }
+    Column(
+        modifier = Modifier
+            .padding(PaddingSize1)
+            .fillMaxWidth()
+    ) {
+        options.forEachIndexed { index, option ->
+            SingleChoicePollOptionVoter(
+                modifier = modifier,
+                style = style,
+                selected = selected[index],
+                option = option,
+                disabled = disabled,
+                onClick = {
+                    selected[index] = !selected[index]
+                    onClick(index)
+                },
+            )
+        }
+        content?.let {
+            Text(
+                color = colorScheme.secondary,
+                style = if (disabled) {
+                    style.copy(color = style.color.copy(alpha = ContentAlpha.disabled))
+                } else style,
+                text = it
+            )
+        }
+    }
+}
+
+@Composable
+fun MultiChoicePollOptionVoter(
+    modifier: Modifier,
+    style: TextStyle,
+    option: PollHashUI,
+    disabled: Boolean,
+    selected: Boolean,
+    onClick: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Checkbox(
+            checked = selected,
+            modifier = Modifier
+                .padding(PaddingSize1, end= PaddingSize2),
+            enabled = !disabled,
+            onCheckedChange = {
+                onClick(selected)
+            }
+        )
+
+        ClickableText(
+            text = if (disabled) option.fullContent else option.voteContent,
+            modifier = modifier.padding(PaddingSize1),
+            style = if (disabled) style.copy(color = style.color.copy(alpha = ContentAlpha.disabled)) else style,
+            onClick = {
+                if (disabled) return@ClickableText
+                onClick(selected)
+            },
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+fun SingleChoicePollOptionVoter(
+    modifier: Modifier,
+    style: TextStyle,
+    option: PollHashUI,
+    disabled: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        RadioButton(
+            selected = selected,
+            modifier = Modifier
+                .padding(PaddingSize1, end= PaddingSize2),
+            enabled = !disabled,
+            onClick = {
+                onClick()
+            },
+        )
+
+        ClickableText(
+            text = if (disabled) option.fullContent else option.voteContent,
+            modifier = modifier.padding(PaddingSize1),
+            style = if (disabled) style.copy(color = style.color.copy(alpha = ContentAlpha.disabled)) else style,
+            onClick = {
+                if (disabled) return@ClickableText
+                onClick()
+            },
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}

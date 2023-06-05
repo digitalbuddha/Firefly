@@ -115,7 +115,10 @@ fun TagScreen(
                 { false },
                 goToConversation = goToConversation,
                 onProfileClick = { _, _ -> },
-                lazyListState
+                lazyListState,
+                onVote = { statusId, pollId, choices ->
+                    submitPresenter.handle(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                },
             )
         }
 

@@ -39,7 +39,8 @@ data class StatusDB(
     val inReplyTo: String?,
     val boostedById: String?,
     val bookmarked: Boolean,
-    val attachments: List<Attachment>
+    val attachments: List<Attachment>,
+    val poll: Poll?,
 //    var uid: Int = 0,
 )
 
@@ -75,6 +76,88 @@ interface StatusDao {
         boostedAvatar: String
     )
 
+    @Query(
+        """UPDATE status
+            SET
+              type= :type,
+              isDirectMessage= :isDirectMessage,
+              uri= :uri,
+              createdAt= :createdAt,
+              content= :content,
+              accountId= :accountId,
+              visibility= :visibility,
+              spoilerText= :spoilerText,
+              avatarUrl= :avatarUrl,
+              imageUrl= :imageUrl,
+              accountAddress= :accountAddress,
+              applicationName= :applicationName,
+              userName= :userName,
+              displayName= :displayName,
+              repliesCount= :repliesCount,
+              favouritesCount= :favouritesCount,
+              reblogsCount= :reblogsCount,
+              emoji= :emoji,
+              accountEmojis= :accountEmojis,
+              boostedEmojis= :boostedEmojis,
+              mentions= :mentions,
+              tags= :tags,
+              boostedBy= :boostedBy,
+              boostedAvatar= :boostedAvatar,
+              favorited= :favorited,
+              boosted= :boosted,
+              inReplyTo= :inReplyTo,
+              boostedById= :boostedById,
+              bookmarked= :bookmarked,
+              attachments= :attachments,
+              poll= :poll
+        WHERE  (originalId = :statusId OR remoteId = :statusId)"""
+    )
+    fun updateStatus(
+        statusId: String,
+        type: String,
+        isDirectMessage: Boolean,
+        uri: String,
+        createdAt: Long,
+        content: String,
+        accountId: String?,
+        visibility: String,
+        spoilerText: String,
+        avatarUrl: String,
+        imageUrl: String?,
+        accountAddress: String,
+        applicationName: String,
+        userName: String,
+        displayName: String,
+        repliesCount: Int?,
+        favouritesCount: Int?,
+        reblogsCount: Int?,
+        emoji: List<Emoji>,
+        accountEmojis: List<Emoji>,
+        boostedEmojis: List<Emoji>,
+        mentions: List<Mention>,
+        tags: List<Tag>,
+        boostedBy: String?,
+        boostedAvatar: String?,
+        favorited: Boolean,
+        boosted: Boolean,
+        inReplyTo: String?,
+        boostedById: String?,
+        bookmarked: Boolean,
+        attachments: List<Attachment>,
+        poll: Poll?,
+    )
+
+    @Query(
+        """UPDATE status
+             SET poll = :poll
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+           """
+    )
+    fun updatePoll(
+        statusId: String,
+        poll: Poll,
+    )
+
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
 
@@ -82,8 +165,44 @@ interface StatusDao {
     fun delete()
 }
 
+fun StatusDao.updateOldStatus(newStatus: StatusDB) = with(newStatus) {
+    updateStatus(
+        statusId = remoteId,
+        type= type,
+        isDirectMessage= isDirectMessage,
+        uri= uri,
+        createdAt= createdAt,
+        content= content,
+        accountId= accountId,
+        visibility= visibility,
+        spoilerText= spoilerText,
+        avatarUrl= avatarUrl,
+        imageUrl= imageUrl,
+        accountAddress= accountAddress,
+        applicationName= applicationName,
+        userName= userName,
+        displayName= displayName,
+        repliesCount= repliesCount,
+        favouritesCount= favouritesCount,
+        reblogsCount= reblogsCount,
+        emoji= emoji,
+        accountEmojis= accountEmojis,
+        boostedEmojis= boostedEmojis,
+        mentions= mentions,
+        tags= tags,
+        boostedBy= boostedBy,
+        boostedAvatar= boostedAvatar,
+        favorited= favorited,
+        boosted= boosted,
+        inReplyTo= inReplyTo,
+        boostedById= boostedById,
+        bookmarked= bookmarked,
+        attachments= attachments,
+        poll= poll
+    )
+}
 
-@Database(entities = [StatusDB::class], version = 16)
+@Database(entities = [StatusDB::class], version = 17)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -121,7 +240,6 @@ class Converters {
         return Json.encodeToString(ListSerializer(Tag.serializer()), tag)
     }
 
-
     @TypeConverter
     fun toMention(value: String): List<Mention> {
         return Json.decodeFromString(ListSerializer(Mention.serializer()), value)
@@ -130,5 +248,15 @@ class Converters {
     @TypeConverter
     fun fromMention(mention: List<Mention>): String {
         return Json.encodeToString(ListSerializer(Mention.serializer()), mention)
+    }
+
+    @TypeConverter
+    fun toPoll(value: String?): Poll? {
+        return value?.let { p -> Json.decodeFromString(Poll.serializer(), p) }
+    }
+
+    @TypeConverter
+    fun fromPoll(poll: Poll?): String? {
+        return poll?.let { p -> Json.encodeToString(Poll.serializer(), p) }
     }
 }

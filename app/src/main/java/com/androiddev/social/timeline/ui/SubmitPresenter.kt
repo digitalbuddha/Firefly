@@ -12,6 +12,7 @@ import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.data.updateOldStatus
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +64,8 @@ abstract class SubmitPresenter :
     )
 
     sealed interface SubmitEffect
+
+    data class VotePoll(val statusId: String, val pollId: String, val choices: List<Int>) : SubmitEvent
 }
 
 @ContributesBinding(AuthRequiredScope::class, boundType = SubmitPresenter::class)
@@ -261,13 +264,20 @@ class RealSubmitPresenter @Inject constructor(
                                 )
                             }
                         }
+                }
 
-
-
+                is VotePoll -> {
+                    val result = kotlin.runCatching {
+                        api.votePoll(
+                            authHeader = authHeader(),
+                            id = event.pollId,
+                            choices = event.choices,
+                        )
+                    }
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
-
+                                statusDao.updatePoll(event.statusId, result.getOrThrow())
                             }
                         }
                     }
