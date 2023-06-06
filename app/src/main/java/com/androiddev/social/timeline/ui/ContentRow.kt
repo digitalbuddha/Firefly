@@ -530,7 +530,7 @@ fun PollVoter(
     onClick: (choices: List<Int>) -> Unit,
 ) {
 
-    var disabled by remember { mutableStateOf(poll.expired || (poll.voted == true && poll.ownVotes == null)) }
+    var disabled by remember { mutableStateOf(poll.expired || (poll.voted == true && poll.ownVotes != null)) }
 
     if (poll.multiple) {
         MultipleChoicePollVoter(
