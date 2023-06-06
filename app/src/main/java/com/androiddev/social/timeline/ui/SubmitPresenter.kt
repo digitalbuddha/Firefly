@@ -76,17 +76,10 @@ class RealSubmitPresenter @Inject constructor(
     val context: android.app.Application
 ) : SubmitPresenter() {
 
-    private val onGoingPostMessages = mutableSetOf<Int>()
-
     override suspend fun eventHandler(event: SubmitEvent, coroutineScope: CoroutineScope): Unit =
         withContext(Dispatchers.IO) {
             when (event) {
                 is PostMessage -> {
-                    val eventHash = event.hashCode()
-                    if (onGoingPostMessages.contains(eventHash)) {
-                        return@withContext
-                    }
-                    onGoingPostMessages.add(eventHash)
                     val ids: List<String> = event.uris.map { uri ->
                         var mimeType = context.contentResolver.getType(uri)
                         val stream = context.contentResolver.openInputStream(uri)
@@ -136,7 +129,6 @@ class RealSubmitPresenter @Inject constructor(
                             status = status
                         )
                     }
-                    onGoingPostMessages.remove(eventHash)
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
