@@ -88,7 +88,7 @@ data class PollUI(
 
 data class PollHashUI(
     val voteContent: AnnotatedString,
-    val fullContent: AnnotatedString,
+    val percentage: AnnotatedString,
 )
 
 fun String.parseAsMastodonHtml(): Spanned {

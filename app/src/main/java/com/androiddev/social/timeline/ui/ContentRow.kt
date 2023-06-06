@@ -523,8 +523,8 @@ fun ClickableText(
 
 @Composable
 fun PollVoter(
-    style: TextStyle = TextStyle.Default,
     modifier: Modifier = Modifier,
+    style: TextStyle = TextStyle.Default,
     poll: PollUI,
     options: List<PollHashUI>,
     onClick: (choices: List<Int>) -> Unit,
@@ -699,14 +699,14 @@ fun MultiChoicePollOptionVoter(
     onClick: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Checkbox(
             checked = selected,
             modifier = Modifier
-                .padding(PaddingSize1, end= PaddingSize2),
+                .padding(PaddingSize1)
+                .alignByBaseline(),
             enabled = !disabled,
             onCheckedChange = {
                 onClick(selected)
@@ -714,8 +714,11 @@ fun MultiChoicePollOptionVoter(
         )
 
         ClickableText(
-            text = if (disabled) option.fullContent else option.voteContent,
-            modifier = modifier.padding(PaddingSize1),
+            text = option.voteContent,
+            modifier = Modifier
+                .padding(PaddingSize1)
+                .weight(1f)
+                .alignByBaseline(),
             style = if (disabled) style.copy(color = style.color.copy(alpha = ContentAlpha.disabled)) else style,
             onClick = {
                 if (disabled) return@ClickableText
@@ -724,6 +727,18 @@ fun MultiChoicePollOptionVoter(
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
         )
+
+        if (disabled) {
+            Text(
+                text = option.percentage,
+                modifier = Modifier
+                    .padding(PaddingSize1)
+                    .alignByBaseline(),
+                style = style,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -737,14 +752,14 @@ fun SingleChoicePollOptionVoter(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         RadioButton(
             selected = selected,
             modifier = Modifier
-                .padding(PaddingSize1, end= PaddingSize2),
+                .padding(PaddingSize0_5)
+                .alignByBaseline(),
             enabled = !disabled,
             onClick = {
                 onClick()
@@ -752,8 +767,11 @@ fun SingleChoicePollOptionVoter(
         )
 
         ClickableText(
-            text = if (disabled) option.fullContent else option.voteContent,
-            modifier = modifier.padding(PaddingSize1),
+            text = option.voteContent,
+            modifier = Modifier
+                .padding(PaddingSize0_5)
+                .weight(1f)
+                .alignByBaseline(),
             style = if (disabled) style.copy(color = style.color.copy(alpha = ContentAlpha.disabled)) else style,
             onClick = {
                 if (disabled) return@ClickableText
@@ -762,5 +780,17 @@ fun SingleChoicePollOptionVoter(
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
         )
+
+        if (disabled) {
+            Text(
+                text = option.percentage,
+                modifier = Modifier
+                    .padding(PaddingSize0_5)
+                    .alignByBaseline(),
+                style = style,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
