@@ -201,14 +201,11 @@ fun Poll.mapPoll(): PollUI = PollUI(
 fun PollHash.mapPollHash(
     totalVotesCount: Int
 ): PollHashUI = PollHashUI(
-    voteContent = AnnotatedString(title),
-    fullContent = if (totalVotesCount != 0) {
-        AnnotatedString(
-            title + ". " +
-                    ("%.2f".format(votesCount.toFloat() / totalVotesCount)) +
-                    "% \u21C4 " + votesCount
-        )
-    } else AnnotatedString(title),
+    voteContent = AnnotatedString(title.trim()),
+    percentage = AnnotatedString(
+        ("%.2f".format(votesCount.toFloat() * 100 / totalVotesCount)) +
+                "% \u21C4 " + votesCount
+    )
 )
 
 
