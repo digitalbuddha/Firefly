@@ -68,6 +68,10 @@ abstract class SubmitPresenter :
     data class VotePoll(val statusId: String, val pollId: String, val choices: List<Int>) : SubmitEvent
 
     data class DeleteStatus(val statusId: String) : SubmitEvent
+
+    data class MuteAccount(val accountId: String, val mute: Boolean) : SubmitEvent
+
+    data class BlockAccount(val accountId: String, val block: Boolean) : SubmitEvent
 }
 
 @ContributesBinding(AuthRequiredScope::class, boundType = SubmitPresenter::class)
@@ -289,6 +293,53 @@ class RealSubmitPresenter @Inject constructor(
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
                                 statusDao.delete(event.statusId)
+                            }
+                        }
+                    }
+                }
+
+                is BlockAccount -> {
+                    val result = kotlin.runCatching {
+                        if (event.block) {
+                            api.blockAccount(
+                                authHeader = oauthRepository.getAuthHeader(),
+                                id = event.accountId,
+                            )
+                        } else {
+                            api.unblockAccount(
+                                authHeader = oauthRepository.getAuthHeader(),
+                                id = event.accountId,
+                            )
+                        }
+                    }
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+                                accountRepository.clear(event.accountId)
+                                accountRepository.get(event.accountId)
+                            }
+                        }
+                    }
+                }
+                is MuteAccount -> {
+                    val result = kotlin.runCatching {
+                        if (event.mute) {
+                            api.muteAccount(
+                                authHeader = oauthRepository.getAuthHeader(),
+                                id = event.accountId,
+                            )
+                        } else {
+                            api.unMuteAccount(
+                                authHeader = oauthRepository.getAuthHeader(),
+                                id = event.accountId,
+                            )
+                        }
+                    }
+                    when {
+                        result.isSuccess -> {
+                            withContext(Dispatchers.IO) {
+                                accountRepository.clear(event.accountId)
+                                accountRepository.get(event.accountId)
                             }
                         }
                     }

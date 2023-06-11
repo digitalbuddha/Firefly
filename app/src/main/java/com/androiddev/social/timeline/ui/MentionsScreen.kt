@@ -78,6 +78,12 @@ fun MentionsScreen(
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = {},
+                onMuteAccount = {
+                    submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                },
+                onBlockAccount = {
+                    submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
+                },
             )
         },
     ) {

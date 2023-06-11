@@ -2,6 +2,7 @@
 
 package com.androiddev.social.timeline.ui
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -201,8 +202,8 @@ private fun MoreMenu(
 private fun SpringyButton(
     onClick: () -> Unit,
     on: Boolean,
-    onIcon: Int,
-    offIcon: Int,
+    @DrawableRes onIcon: Int,
+    @DrawableRes offIcon: Int,
     count: Int?,
     iconSize:Dp = PaddingSize3
 ) {
@@ -210,17 +211,17 @@ private fun SpringyButton(
     var clicked by remember { mutableStateOf(on) }
     var localCount by remember { mutableStateOf(count) }
 
-    val imageSize = 1
     val scope = rememberCoroutineScope()
 
     TextButton(
         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
         contentPadding = PaddingValues(PaddingSize1, 0.dp),
         onClick = {
+            localCount?.let {
+                localCount = it + if (clicked) { if (it > 0) -1 else 0 } else 1
+            }
             clicked = !clicked
             scope.launch {
-//                delay(500)
-//                if (count != null && count + 1 >= localCount!!) localCount = count + 1
                 onClick()
             }
         }

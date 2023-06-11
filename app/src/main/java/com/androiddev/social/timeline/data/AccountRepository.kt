@@ -33,7 +33,12 @@ class RealAccountRepository @Inject constructor(
         val token = oauthRepository.getAuthHeader()
         val account = api.account(authHeader = token, accountId = accountId)
         val relationships = api.relationships(token, listOf(account.id))
-        account.copy(isFollowed = relationships.firstOrNull()?.following == true)
+        val relationship = relationships.firstOrNull()
+        account.copy(
+            isFollowed = relationship?.following == true,
+            muting = relationship?.muting == true,
+            blocking = relationship?.blocking == true,
+        )
     }
 
     private val store = StoreBuilder.from(

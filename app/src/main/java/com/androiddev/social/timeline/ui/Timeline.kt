@@ -121,6 +121,12 @@ fun TimelineScreen(
                     goToConversation = goToConversation,
                     goToProfile = goToProfile,
                     goToTag = goToTag,
+                    onMuteAccount = {
+                        submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                    },
+                    onBlockAccount = {
+                        submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
+                    },
                 )
             },
         ) {

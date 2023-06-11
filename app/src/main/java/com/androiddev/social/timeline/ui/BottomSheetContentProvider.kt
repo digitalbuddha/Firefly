@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import android.net.Uri
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.androiddev.social.theme.PaddingSize1
-import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize3
+import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +79,8 @@ fun BottomSheetContent(
     goToTag: (String) -> Unit,
     onShareStatus: (UI) -> Unit,
     onDelete: (statusId: String) -> Unit,
+    onMuteAccount: (accountId: String) -> Unit,
+    onBlockAccount: (accountId: String) -> Unit,
 ) {
     when (
         val state: SheetContentState = bottomSheetContentProvider.state
@@ -88,7 +91,7 @@ fun BottomSheetContent(
         }
 
         is SheetContentState.StatusMenu -> {
-            StatusMenu(bottomSheetContentProvider, state, onShareStatus)
+            StatusMenu(bottomSheetContentProvider, state, onShareStatus, onMuteAccount, onBlockAccount)
         }
 
         is SheetContentState.OwnedStatusMenu -> {
@@ -109,9 +112,34 @@ fun StatusMenu(
     bottomSheetContentProvider: BottomSheetContentProvider,
     state: SheetContentState.StatusMenu,
     onShareStatus: (UI) -> Unit,
+    onMuteAccount: (accountId: String) -> Unit,
+    onBlockAccount: (accountId: String) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        ShareButton(bottomSheetContentProvider, state.status, onShareStatus)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(PaddingSizeNone, PaddingSize1),
+    ) {
+        BottomSheetMenuButton(
+            bottomSheetContentProvider = bottomSheetContentProvider,
+            icon = R.drawable.share,
+            text = "Share",
+            onClick = { onShareStatus(state.status) }
+        )
+        state.status.accountId?.let { accountId ->
+            BottomSheetMenuButton(
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                icon = R.drawable.mute,
+                text = "Mute account",
+                onClick = { onMuteAccount(accountId) }
+            )
+            BottomSheetMenuButton(
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                icon = R.drawable.block,
+                text = "Block account",
+                onClick = { onBlockAccount(accountId) }
+            )
+        }
     }
 }
 
@@ -122,17 +150,32 @@ fun OwnedStatusMenu(
     onShareStatus: (UI) -> Unit,
     onDelete: (statusId: String) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        ShareButton(bottomSheetContentProvider, state.status, onShareStatus)
-        DeleteButton(bottomSheetContentProvider, state.status, onDelete)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(PaddingSizeNone, PaddingSize1),
+    ) {
+        BottomSheetMenuButton(
+            bottomSheetContentProvider = bottomSheetContentProvider,
+            icon = R.drawable.share,
+            text = "Share",
+            onClick = { onShareStatus(state.status) }
+        )
+        BottomSheetMenuButton(
+            bottomSheetContentProvider = bottomSheetContentProvider,
+            icon = R.drawable.delete,
+            text = "Delete",
+            onClick = { onDelete(state.status.remoteId) }
+        )
     }
 }
 
 @Composable
-private fun ShareButton(
+private fun BottomSheetMenuButton(
     bottomSheetContentProvider: BottomSheetContentProvider,
-    status: UI,
-    onShareStatus: (UI) -> Unit,
+    @DrawableRes icon: Int,
+    text: String,
+    onClick: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     TextButton(
@@ -142,7 +185,7 @@ private fun ShareButton(
             coroutineScope.launch {
                 bottomSheetContentProvider.hide()
             }
-            onShareStatus(status)
+            onClick()
         }
     ) {
         Row(Modifier.fillMaxWidth()) {
@@ -151,7 +194,7 @@ private fun ShareButton(
                     .padding(start = PaddingSize1)
                     .align(Alignment.CenterVertically)
                     .size(PaddingSize3),
-                painter = painterResource(R.drawable.share),
+                painter = painterResource(icon),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary),
             )
@@ -159,46 +202,7 @@ private fun ShareButton(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(horizontal = PaddingSize3),
-                text = "Share",
-                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary),
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-private fun DeleteButton(
-    bottomSheetContentProvider: BottomSheetContentProvider,
-    status: UI,
-    onDelete: (statusId: String) -> Unit,
-) {
-    val coroutineScope = rememberCoroutineScope()
-    TextButton(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = {
-            coroutineScope.launch {
-                bottomSheetContentProvider.hide()
-            }
-            onDelete(status.remoteId)
-        }
-    ) {
-        Row(Modifier.fillMaxWidth()) {
-            Image(
-                modifier = Modifier
-                    .padding(start = PaddingSize1)
-                    .align(Alignment.CenterVertically)
-                    .size(PaddingSize3),
-                painter = painterResource(R.drawable.delete),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary),
-            )
-            Text(
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(horizontal = PaddingSize3),
-                text = "Delete",
+                text = text,
                 style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary),
                 maxLines = 1
             )

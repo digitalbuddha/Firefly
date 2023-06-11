@@ -265,4 +265,28 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Path("id") id: String,
     )
+
+    @POST("/api/v1/accounts/{id}/mute")
+    suspend fun muteAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/unmute")
+    suspend fun unMuteAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/block")
+    suspend fun blockAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/unblock")
+    suspend fun unblockAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
 }

@@ -78,6 +78,8 @@ fun SearchView(
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = goToConversation,
+                onMuteAccount = {},
+                onBlockAccount = {},
             )
         },
     ) {

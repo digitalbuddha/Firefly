@@ -1,11 +1,13 @@
 package com.androiddev.social.timeline.ui
 
 import android.annotation.SuppressLint
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
@@ -51,7 +54,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -61,6 +67,8 @@ import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSize3
+import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.ProfilePresenter
@@ -132,6 +140,12 @@ fun ProfileScreen(
                 },
                 goToConversation = { status: UI ->
                     navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
+                },
+                onMuteAccount = {
+                    submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                },
+                onBlockAccount = {
+                    submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
                 },
             )
         },
@@ -223,7 +237,15 @@ private fun ScaffoldParent(
                 )
             },
             backLayerContent = {
-                profile(presenter, goToFollowers, goToFollowing)
+                profile(presenter, goToFollowers,
+                    goToFollowing,
+                    onMute = {
+                        submitPresenter.handle(SubmitPresenter.MuteAccount(accountId, it))
+                    },
+                    onBlock = {
+                        submitPresenter.handle(SubmitPresenter.BlockAccount(accountId, it))
+                    }
+                )
             },
             frontLayerContent = {
                 val userStatuses = homePresenter.model.userStatuses
@@ -260,7 +282,7 @@ private fun ScaffoldParent(
                     statuses = pagingListUserStatus,
                     withReplies = pagingListWithReplies,
                     withMedia = pagingListWithMedia,
-                    account = homePresenter.model.account,
+                    account = account,
                     events = events,
                     code = code,
                     goToBottomSheet = goToBottomSheet,
@@ -425,7 +447,9 @@ private fun posts(
 private fun profile(
     presenter: ProfilePresenter,
     goToFollowers: () -> Unit,
-    goToFollowing: () -> Unit
+    goToFollowing: () -> Unit,
+    onMute: (Boolean) -> Unit,
+    onBlock: (Boolean) -> Unit,
 ) {
     Box(
         Modifier
@@ -453,8 +477,6 @@ private fun profile(
                     .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
-
-
                 val emojis = account.emojis
                 val unformatted = account.displayName
                 val (inlineContentMap, text) = inlineEmojis(
@@ -482,17 +504,38 @@ private fun profile(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier
-                        .padding(PaddingSize0_5)
+                        .padding(PaddingSize0_5, PaddingSizeNone)
                         .align(Alignment.CenterHorizontally),
                     text = "@${account.username}",
                 )
 
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(PaddingSizeNone),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ProfileSecondaryButton(
+                        onMute,
+                        account.muting == true,
+                        R.drawable.mute,
+                        onText = "Unmute",
+                        offText = "Mute",
+                    )
 
+                    ProfileSecondaryButton(
+                        onBlock,
+                        account.blocking == true,
+                        R.drawable.block,
+                        onText = "Unblock",
+                        offText = "Block",
+                    )
+                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(PaddingSize2),
+                        .padding(PaddingSize2, PaddingSizeNone),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Boosted(
@@ -523,7 +566,6 @@ private fun profile(
                 )
                 val scroll = rememberScrollState(0)
 
-
                 Text(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.secondary,
@@ -537,5 +579,48 @@ private fun profile(
             }
 
         }
+    }
+}
+
+@Composable
+private fun ProfileSecondaryButton(
+    onClick: (Boolean) -> Unit,
+    on: Boolean,
+    @DrawableRes icon: Int,
+    onText: String,
+    offText: String,
+) {
+    var clicked by remember { mutableStateOf(on) }
+    val scope = rememberCoroutineScope()
+
+    TextButton(
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+        contentPadding = PaddingValues(PaddingSize1, PaddingSizeNone),
+        onClick = {
+            val oldClicked = clicked
+            clicked = !clicked
+            scope.launch {
+                onClick(!oldClicked)
+            }
+        }
+    ) {
+        Image(
+            modifier = Modifier
+                .padding(PaddingSize1, PaddingSizeNone)
+                .size(PaddingSize2),
+            painter = painterResource(icon),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(
+                if (clicked) MaterialTheme.colorScheme.scrim else MaterialTheme.colorScheme.secondary
+            ),
+        )
+        Text(
+            modifier = Modifier
+                .padding(PaddingSize0_5, PaddingSizeNone),
+            color = if (clicked) MaterialTheme.colorScheme.scrim else MaterialTheme.colorScheme.secondary,
+            fontSize = if (clicked) 10.sp else 8.sp,
+            text = AnnotatedString(if (clicked) onText else offText),
+            maxLines = 1,
+        )
     }
 }
