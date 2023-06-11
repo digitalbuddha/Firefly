@@ -5,6 +5,8 @@ import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.FeedStoreRequest
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Status
@@ -28,6 +30,7 @@ abstract class ConversationPresenter :
 
     data class ConversationModel(
         val conversations: Map<String, ConvoUI> = emptyMap(),
+        val account: Account? = null,
     )
 
     sealed interface ConversationEffect
@@ -38,7 +41,8 @@ abstract class ConversationPresenter :
 class RealConversationPresenter @Inject constructor(
     val api: UserApi,
     val repository: OauthRepository,
-    val statusRepository: StatusRepository
+    val statusRepository: StatusRepository,
+    val accountRepository: AccountRepository,
 ) :
     ConversationPresenter() {
 
@@ -46,7 +50,8 @@ class RealConversationPresenter @Inject constructor(
     override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope)= withContext(Dispatchers.IO) {
         when (event) {
             is Load -> {
-                val token = " Bearer ${repository.getCurrent()}"
+                model = model.copy(account = accountRepository.getCurrent())
+                val token = repository.getAuthHeader()
                 var currentConvo = model.conversations.getOrDefault(event.statusId, ConvoUI())
 
                 withContext(Dispatchers.IO) {

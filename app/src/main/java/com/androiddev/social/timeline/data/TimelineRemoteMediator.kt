@@ -52,9 +52,7 @@ class LocalTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
-            val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey)
-
+            val response = userApi.getLocalTimeline(authHeader = oauthRepository.getAuthHeader(), since = loadKey)
 
             database.withTransaction {
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Local) })
@@ -100,8 +98,7 @@ class HomeTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
-            val response = userApi.getHomeTimeline(authHeader = " Bearer $token", since = loadKey)
+            val response = userApi.getHomeTimeline(authHeader = oauthRepository.getAuthHeader(), since = loadKey)
 
             database.withTransaction {
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
@@ -150,9 +147,8 @@ class FederatedTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response = userApi.getLocalTimeline(
-                authHeader = " Bearer $token",
+                authHeader = oauthRepository.getAuthHeader(),
                 since = loadKey,
                 localOnly = false
             )
@@ -202,9 +198,8 @@ class TrendingRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
-                userApi.getTrending(authHeader = " Bearer $token", offset = loadKey.toString())
+                userApi.getTrending(authHeader = oauthRepository.getAuthHeader(), offset = loadKey.toString())
 
             database.withTransaction {
                 dao.insertAll(response.map { it.toStatusDb(FeedType.Trending) })
@@ -254,10 +249,9 @@ class UserRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountId,
                     since = null,
                     excludeReplies = true
@@ -311,10 +305,9 @@ class UserWithMediaRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountRepository.get(accountId).id,
                     onlyMedia = true,
                     since = null
@@ -368,10 +361,9 @@ class UserWithRepliesRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountRepository.get(accountId).id,
                     since = loadKey,
                     excludeReplies = false
@@ -436,9 +428,8 @@ class HashtagRemoteMediator(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response = userApi.getTagTimeline(
-                authHeader = " Bearer $token",
+                authHeader = oauthRepository.getAuthHeader(),
                 since = loadKey,
                 tag = hashtag
             )

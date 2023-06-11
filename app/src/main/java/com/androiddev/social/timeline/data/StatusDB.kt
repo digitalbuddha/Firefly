@@ -39,7 +39,8 @@ data class StatusDB(
     val inReplyTo: String?,
     val boostedById: String?,
     val bookmarked: Boolean,
-    val attachments: List<Attachment>
+    val attachments: List<Attachment>,
+    val poll: Poll?,
 //    var uid: Int = 0,
 )
 
@@ -75,15 +76,34 @@ interface StatusDao {
         boostedAvatar: String
     )
 
+    @Query(
+        """UPDATE status
+             SET poll = :poll
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+           """
+    )
+    fun updatePoll(
+        statusId: String,
+        poll: Poll,
+    )
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun updateStatus(statusDB: StatusDB)
+
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
 
-    @Query("DELETE FROM status")
-    fun delete()
+    @Query(
+        """DELETE FROM status
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+           """
+    )
+    fun delete(
+        statusId: String,
+    )
 }
 
-
-@Database(entities = [StatusDB::class], version = 16)
+@Database(entities = [StatusDB::class], version = 18)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -121,7 +141,6 @@ class Converters {
         return Json.encodeToString(ListSerializer(Tag.serializer()), tag)
     }
 
-
     @TypeConverter
     fun toMention(value: String): List<Mention> {
         return Json.decodeFromString(ListSerializer(Mention.serializer()), value)
@@ -130,5 +149,15 @@ class Converters {
     @TypeConverter
     fun fromMention(mention: List<Mention>): String {
         return Json.encodeToString(ListSerializer(Mention.serializer()), mention)
+    }
+
+    @TypeConverter
+    fun toPoll(value: String?): Poll? {
+        return value?.let { p -> Json.decodeFromString(Poll.serializer(), p) }
+    }
+
+    @TypeConverter
+    fun fromPoll(poll: Poll?): String? {
+        return poll?.let { p -> Json.encodeToString(Poll.serializer(), p) }
     }
 }

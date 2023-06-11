@@ -5,7 +5,11 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.Notification
+import com.androiddev.social.timeline.data.StatusDao
+import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +34,8 @@ abstract class NotificationPresenter :
     object Load : NotificationEvent
 
     data class NotificationModel(
-        val statuses: List<Notification>
+        val statuses: List<Notification>,
+        val account: Account? = null,
     )
 
     sealed interface NotificationEffect
@@ -39,13 +44,15 @@ abstract class NotificationPresenter :
 @ContributesBinding(AuthRequiredScope::class, boundType = NotificationPresenter::class)
 @SingleIn(AuthRequiredScope::class)
 class RealNotificationPresenter @Inject constructor(
-    val repository: NotificationsRepository
+    val repository: NotificationsRepository,
+    val accountRepository: AccountRepository,
 ) : NotificationPresenter() {
 
 
     override suspend fun eventHandler(event: NotificationEvent, coroutineScope: CoroutineScope) {
         when (event) {
             is Load -> {
+                model = model.copy(account = accountRepository.getCurrent())
                 coroutineScope.launch(Dispatchers.IO) {
                     repository.get().collectLatest {
                         val statuses = it.filter {
@@ -67,15 +74,22 @@ interface NotificationsRepository {
 @SingleIn(UserScope::class)
 class RealNotificationsRepository @Inject constructor(
     userApi: UserApi,
+    statusDao: StatusDao,
     oauthRepository: OauthRepository
 ) :
     NotificationsRepository {
     val store = StoreBuilder.from(
         Fetcher.of { key: Unit ->
-            userApi.notifications(
-                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+            val notification = userApi.notifications(
+                authHeader = oauthRepository.getAuthHeader(),
                 offset = null
             )
+            notification.forEach { notif ->
+                notif.status?.let {status ->
+                    statusDao.updateStatus(status.toStatusDb())
+                }
+            }
+            notification
         }
     ).build()
 

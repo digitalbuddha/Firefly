@@ -25,8 +25,7 @@ class RealStatusRepository @Inject constructor(
     val oauthRepository: OauthRepository
 ) : StatusRepository {
     private val fetcher = Fetcher.of { status: FeedStoreRequest ->
-        val token = " Bearer ${oauthRepository.getCurrent()}"
-        api.getStatus(token, status.remoteId)
+        api.getStatus(oauthRepository.getAuthHeader(), status.remoteId)
     }
 
     private val sourceOfTruth = SourceOfTruth.of<FeedStoreRequest, Status, StatusDB>(

@@ -7,6 +7,7 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Tag
 import com.androiddev.social.timeline.data.mapStatus
@@ -45,6 +46,7 @@ abstract class SearchPresenter :
         val hashtags: List<Tag>? = null,
         val statuses: List<UI>? = null,
         val isLoading: Boolean = false,
+        val account: Account? = null,
         val error: String? = null
     )
 
@@ -60,7 +62,8 @@ abstract class SearchPresenter :
 class RealSearchPresenter @Inject constructor(
     private val searchRepository: SearchRepository,
     private val userApi: UserApi,
-    private val oauthRepository: OauthRepository
+    private val oauthRepository: OauthRepository,
+    private val accountRepository: AccountRepository,
 
 ) : SearchPresenter() {
     //Drop 1 keeps from emitting the initial value
@@ -69,6 +72,7 @@ class RealSearchPresenter @Inject constructor(
     override suspend fun eventHandler(event: SearchEvent, scope: CoroutineScope) {
         when (event) {
             is Init -> {
+                model = model.copy(account = accountRepository.getCurrent())
                 mapSearchToResults(event.colorScheme)
             }
 
@@ -90,7 +94,7 @@ class RealSearchPresenter @Inject constructor(
                         )
                             model = SearchModel(error = "Sorry no results found")
                         else {
-                            val authHeader = " Bearer ${oauthRepository.getCurrent()}"
+                            val authHeader = oauthRepository.getAuthHeader()
                             val searchResults = results.requireData()
                             val userTags =
                                 kotlin.runCatching {
@@ -120,7 +124,6 @@ class RealSearchPresenter @Inject constructor(
                     }
 
                     else -> {
-
                         if (results is StoreResponse.Error.Message) {
                             model = SearchModel(error = results.errorMessageOrNull())
                         } else if (results is StoreResponse.Error) {
@@ -140,5 +143,4 @@ class RealSearchPresenter @Inject constructor(
     override fun onQueryTextChange(searchTerm: String) {
         searchInput.tryEmit(searchTerm.lowercase(Locale.getDefault()))
     }
-
 }

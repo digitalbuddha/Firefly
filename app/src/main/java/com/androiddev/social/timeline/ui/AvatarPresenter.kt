@@ -55,9 +55,7 @@ class RealAvatarPresenter @Inject constructor(
                                 userManager.userComponentFor(accessTokenRequest = accountTokenRequest)
                             val credentials = userComponent.api()
                                 .accountVerifyCredentials(
-                                    " Bearer ${
-                                        userComponent.oauthRepository().getCurrent()
-                                    }"
+                                    userComponent.oauthRepository().getAuthHeader()
                                 )
                             credentials
                         }

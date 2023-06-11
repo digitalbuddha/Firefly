@@ -14,6 +14,7 @@ import javax.inject.Inject
 
 interface OauthRepository {
     suspend fun getCurrent(): String?
+    suspend fun getAuthHeader(): String
 }
 
 val USER_KEY_PREFIX = "USER_TOKEN_FOR_"
@@ -44,7 +45,6 @@ class RealOauthRepository @Inject constructor(
                     User(accessToken = token.accessToken, accessTokenRequest = accessTokenRequest)
                 )
 
-
                 users[accessTokenRequest.code] = user.copy(accessToken = token.accessToken)
 
                 val serverResult = server.copy(users = users)
@@ -64,6 +64,10 @@ class RealOauthRepository @Inject constructor(
 
     override suspend fun getCurrent(): String = withContext(Dispatchers.IO) {
          userTokenStore.get(accessTokenRequest.domain!!)
+    }
+
+    override suspend fun getAuthHeader(): String {
+        return " Bearer ${getCurrent()}"
     }
 
     suspend fun fetcher(): Token {

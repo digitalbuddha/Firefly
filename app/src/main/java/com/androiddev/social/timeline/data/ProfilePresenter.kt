@@ -1,10 +1,8 @@
-package com.androiddev.social.timeline.ui
+package com.androiddev.social.timeline.data
 
 import com.androiddev.social.AuthRequiredScope
 import com.androiddev.social.SingleIn
 import com.androiddev.social.auth.data.OauthRepository
-import com.androiddev.social.timeline.data.Account
-import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +28,6 @@ abstract class ProfilePresenter :
 @ContributesBinding(AuthRequiredScope::class, boundType = ProfilePresenter::class)
 @SingleIn(AuthRequiredScope::class)
 class RealProfilePresenter @Inject constructor(
-    val repository: OauthRepository,
     val accountRepository: AccountRepository
 ) :
     ProfilePresenter() {
@@ -40,11 +37,10 @@ class RealProfilePresenter @Inject constructor(
         withContext(Dispatchers.IO) {
             when (event) {
                 is Load -> {
-                    withContext(Dispatchers.IO) {
-                        val account = accountRepository.get(event.accountId)
-                        model = model.copy(account = account)
-                    }
-
+                    accountRepository.subscribe(event.accountId)
+                        .collect { account ->
+                            model = model.copy(account = account)
+                        }
                 }
             }
         }

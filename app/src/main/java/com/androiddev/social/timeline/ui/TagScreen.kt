@@ -3,9 +3,13 @@ package com.androiddev.social.timeline.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.SwipeableDefaults
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
@@ -18,7 +22,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
@@ -54,7 +60,6 @@ fun TagScreen(
 
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = { tag }) {
-
         homePresenter.handle(TimelinePresenter.Load(feedType, colorScheme = colorScheme))
     }
 
@@ -64,6 +69,58 @@ fun TagScreen(
     })
 
     val items = homePresenter.model.hashtagStatuses?.collectAsLazyPagingItems()
+    val bottomState: ModalBottomSheetState =
+        rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val bottomSheetContentProvider = remember { BottomSheetContentProvider(bottomState) }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomState,
+        sheetShape = RoundedCornerShape(topStart = PaddingSize1, topEnd = PaddingSize1),
+        sheetContent = {
+            BottomSheetContent(
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                onShareStatus = {},
+                onDelete = { statusId->
+                    submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
+                },
+                onMessageSent = { _, _, _ -> },
+                goToProfile = goToProfile,
+                goToTag = goToTag,
+                goToConversation = {},
+            )
+        },
+    ) {
+        ScaffoldParent(
+            pullRefreshState = pullRefreshState,
+            showBackBar = showBackBar,
+            navController = navController,
+            tag = tag,
+            items = items,
+            goToBottomSheet = bottomSheetContentProvider::showContent,
+            goToProfile = goToProfile,
+            goToTag = goToTag,
+            homePresenter = homePresenter,
+            submitPresenter = submitPresenter,
+            goToConversation = goToConversation
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun ScaffoldParent(
+    pullRefreshState: PullRefreshState,
+    showBackBar: Boolean,
+    navController: NavHostController,
+    tag: String,
+    items: LazyPagingItems<UI>?,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
+    homePresenter: TimelinePresenter,
+    submitPresenter: SubmitPresenter,
+    goToConversation: (UI) -> Unit
+) {
     Column(Modifier.fillMaxSize()) {
         CustomViewPullRefreshView(
             pullRefreshState, refreshTriggerDistance = 4.dp, isRefreshing = false
@@ -81,9 +138,11 @@ fun TagScreen(
                 if (it.itemCount == 0) items.refresh()
             }
             TimelineRows(
+                goToBottomSheet = goToBottomSheet,
                 goToProfile,
                 goToTag,
                 items,
+                account = homePresenter.model.account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitPresenter.handle(
                         SubmitPresenter.PostMessage(
@@ -107,19 +166,15 @@ fun TagScreen(
                             .FavoriteMessage(statusId, FeedType.Hashtag, favourited)
                     )
                 },
-                rememberModalBottomSheetState(
-                    ModalBottomSheetValue.Hidden,
-                    SwipeableDefaults.AnimationSpec,
-                    skipHalfExpanded = true
-                ),
                 { false },
                 goToConversation = goToConversation,
                 onProfileClick = { _, _ -> },
-                lazyListState
+                lazyListState,
+                onVote = { statusId, pollId, choices ->
+                    submitPresenter.handle(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                },
             )
         }
 
     }
 }
-
-

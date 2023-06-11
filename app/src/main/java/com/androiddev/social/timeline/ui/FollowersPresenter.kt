@@ -83,12 +83,12 @@ class FollowersPagingSource(
             val nextPageNumber = params.key
             val response = if (nextPageNumber == null) {
                 userApi.followers(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountId, since = nextPageNumber
                 )
             } else {
                 userApi.followers(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     url = nextPageNumber
                 )
 
@@ -137,12 +137,12 @@ class FollowingPagingSource(
             val nextPageNumber = params.key
             val response = if (nextPageNumber == null) {
                 userApi.following(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountId, since = nextPageNumber
                 )
             } else {
                 userApi.following(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     url = nextPageNumber
                 )
 

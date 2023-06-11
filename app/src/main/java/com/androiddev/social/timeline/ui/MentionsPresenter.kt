@@ -5,6 +5,8 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
@@ -32,7 +34,8 @@ abstract class MentionsPresenter :
     object Load : MentionsEvent
 
     data class MentionsModel(
-        val statuses: List<Status>
+        val statuses: List<Status>,
+        val account: Account? = null,
     )
 
     sealed interface MentionsEffect
@@ -42,10 +45,12 @@ abstract class MentionsPresenter :
 @SingleIn(AuthRequiredScope::class)
 class RealMentionsPresenter @Inject constructor(
     val mentionRepository: MentionRepository,
+    val accountRepository: AccountRepository,
 ) : MentionsPresenter() {
     override suspend fun eventHandler(event: MentionsEvent, coroutineScope: CoroutineScope) {
         when (event) {
             is Load -> {
+                model = model.copy(account = accountRepository.getCurrent())
                 coroutineScope.launch(Dispatchers.IO) {
                     mentionRepository.get().collectLatest {
                         val statuses = it.mapNotNull { it.status }
@@ -73,7 +78,7 @@ class RealMentionRepository @Inject constructor(
     val store = StoreBuilder.from(
         Fetcher.of { key: Unit ->
             userApi.conversations(
-                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                authHeader = oauthRepository.getAuthHeader(),
             )
         }
     ).build()
