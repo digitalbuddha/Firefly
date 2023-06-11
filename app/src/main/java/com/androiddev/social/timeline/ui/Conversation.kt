@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
@@ -27,7 +28,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @ExperimentalMaterialApi
 @Composable
 fun After(
-    status: UI, goToConversation: (UI) -> Unit,
+    status: UI,
+    goToConversation: (UI) -> Unit,
+    account: Account?,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
 ) {
@@ -47,12 +51,14 @@ fun After(
         afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
 
 
-    InnerLazyColumn(after, goToConversation, goToProfile, goToTag)
+    InnerLazyColumn(after, account, goToBottomSheet, goToConversation, goToProfile, goToTag)
 }
 
 @Composable
 fun InnerLazyColumn(
     items: List<UI>?,
+    account: Account?,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
@@ -69,10 +75,12 @@ fun InnerLazyColumn(
             items.take(10).forEach { inner ->
                 item {
                     card(
-                        Modifier.background(MaterialTheme.colorScheme.background),
-                        inner,
-                        submitPresenter.events,
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                        status = inner,
+                        account = account,
+                        events = submitPresenter.events,
                         showInlineReplies = true,
+                        goToBottomSheet = goToBottomSheet,
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,
                         goToTag = goToTag,
@@ -89,8 +97,10 @@ fun InnerLazyColumn(
 fun card(
     modifier: Modifier,
     status: UI,
+    account: Account?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     showInlineReplies: Boolean,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
@@ -102,9 +112,11 @@ fun card(
     AnimatedVisibility(true) {
         Column {
             TimelineCard(
+                goToBottomSheet = goToBottomSheet,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 ui = eagerStatus,
+                account = account,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     events.tryEmit(
                         SubmitPresenter.PostMessage(
@@ -137,9 +149,8 @@ fun card(
                     )
 
                 },
-                state = null,
                 goToConversation = goToConversation,
-                isReplying = { },
+                onReplying = { },
                 showInlineReplies = showInlineReplies,
                 modifier = modifier,
                 onVote = { statusId, pollId, choices ->
@@ -148,6 +159,4 @@ fun card(
             )
         }
     }
-
-
 }

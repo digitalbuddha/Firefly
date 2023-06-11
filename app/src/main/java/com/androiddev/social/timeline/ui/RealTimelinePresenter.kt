@@ -26,8 +26,8 @@ class RealTimelinePresenter @Inject constructor(
     val statusDao: StatusDao,
     val api: UserApi,
     val oauthRepository: OauthRepository,
-
-    ) : TimelinePresenter() {
+    val accountRepository: AccountRepository,
+) : TimelinePresenter() {
     val scope = CoroutineScope(Dispatchers.Main)
     private val pagingConfig = PagingConfig(
         pageSize = 20,
@@ -97,13 +97,7 @@ class RealTimelinePresenter @Inject constructor(
     override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
         when (event) {
             is Load -> {
-                val result =
-                    kotlin.runCatching {
-                        api.accountVerifyCredentials(authHeader = " Bearer ${oauthRepository.getCurrent()}")
-                    }
-                result.getOrNull()?.let {
-                    model = model.copy(account = it)
-                }
+                model = model.copy(account = accountRepository.getCurrent())
                 when (event.feedType) {
                     FeedType.Home -> {
                         model = model.copy(homeStatuses = homeFlow.map {
@@ -173,7 +167,7 @@ class RealTimelinePresenter @Inject constructor(
                         val remoteMediator =
                             timelineRemoteMediators.filterIsInstance<UserRemoteMediator>()
                                 .single()
-                        remoteMediator.accountId = event.accountId!!
+                        remoteMediator.accountId = event.accountId
 
                         val flow2 = Pager(
                             config = pagingConfig,
@@ -271,7 +265,7 @@ abstract class TimelinePresenter :
 
 class BookmarksPagingSource(
     val userApi: UserApi,
-    val oauthRepository: OauthRepository
+    val oauthRepository: OauthRepository,
 ) : PagingSource<String, Status>() {
     override suspend fun load(
         params: LoadParams<String>
@@ -284,11 +278,11 @@ class BookmarksPagingSource(
 //            if (nextPageNumber == "end") return LoadResult.Error(NoSuchElementException())
             val response = if (nextPageNumber == null) {
                 userApi.bookmarkedStatuses(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                 )
             } else {
                 userApi.bookmarkedStatuses(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     url = nextPageNumber
                 )
 
@@ -336,11 +330,11 @@ class FavoritesPagingSource(
             val nextPageNumber = params.key
             val response = if (nextPageNumber == null) {
                 userApi.favorites(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                 )
             } else {
                 userApi.favorites(
-                    authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                    authHeader = oauthRepository.getAuthHeader(),
                     url = nextPageNumber
                 )
 

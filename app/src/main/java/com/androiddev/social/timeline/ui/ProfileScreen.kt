@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.Indicator
@@ -57,14 +59,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.data.ProfilePresenter
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
@@ -103,6 +109,62 @@ fun ProfileScreen(
         presenter.handle(ProfilePresenter.Load(accountId))
     }
 
+    val bottomState: ModalBottomSheetState =
+        rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val bottomSheetContentProvider = remember { BottomSheetContentProvider(bottomState) }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomState,
+        sheetShape = RoundedCornerShape(topStart = PaddingSize1, topEnd = PaddingSize1),
+        sheetContent = {
+            BottomSheetContent(
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                onShareStatus = {},
+                onDelete = { statusId->
+                    submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
+                },
+                onMessageSent = { _, _, _ -> },
+                goToProfile = { accountId: String ->
+                    navController.navigate("profile/${code}/${accountId}")
+                },
+                goToTag = { tag: String ->
+                    navController.navigate("tag/${code}/${tag}")
+                },
+                goToConversation = { status: UI ->
+                    navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
+                },
+            )
+        },
+    ) {
+        ScaffoldParent(
+            presenter = presenter,
+            submitPresenter = submitPresenter,
+            accountId = accountId,
+            navController = navController,
+            goToFollowers = goToFollowers,
+            goToFollowing = goToFollowing,
+            homePresenter = homePresenter,
+            code = code,
+            goToBottomSheet = bottomSheetContentProvider::showContent,
+            scope = scope
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun ScaffoldParent(
+    presenter: ProfilePresenter,
+    submitPresenter: SubmitPresenter,
+    accountId: String,
+    navController: NavHostController,
+    goToFollowers: () -> Unit,
+    goToFollowing: () -> Unit,
+    homePresenter: TimelinePresenter,
+    code: String,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
+    scope: CoroutineScope
+) {
     FireflyTheme {
         var clicked by remember { mutableStateOf(false) }
 
@@ -195,11 +257,13 @@ fun ProfileScreen(
                     submitPresenter.events
                 posts(
                     navController = navController,
-                    pagingListUserStatus,
-                    pagingListWithReplies,
-                    pagingListWithMedia,
-                    events,
-                    code
+                    statuses = pagingListUserStatus,
+                    withReplies = pagingListWithReplies,
+                    withMedia = pagingListWithMedia,
+                    account = homePresenter.model.account,
+                    events = events,
+                    code = code,
+                    goToBottomSheet = goToBottomSheet,
                 ) {
                     scope.launch {
                         scaffoldState.conceal()
@@ -226,8 +290,10 @@ private fun posts(
     statuses: LazyPagingItems<UI>?,
     withReplies: LazyPagingItems<UI>?,
     withMedia: LazyPagingItems<UI>?,
+    account: Account?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     changeHeight: (Int) -> Unit
 ) {
     val pagerState = rememberPagerState()
@@ -303,6 +369,7 @@ private fun posts(
             }
             ui?.let {
                 TimelineRows(
+                    goToBottomSheet = goToBottomSheet,
                     goToProfile = { accountId: String ->
                         navController.navigate("profile/${code}/${accountId}")
                     },
@@ -311,6 +378,7 @@ private fun posts(
                     },
 
                     ui = it,
+                    account = account,
                     replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                         events.tryEmit(
                             SubmitPresenter.PostMessage(
@@ -336,12 +404,7 @@ private fun posts(
                         )
 
                     },
-                    state = rememberModalBottomSheetState(
-                        ModalBottomSheetValue.Hidden,
-                        SwipeableDefaults.AnimationSpec,
-                        skipHalfExpanded = true
-                    ),
-                    isReplying = { },
+                    onReplying = {},
                     goToConversation = { status: UI ->
                         navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
                     },

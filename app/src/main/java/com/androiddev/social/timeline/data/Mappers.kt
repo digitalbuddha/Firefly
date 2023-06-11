@@ -132,6 +132,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
         displayName = status.displayName,
         userName = status.userName,
         content = status.content,
+        sharingUri = status.uri,
         replyCount = status.repliesCount ?: 0,
         boostCount = status.reblogsCount ?: 0,
         favoriteCount = status.favouritesCount ?: 0,

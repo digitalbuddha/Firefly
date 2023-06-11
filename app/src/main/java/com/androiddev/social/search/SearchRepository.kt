@@ -26,7 +26,7 @@ class RealSearchRepository @Inject constructor(
     val store = StoreBuilder.from(
         Fetcher.of { searchTerm: String ->
             userApi.search(
-                authHeader = " Bearer ${oauthRepository.getCurrent()}",
+                authHeader = oauthRepository.getAuthHeader(),
                 searchTerm = searchTerm
             )
         }

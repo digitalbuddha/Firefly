@@ -29,7 +29,6 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
@@ -72,6 +71,7 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.ui.model.PollHashUI
 import com.androiddev.social.timeline.ui.model.PollUI
@@ -85,15 +85,16 @@ import social.androiddev.firefly.R
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     ui: UI?,
+    account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
-    state: ModalBottomSheetState?,
     goToConversation: (UI) -> Unit,
-    isReplying: (Boolean) -> Unit,
+    onReplying: (Boolean) -> Unit,
     showInlineReplies: Boolean,
     modifier: Modifier = Modifier,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
@@ -129,10 +130,8 @@ fun TimelineCard(
                 val text = emojiText?.text
                 var clicked by remember(ui) { mutableStateOf(false) }
                 var showReply by remember(ui) { mutableStateOf(false) }
-                if (clicked) {
-                    LaunchedEffect(Unit) {
-                        state?.hide()
-                    }
+                LaunchedEffect(clicked) {
+                    if (clicked) onReplying(false)
                 }
 
                 val uriHandler = LocalUriHandler.current
@@ -231,7 +230,9 @@ fun TimelineCard(
                     Column(modifier = Modifier.padding(top = PaddingSize2)) {
                         UserInput(
                             ui,
+                            account = account,
                             connection = nestedScrollConnection,
+                            goToBottomSheet = goToBottomSheet,
                             onMessageSent = { it, visibility, uris ->
                                 ui?.let { it1 ->
                                     replyToStatus(
@@ -274,6 +275,7 @@ fun TimelineCard(
 
                     ButtonBar(
                         ui,
+                        account,
                         ui?.replyCount,
                         ui?.boostCount,
                         ui?.favoriteCount,
@@ -281,6 +283,7 @@ fun TimelineCard(
                         ui?.boosted,
                         ui?.inReplyTo != null,
                         showInlineReplies,
+                        goToBottomSheet = goToBottomSheet,
                         onBoost = {
                             boostStatus(ui!!.remoteId, ui.boosted)
                         },
@@ -289,7 +292,7 @@ fun TimelineCard(
                         },
                         onReply = {
                             showReply = !showReply
-                            isReplying(showReply)
+                            onReplying(showReply)
                         },
                         showReply = showingReplies,
                         onShowReplies = {

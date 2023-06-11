@@ -11,6 +11,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.TopAppBar
@@ -349,9 +350,12 @@ fun Navigator(
                 ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
                 CompositionLocalProvider(LocalAuthComponent provides component) {
                     ConversationScreen(
-                        navController, statusId, type, goToProfile = { accountId ->
+                        navController = navController,
+                        statusId = statusId,
+                        type = type, goToProfile = { accountId ->
                             navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
-                        }, goToTag = { tag ->
+                        },
+                        goToTag = { tag ->
                             navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
 
                         }

@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
     implementation(libs.com.google.dagger)
     implementation(libs.com.squareup.retrofit2.retrofit)
     implementation(libs.de.charlex.compose.revealswipe)

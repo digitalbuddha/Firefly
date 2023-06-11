@@ -93,11 +93,17 @@ interface StatusDao {
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
 
-    @Query("DELETE FROM status")
-    fun delete()
+    @Query(
+        """DELETE FROM status
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+           """
+    )
+    fun delete(
+        statusId: String,
+    )
 }
 
-@Database(entities = [StatusDB::class], version = 17)
+@Database(entities = [StatusDB::class], version = 18)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

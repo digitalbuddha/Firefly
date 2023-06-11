@@ -36,6 +36,7 @@ data class UI(
     val displayName: String = "FriendlyMike",
     val userName: String = "FriendlyMike@androiddev.social",
     private val content: String = "",
+    val sharingUri: String,
     val replyCount: Int = 0,
     val boostCount: Int = 0,
     val favoriteCount: Int = 0,

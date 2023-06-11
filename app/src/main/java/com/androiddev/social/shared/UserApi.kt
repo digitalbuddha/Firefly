@@ -260,4 +260,9 @@ interface UserApi {
         @Query("choices[]") choices: List<Int>,
     ): Poll
 
+    @DELETE("/api/v1/statuses/{id}")
+    suspend fun deleteStatus(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
 }
