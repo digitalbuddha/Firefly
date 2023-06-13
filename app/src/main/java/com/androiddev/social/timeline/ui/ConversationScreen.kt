@@ -65,17 +65,11 @@ fun ConversationScreen(
         presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type), colorScheme))
     }
     val conversation = presenter.model.conversations.get(statusId)
-    val after = conversation?.after?.map { it.toStatusDb(FeedType.Home).mapStatus(colorScheme) }
-        ?.map { it.copy(replyType = ReplyType.CHILD) } ?: emptyList()
-    val before =
-        conversation?.before?.map { it.toStatusDb(FeedType.Home).mapStatus(colorScheme) }
-            ?.map { it.copy(replyType = ReplyType.PARENT) } ?: emptyList()
-    val status =
-        listOf(conversation?.status).filterNotNull()
+    val after = conversation?.after ?: emptyList()
+    val before = conversation?.before ?: emptyList()
+    val status = listOfNotNull(conversation?.status)
 
-
-    val statuses = before + status + after.map { it.copy(replyType = ReplyType.CHILD) }
-
+    val statuses = before + status + after
 
     val pullRefreshState = rememberPullRefreshState(false, {
         presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type), colorScheme))
@@ -174,33 +168,20 @@ private fun List<UI>.render(
     goToTag: (String) -> Unit,
 ) {
     val statuses = this
-    var shimmer by remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = this)
-    {
-        if (size > 1) {
-//            delay(1000)
-            shimmer = false
-
-        }
-    }
     LazyColumn(
         state = state,
         modifier = Modifier
             .wrapContentHeight()
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
-//            .padding(top = if (addPadding) 40.dp else 0.dp)
     ) {
         items(statuses, key = { it.remoteId }) {
             card(
-                modifier = Modifier
-//                    .animateItemPlacement()
-                   ,
+                modifier = Modifier,
                 status = it,
                 account = presenter.model.account,
                 events = mutableSharedFlow,
-                showInlineReplies = true,
                 goToBottomSheet = goToBottomSheet,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,

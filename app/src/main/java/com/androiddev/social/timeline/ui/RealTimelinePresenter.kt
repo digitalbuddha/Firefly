@@ -41,8 +41,7 @@ class RealTimelinePresenter @Inject constructor(
         remoteMediator = timelineRemoteMediators
             .filterIsInstance<HomeTimelineRemoteMediator>()
             .single()
-    )
-    {
+    ) {
         statusDao.getTimeline(FeedType.Home.type)
     }
         .flow.cachedIn(scope)
@@ -51,8 +50,7 @@ class RealTimelinePresenter @Inject constructor(
         remoteMediator = timelineRemoteMediators
             .filterIsInstance<LocalTimelineRemoteMediator>()
             .single()
-    )
-    {
+    ) {
         statusDao.getTimeline(FeedType.Local.type)
     }
         .flow.cachedIn(scope)
@@ -61,8 +59,7 @@ class RealTimelinePresenter @Inject constructor(
         remoteMediator = timelineRemoteMediators
             .filterIsInstance<FederatedTimelineRemoteMediator>()
             .single()
-    )
-    {
+    ) {
         statusDao.getTimeline(FeedType.Federated.type)
     }
         .flow.cachedIn(scope)
@@ -71,24 +68,21 @@ class RealTimelinePresenter @Inject constructor(
         remoteMediator = timelineRemoteMediators
             .filterIsInstance<TrendingRemoteMediator>()
             .single()
-    )
-    {
+    ) {
         statusDao.getTimeline(FeedType.Trending.type)
     }
         .flow.cachedIn(scope)
 
     val bookmarksFlow: Flow<PagingData<Status>> = Pager(
         config = pagingConfig,
-    )
-    {
+    ) {
         BookmarksPagingSource(userApi = api, oauthRepository = oauthRepository)
     }
         .flow.cachedIn(scope)
 
     val favoritesFlow: Flow<PagingData<Status>> = Pager(
         config = pagingConfig,
-    )
-    {
+    ) {
         FavoritesPagingSource(userApi = api, oauthRepository = oauthRepository)
     }
         .flow.cachedIn(scope)

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterialApi::class)
-
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.animation.AnimatedVisibility
@@ -19,9 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.androiddev.social.timeline.data.Account
-import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.timeline.data.toStatusDb
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -45,11 +40,7 @@ fun After(
     LaunchedEffect(key1 = status) {
         presenter.handle(ConversationPresenter.Load(status.remoteId, status.type, colorScheme))
     }
-    val afterStatus =
-        presenter.model.conversations.get(status.remoteId)?.after
-    val after =
-        afterStatus?.map { it.toStatusDb(FeedType.Home).mapStatus(MaterialTheme.colorScheme) }
-
+    val after = presenter.model.conversations.get(status.remoteId)?.after
 
     InnerLazyColumn(after, account, goToBottomSheet, goToConversation, goToProfile, goToTag)
 }
@@ -79,7 +70,6 @@ fun InnerLazyColumn(
                         status = inner,
                         account = account,
                         events = submitPresenter.events,
-                        showInlineReplies = true,
                         goToBottomSheet = goToBottomSheet,
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,
@@ -99,7 +89,6 @@ fun card(
     status: UI,
     account: Account?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
-    showInlineReplies: Boolean,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
@@ -107,7 +96,6 @@ fun card(
 ) {
 
     var eagerStatus by remember { mutableStateOf(status) }
-
 
     AnimatedVisibility(true) {
         Column {
@@ -151,7 +139,6 @@ fun card(
                 },
                 goToConversation = goToConversation,
                 onReplying = { },
-                showInlineReplies = showInlineReplies,
                 modifier = modifier,
                 onVote = { statusId, pollId, choices ->
                     events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))

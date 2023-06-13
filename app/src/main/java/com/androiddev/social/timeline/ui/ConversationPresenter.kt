@@ -9,9 +9,10 @@ import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.FeedStoreRequest
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusRepository
 import com.androiddev.social.timeline.data.mapStatus
+import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.ui.model.ReplyType
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
@@ -43,6 +44,7 @@ class RealConversationPresenter @Inject constructor(
     val repository: OauthRepository,
     val statusRepository: StatusRepository,
     val accountRepository: AccountRepository,
+    val replyIndentionLogic: ReplyIndentionLogic,
 ) :
     ConversationPresenter() {
 
@@ -69,14 +71,25 @@ class RealConversationPresenter @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val conversation = kotlin.runCatching {
                         api.conversation(
-                            authHeader = "$token",
+                            authHeader = token,
                             statusId = event.statusId
                         )
                     }
                     if (conversation.isSuccess) {
                         val statuses = conversation.getOrThrow()
-                        currentConvo = currentConvo.copy(before = statuses.ancestors)
-                        currentConvo = currentConvo.copy(after = statuses.descendants)
+                        val after = statuses.descendants
+                                .map { it.toStatusDb(FeedType.Home).mapStatus(event.colorScheme) }
+                                .map { it.copy(replyType = ReplyType.CHILD, replyIndention = 0) }
+                        val repliesGraph = after.groupBy { it.inReplyTo ?: event.statusId }
+
+                        currentConvo = currentConvo.copy(
+                            before = statuses.ancestors
+                                .map { it.toStatusDb(FeedType.Home).mapStatus(event.colorScheme) }
+                                .map { it.copy(replyType = ReplyType.CHILD, replyIndention = 0) },
+                            after = repliesGraph[event.statusId]?.let {
+                                replyIndentionLogic.addIndentionToStatus(it, repliesGraph, 0).toList()
+                            } ?: emptyList(),
+                        )
 
                         val conversations = model.conversations.toMutableMap()
                         conversations.put(event.statusId, currentConvo)
@@ -86,10 +99,11 @@ class RealConversationPresenter @Inject constructor(
             }
         }
     }
+
 }
 
 data class ConvoUI(
-    val before: List<Status> = emptyList(),
-    val after: List<Status> = emptyList(),
+    val before: List<UI> = emptyList(),
+    val after: List<UI> = emptyList(),
     val status: UI? = null
 )

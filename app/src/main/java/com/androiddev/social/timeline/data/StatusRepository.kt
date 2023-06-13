@@ -4,6 +4,7 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.ui.ReplyIndentionLogic
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +23,8 @@ interface StatusRepository {
 class RealStatusRepository @Inject constructor(
     val statusDao: StatusDao,
     val api: UserApi,
-    val oauthRepository: OauthRepository
+    val oauthRepository: OauthRepository,
+    val replyIndentionLogic: ReplyIndentionLogic,
 ) : StatusRepository {
     private val fetcher = Fetcher.of { status: FeedStoreRequest ->
         api.getStatus(oauthRepository.getAuthHeader(), status.remoteId)
@@ -44,8 +46,7 @@ class RealStatusRepository @Inject constructor(
     ).build()
 
     override suspend fun get(feedStoreRequest: FeedStoreRequest): StatusDB = withContext(Dispatchers.IO) {
-        val get = store.get(feedStoreRequest)
-         get
+        store.get(feedStoreRequest)
     }
 }
 

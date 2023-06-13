@@ -66,6 +66,7 @@ data class UI(
     val bookmarked: Boolean,
     val attachments: List<Attachment>,
     val poll: PollUI?,
+    val replyIndention: Int = 0,
 )
 
 enum class ReplyType {

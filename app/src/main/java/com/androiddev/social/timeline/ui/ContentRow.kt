@@ -11,6 +11,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -18,10 +19,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -62,6 +67,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.androiddev.social.theme.PaddingSize0_5
@@ -71,6 +77,9 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
+import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.theme.ThickLg
+import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.LinkListener
 import com.androiddev.social.timeline.ui.model.PollHashUI
@@ -81,8 +90,11 @@ import com.google.accompanist.placeholder.material3.placeholder
 import com.google.accompanist.placeholder.shimmer
 import me.saket.swipe.SwipeAction
 import social.androiddev.firefly.R
+import java.lang.Integer.min
+import java.net.URI
+import java.util.Locale
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
     goToBottomSheet: suspend (SheetContentState) -> Unit,
@@ -95,16 +107,10 @@ fun TimelineCard(
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
     onReplying: (Boolean) -> Unit,
-    showInlineReplies: Boolean,
     modifier: Modifier = Modifier,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
 ) {
-//    SwipeableActionsBox(
-//        startActions = listOf(rocket()),
-//        endActions = listOf(reply(), replyAll()),
-////        modifier = Modifier.animateItemPlacement()
-//    ) {
 
     Column(
         modifier
@@ -116,208 +122,248 @@ fun TimelineCard(
             ),
     ) {
 
-        var showingReplies by remember { mutableStateOf(false) }
-
+        var showReply by remember(ui) { mutableStateOf(false) }
         UserInfo(ui, goToProfile, onProfileClick = onProfileClick)
-        Row(
-            Modifier
-                .padding(bottom = PaddingSize1)
-        ) {
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val emojiText = ui?.contentEmojiText
-                val mapping = emojiText?.mapping
-                val text = emojiText?.text
-                var clicked by remember(ui) { mutableStateOf(false) }
-                var showReply by remember(ui) { mutableStateOf(false) }
-                LaunchedEffect(clicked) {
-                    if (clicked) onReplying(false)
-                }
-
-                val uriHandler = LocalUriHandler.current
-                Box(
-                    modifier = Modifier
-                        .placeholder(
-                            color = colorScheme.surfaceColorAtElevation(
-                                LocalAbsoluteTonalElevation.current + 8.dp
-                            ),
-                            visible = ui == null,
-                            shape = RoundedCornerShape(8.dp),
-                            highlight = PlaceholderHighlight.shimmer(
-                                highlightColor = colorScheme.tertiary.copy(alpha = 0.2f)
-                            ),
-                        )
-                ) {
-
-                    ClickableText(
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = colorScheme.onSurface,
-                            lineHeight = 18.sp
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        text = text ?: buildAnnotatedString { },
-                        onClick = {
-                            clicked = !clicked
-                            if (!clicked && showReply) showReply = false
-                            val annotation = text!!.getStringAnnotations(
-                                tag = "URL", start = it,
-                                end = it
+        Column {
+            Row(
+                Modifier
+                    .padding(bottom = PaddingSize1),
+            ) {
+                ui?.let { status ->
+                    val magicNumber = 2
+                    repeat(min(magicNumber , status.replyIndention)) {
+                        Text(
+                            text = "+",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = colorScheme.onSurface
                             )
-                                .firstOrNull()
-
-                            if (annotation != null && URLUtil.isValidUrl(annotation.item)) {
-                                uriHandler.openUri(annotation.item)
-                                Log.d("Clicked URL", annotation.item)
+                        )
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .padding(end = PaddingSize0_5)
+                                .width(ThickSm)
+                                .background(color = colorScheme.onSurface)
+                        )
+                    }
+                    if (status.replyIndention > magicNumber) {
+                        Text(
+                            text = if (status.replyIndention - magicNumber == 1) {
+                                "+"
                             } else {
-                                if (annotation?.item?.startsWith("###TAG") == true) goToTag(annotation.item.removePrefix("###TAG"))
-                                else if (annotation?.item != null) goToProfile(annotation.item)
-                                else if (ui.replyCount > 0 || ui.inReplyTo != null)
-                                    goToConversation(ui)
-                            }
-                        },
-                        inlineContent = mapping ?: emptyMap()
-                    )
-                }
-
-                if (ui?.poll?.options != null && ui.poll.options.isNotEmpty()) {
-                    Log.d("qqqq", "ui id: ${ui.originalId}, ${ui.remoteId}")
-                    PollVoter(
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = colorScheme.onSurface,
-                            lineHeight = 18.sp
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        poll = ui.poll,
-                        options = ui.poll.options,
-                        onClick = { choices ->
-                            onVote(ui.remoteId, ui.poll.remoteId, choices)
-                        },
-                    )
-                }
-
-                ContentImage(ui?.attachments?.mapNotNull { it.url } ?: emptyList()) {
-                    clicked = !clicked
-                }
-                val toolbarHeight = PaddingSize6
-                val toolbarHeightPx =
-                    with(LocalDensity.current) {
-                        toolbarHeight.roundToPx().toFloat()
-                    }
-                val toolbarOffsetHeightPx = remember(ui) { mutableStateOf(0f) }
-                val nestedScrollConnection = remember(ui) {
-                    object : NestedScrollConnection {
-                        override fun onPreScroll(
-                            available: Offset,
-                            source: NestedScrollSource
-                        ): Offset {
-                            val delta = available.y
-                            val newOffset = toolbarOffsetHeightPx.value + delta
-                            toolbarOffsetHeightPx.value =
-                                newOffset.coerceIn(-toolbarHeightPx, 0f)
-                            return Offset.Zero
-                        }
-                    }
-                }
-                AnimatedVisibility(visible = showReply) {
-                    var mentions =
-                        ui?.mentions?.map { mention -> mention.username }
-                            ?.toMutableList() ?: mutableListOf()
-
-                    mentions.add(ui?.userName ?: "")
-                    mentions = mentions.map { "@${it}" }.toMutableList()
-                    Column(modifier = Modifier.padding(top = PaddingSize2)) {
-                        UserInput(
-                            ui,
-                            account = account,
-                            connection = nestedScrollConnection,
-                            goToBottomSheet = goToBottomSheet,
-                            onMessageSent = { it, visibility, uris ->
-                                ui?.let { it1 ->
-                                    replyToStatus(
-                                        it,
-                                        visibility,
-                                        it1.remoteId,
-                                        ui.replyCount,
-                                        uris
-                                    )
-                                }
-                                showReply = false
+                                "${status.replyIndention - magicNumber}+"
                             },
-                            defaultVisiblity = "Public",
-                            participants = mentions.joinToString(" "),
-                            showReplies = true,
-                            goToConversation = goToConversation,
-                            goToProfile = goToProfile,
-                            goToTag = goToTag,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = colorScheme.onSurface
+                            )
+                        )
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .padding(end = PaddingSize0_5)
+                                .width(ThickSm)
+                                .background(color = colorScheme.onSurface)
                         )
                     }
                 }
-
-
                 Column(
-                    modifier = Modifier.placeholder(
-                        color = colorScheme.surfaceColorAtElevation(
-                            LocalAbsoluteTonalElevation.current + 8.dp
-                        ),
-                        visible = ui == null,
-                        shape = RoundedCornerShape(8.dp),
-                        highlight = PlaceholderHighlight.shimmer(
-                            highlightColor = colorScheme.onSurface.copy(alpha = 0.2f)
-                        ),
-                    )
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val emojiText = ui?.contentEmojiText
+                    val mapping = emojiText?.mapping
+                    val text = emojiText?.text
+                    var clicked by remember(ui) { mutableStateOf(false) }
+                    LaunchedEffect(clicked) {
+                        if (clicked) onReplying(false)
+                    }
 
-                    val current = LocalAuthComponent.current
-                    var justBookmarked by remember { mutableStateOf(false) }
+                    val uriHandler = LocalUriHandler.current
+                    Box(
+                        modifier = Modifier
+                            .placeholder(
+                                color = colorScheme.surfaceColorAtElevation(
+                                    LocalAbsoluteTonalElevation.current + 8.dp
+                                ),
+                                visible = ui == null,
+                                shape = RoundedCornerShape(8.dp),
+                                highlight = PlaceholderHighlight.shimmer(
+                                    highlightColor = colorScheme.tertiary.copy(alpha = 0.2f)
+                                ),
+                            )
+                    ) {
 
+                        ClickableText(
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = colorScheme.onSurface,
+                                lineHeight = 18.sp
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = text ?: buildAnnotatedString { },
+                            onClick = {
+                                clicked = !clicked
+                                if (!clicked && showReply) showReply = false
+                                val annotation = text!!.getStringAnnotations(
+                                    tag = "URL", start = it,
+                                    end = it
+                                )
+                                    .firstOrNull()
 
-                    ButtonBar(
-                        ui,
-                        account,
-                        ui?.replyCount,
-                        ui?.boostCount,
-                        ui?.favoriteCount,
-                        ui?.favorited,
-                        ui?.boosted,
-                        ui?.inReplyTo != null,
-                        showInlineReplies,
-                        goToBottomSheet = goToBottomSheet,
-                        onBoost = {
-                            boostStatus(ui!!.remoteId, ui.boosted)
-                        },
-                        onFavorite = {
-                            favoriteStatus(ui!!.remoteId, ui.favorited)
-                        },
-                        onReply = {
-                            showReply = !showReply
-                            onReplying(showReply)
-                        },
-                        showReply = showingReplies,
-                        onShowReplies = {
-                            showingReplies = !showingReplies
-                            goToConversation(ui!!)
-                        },
-                        goToConversation = {
-                            goToConversation(ui!!)
-                        },
-                        goToProfile = goToProfile,
-                        goToTag = goToTag,
-                        bookmarked = ui?.bookmarked ?: false || justBookmarked,
-                        onBookmark = {
-                            justBookmarked = true
-                            current.submitPresenter()
-                                .handle(SubmitPresenter.BookmarkMessage(ui!!.remoteId, ui.type))
+                                if (annotation != null && URLUtil.isValidUrl(annotation.item)) {
+                                    val uri = Uri.parse(annotation.item)
+                                    val fixedUri = URI(
+                                        uri.scheme?.lowercase(), uri.authority,
+                                        uri.path, uri.query, uri.fragment
+                                    )
+                                    uriHandler.openUri(fixedUri.toASCIIString())
+                                    Log.d("Clicked URL", annotation.item)
+                                } else {
+                                    if (annotation?.item?.startsWith("###TAG") == true) goToTag(
+                                        annotation.item.removePrefix("###TAG")
+                                    )
+                                    else if (annotation?.item != null) goToProfile(annotation.item)
+                                    else if (ui.replyCount > 0 || ui.inReplyTo != null)
+                                        goToConversation(ui)
+                                }
+                            },
+                            inlineContent = mapping ?: emptyMap()
+                        )
+                    }
+
+                    if (ui?.poll?.options != null && ui.poll.options.isNotEmpty()) {
+                        Log.d("qqqq", "ui id: ${ui.originalId}, ${ui.remoteId}")
+                        PollVoter(
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = colorScheme.onSurface,
+                                lineHeight = 18.sp
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            poll = ui.poll,
+                            options = ui.poll.options,
+                            onClick = { choices ->
+                                onVote(ui.remoteId, ui.poll.remoteId, choices)
+                            },
+                        )
+                    }
+
+                    ContentImage(ui?.attachments?.mapNotNull { it.url } ?: emptyList()) {
+                        clicked = !clicked
+                    }
+                    val toolbarHeight = PaddingSize6
+                    val toolbarHeightPx =
+                        with(LocalDensity.current) {
+                            toolbarHeight.roundToPx().toFloat()
                         }
-                    )
+                    val toolbarOffsetHeightPx = remember(ui) { mutableStateOf(0f) }
+                    val nestedScrollConnection = remember(ui) {
+                        object : NestedScrollConnection {
+                            override fun onPreScroll(
+                                available: Offset,
+                                source: NestedScrollSource
+                            ): Offset {
+                                val delta = available.y
+                                val newOffset = toolbarOffsetHeightPx.value + delta
+                                toolbarOffsetHeightPx.value =
+                                    newOffset.coerceIn(-toolbarHeightPx, 0f)
+                                return Offset.Zero
+                            }
+                        }
+                    }
+                    AnimatedVisibility(visible = showReply) {
+                        var mentions =
+                            ui?.mentions?.map { mention -> mention.username }
+                                ?.toMutableList() ?: mutableListOf()
+
+                        mentions.add(ui?.userName ?: "")
+                        mentions = mentions.map { "@${it}" }.toMutableList()
+                        Column(modifier = Modifier.padding(top = PaddingSize2)) {
+                            UserInput(
+                                ui,
+                                account = account,
+                                connection = nestedScrollConnection,
+                                goToBottomSheet = goToBottomSheet,
+                                onMessageSent = { it, visibility, uris ->
+                                    ui?.let { it1 ->
+                                        replyToStatus(
+                                            it,
+                                            visibility,
+                                            it1.remoteId,
+                                            ui.replyCount,
+                                            uris
+                                        )
+                                    }
+                                    showReply = false
+                                },
+                                defaultVisiblity = "Public",
+                                participants = mentions.joinToString(" "),
+                                showReplies = true,
+                                goToConversation = goToConversation,
+                                goToProfile = goToProfile,
+                                goToTag = goToTag,
+                            )
+                        }
+                    }
                 }
             }
 
+            Column(
+                modifier = Modifier.placeholder(
+                    color = colorScheme.surfaceColorAtElevation(
+                        LocalAbsoluteTonalElevation.current + 8.dp
+                    ),
+                    visible = ui == null,
+                    shape = RoundedCornerShape(8.dp),
+                    highlight = PlaceholderHighlight.shimmer(
+                        highlightColor = colorScheme.onSurface.copy(alpha = 0.2f)
+                    ),
+                )
+            ) {
+
+                val current = LocalAuthComponent.current
+                var justBookmarked by remember { mutableStateOf(false) }
+
+
+                ButtonBar(
+                    status = ui,
+                    account = account,
+                    replyCount = ui?.replyCount,
+                    boostCount = ui?.boostCount,
+                    favoriteCount = ui?.favoriteCount,
+                    favorited = ui?.favorited,
+                    boosted = ui?.boosted,
+                    hasParent = ui?.inReplyTo != null,
+                    goToBottomSheet = goToBottomSheet,
+                    onBoost = {
+                        boostStatus(ui!!.remoteId, ui.boosted)
+                    },
+                    onFavorite = {
+                        favoriteStatus(ui!!.remoteId, ui.favorited)
+                    },
+                    onReply = {
+                        showReply = !showReply
+                        onReplying(showReply)
+                    },
+                    onShowReplies = {
+                        goToConversation(ui!!)
+                    },
+                    goToConversation = {
+                        goToConversation(ui!!)
+                    },
+                    goToProfile = goToProfile,
+                    goToTag = goToTag,
+                    bookmarked = ui?.bookmarked ?: false || justBookmarked,
+                    onBookmark = {
+                        justBookmarked = true
+                        current.submitPresenter()
+                            .handle(SubmitPresenter.BookmarkMessage(ui!!.remoteId, ui.type))
+                    }
+                )
+            }
         }
     }
     Divider()
-
 }
 
 

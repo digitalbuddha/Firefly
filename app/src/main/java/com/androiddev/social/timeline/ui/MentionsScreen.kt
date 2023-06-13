@@ -136,7 +136,6 @@ private fun ScaffoldParent(
                     account = mentionsPresenter.model.account,
                     events = submitPresenter.events,
                     goToBottomSheet = goToBottomSheet,
-                    showInlineReplies = false,
                     goToConversation = goToConversation,
                     goToProfile = goToProfile,
                     goToTag = goToTag

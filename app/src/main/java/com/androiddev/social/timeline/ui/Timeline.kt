@@ -567,7 +567,6 @@ fun TimelineRows(
                         favoriteStatus,
                         goToConversation,
                         onReplying = onReplying,
-                        false,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
                     )
@@ -589,7 +588,6 @@ fun TimelineRows(
                         favoriteStatus,
                         goToConversation,
                         onReplying = onReplying,
-                        false,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
                     )

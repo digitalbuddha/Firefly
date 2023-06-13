@@ -175,7 +175,6 @@ private fun ScaffoldParent(
                         status = it.status!!.toStatusDb(FeedType.Home).mapStatus(colorScheme),
                         account = notificationPresenter.model.account,
                         events = submitPresenter.events,
-                        showInlineReplies = false,
                         goToBottomSheet = goToBottomSheet,
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,

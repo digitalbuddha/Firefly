@@ -46,15 +46,13 @@ fun ButtonBar(
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
-    favorited: Boolean?=false,
-    boosted: Boolean?=false,
-    hasParent: Boolean?=false,
-    showInlineReplies: Boolean?=false,
+    favorited: Boolean? = false,
+    boosted: Boolean? = false,
+    hasParent: Boolean? = false,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
-    showReply: Boolean?=false,
     onShowReplies: () -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
@@ -147,18 +145,6 @@ fun ButtonBar(
 
             if (status != null) {
                 MoreMenu(status, account, goToBottomSheet)
-            }
-        }
-        AnimatedVisibility(visible = showReply == true && showInlineReplies == true) {
-            if (status != null) {
-                After(
-                    status = status,
-                    account = account,
-                    goToBottomSheet = goToBottomSheet,
-                    goToConversation = goToConversation,
-                    goToProfile = goToProfile,
-                    goToTag = goToTag,
-                )
             }
         }
     }

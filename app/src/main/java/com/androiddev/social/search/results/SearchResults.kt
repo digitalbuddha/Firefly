@@ -180,7 +180,6 @@ private fun StatusTab(
                 status = it,
                 account = account,
                 events = submitPresenter.events,
-                showInlineReplies = false,
                 goToBottomSheet = goToBottomSheet,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,

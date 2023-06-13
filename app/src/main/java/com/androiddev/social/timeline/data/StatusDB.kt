@@ -41,7 +41,7 @@ data class StatusDB(
     val bookmarked: Boolean,
     val attachments: List<Attachment>,
     val poll: Poll?,
-//    var uid: Int = 0,
+    val replyIndention: Int = 0,
 )
 
 @Dao
@@ -103,7 +103,7 @@ interface StatusDao {
     )
 }
 
-@Database(entities = [StatusDB::class], version = 18)
+@Database(entities = [StatusDB::class], version = 19)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
