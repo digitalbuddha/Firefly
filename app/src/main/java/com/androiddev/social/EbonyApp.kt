@@ -7,6 +7,7 @@ import android.app.Application
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.ui.ConversationReplyRearrangerMediator
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi
@@ -42,41 +43,36 @@ interface SkeletonComponent  {
     parentScope = SkeletonScope::class,
 )
 @SingleIn(AppScope::class)
-@OptIn(ExperimentalAnvilApi::class)
 interface AppComponent  {
-    @OptIn(ExperimentalAnvilApi::class)
     @ContributesTo(SkeletonScope::class)
     interface AppParentComponent {
         fun appComponent(): AppComponent
     }
 }
 
-@OptIn(ExperimentalAnvilApi::class)
 @ContributesSubcomponent(
     scope = UserScope::class,
     parentScope = AppScope::class
 )
 @SingleIn(UserScope::class)
 interface UserComponent  {
-    @OptIn(ExperimentalAnvilApi::class)
     @ContributesSubcomponent.Factory
     interface Factory {
         fun userComponent(
             @BindsInstance accessTokenRequest: AccessTokenRequest
         ): UserComponent
     }
-    fun oauthRepository():OauthRepository
-    fun api():UserApi
-    fun request():AccessTokenRequest
+
+    fun oauthRepository(): OauthRepository
+    fun api(): UserApi
+    fun request(): AccessTokenRequest
 }
 
 @ContributesTo(AppScope::class)
 interface UserParentComponent {
-    @OptIn(ExperimentalAnvilApi::class)
     fun createUserComponent(): UserComponent.Factory
 }
 
-@OptIn(ExperimentalAnvilApi::class)
 @ContributesSubcomponent(
     scope = AuthRequiredScope::class,
     parentScope = UserScope::class
@@ -86,8 +82,6 @@ interface AuthRequiredComponent {
 
     @ContributesTo(UserScope::class)
     interface ParentComponent {
-        @OptIn(ExperimentalAnvilApi::class)
-
         fun createAuthRequiredComponent(): AuthRequiredComponent
     }
 }
@@ -142,6 +136,7 @@ abstract class AuthRequiredScope private constructor()
 abstract class AuthOptionalScope private constructor()
 abstract class AuthOptionalScreenScope private constructor()
 abstract class AuthRequiredScreenScope private constructor()
+
 @Scope
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SingleIn(val clazz: KClass<*>)

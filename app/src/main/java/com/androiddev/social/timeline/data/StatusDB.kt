@@ -12,6 +12,7 @@ data class StatusDB(
     val isDirectMessage: Boolean,
     val remoteId: String,
     val originalId: String,
+    val dbOrder: String,
     val uri: String,
     val createdAt: Long,
     val content: String,
@@ -46,10 +47,10 @@ data class StatusDB(
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM status WHERE type = :type ORDER BY originalId Desc")
+    @Query("SELECT * FROM status WHERE type = :type ORDER BY dbOrder Desc")
     fun getTimeline(type: String): PagingSource<Int, StatusDB>
 
-    @Query("SELECT * FROM status WHERE type = :type AND accountId = :accountId ORDER BY remoteId Desc")
+    @Query("SELECT * FROM status WHERE type = :type AND accountId = :accountId ORDER BY dbOrder Desc")
     fun getUserTimeline(type: String, accountId: String): PagingSource<Int, StatusDB>
 
 
@@ -103,7 +104,7 @@ interface StatusDao {
     )
 }
 
-@Database(entities = [StatusDB::class], version = 19)
+@Database(entities = [StatusDB::class], version = 20)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao

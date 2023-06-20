@@ -38,6 +38,7 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         type = feedType.type,
         remoteId = status.id,
         originalId = id,
+        dbOrder = status.id,
         uri = status.uri,
         createdAt = timestamp,
         content = status.content,
@@ -179,7 +180,8 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
             )
         },
         attachments = status.attachments,
-        poll = status.poll?.mapPoll()
+        poll = status.poll?.mapPoll(),
+        replyIndention = status.replyIndention,
     )
 }
 

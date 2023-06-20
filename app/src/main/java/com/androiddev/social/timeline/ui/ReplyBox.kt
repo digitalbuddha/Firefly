@@ -241,7 +241,6 @@ private fun SelectorExpanded(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
 ) {
-    val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
 
     // Request focus to force the TextField to lose it

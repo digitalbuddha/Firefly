@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,16 +25,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.data.mapStatus
-import com.androiddev.social.timeline.data.toStatusDb
-import com.androiddev.social.timeline.ui.model.ReplyType
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -44,6 +38,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @Composable
 fun ConversationScreen(
     navController: NavHostController, statusId: String, type: String,
+    goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
 ) {
@@ -108,6 +103,7 @@ fun ConversationScreen(
             statuses = statuses,
             presenter = presenter,
             submitPresenter = submitPresenter,
+            goToConversation = goToConversation,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToProfile = goToProfile,
             goToTag = goToTag
@@ -124,6 +120,7 @@ private fun ScaffoldParent(
     statuses: List<UI>,
     presenter: ConversationPresenter,
     submitPresenter: SubmitPresenter,
+    goToConversation: (UI) -> Unit,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
@@ -145,7 +142,7 @@ private fun ScaffoldParent(
             mutableSharedFlow = submitPresenter.events,
             goToBottomSheet = goToBottomSheet,
             presenter = presenter,
-            goToConversation = goToNowhere,
+            goToConversation = goToConversation,
             state = state,
             goToProfile = goToProfile,
             goToTag = goToTag,
@@ -191,7 +188,3 @@ private fun List<UI>.render(
 
     }
 }
-
-
-val goToNowhere: (UI) -> Unit = { string -> string.toString() }
-

@@ -352,7 +352,13 @@ fun Navigator(
                     ConversationScreen(
                         navController = navController,
                         statusId = statusId,
-                        type = type, goToProfile = { accountId ->
+                        type = type,
+                        goToConversation = { status ->
+                            if (statusId != status.remoteId) {
+                                navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
+                            }
+                        },
+                        goToProfile = { accountId ->
                             navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                         },
                         goToTag = { tag ->

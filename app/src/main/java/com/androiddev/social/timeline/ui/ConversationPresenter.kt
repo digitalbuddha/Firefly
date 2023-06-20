@@ -44,7 +44,7 @@ class RealConversationPresenter @Inject constructor(
     val repository: OauthRepository,
     val statusRepository: StatusRepository,
     val accountRepository: AccountRepository,
-    val replyIndentionLogic: ReplyIndentionLogic,
+    val conversationReplyRearrangerMediator: ConversationReplyRearrangerMediator,
 ) :
     ConversationPresenter() {
 
@@ -61,7 +61,10 @@ class RealConversationPresenter @Inject constructor(
                         statusRepository.get(FeedStoreRequest(event.statusId, event.type))
                     }
                     if (status.isSuccess) currentConvo =
-                        currentConvo.copy(status = status.getOrThrow().mapStatus(event.colorScheme))
+                        currentConvo.copy(
+                            status = status.getOrThrow().mapStatus(event.colorScheme)
+                                .copy(replyIndention = 0)
+                        )
                     val conversations = model.conversations.toMutableMap()
                     conversations.put(event.statusId, currentConvo)
                     model = model.copy(conversations = conversations)
@@ -77,18 +80,17 @@ class RealConversationPresenter @Inject constructor(
                     }
                     if (conversation.isSuccess) {
                         val statuses = conversation.getOrThrow()
-                        val after = statuses.descendants
-                                .map { it.toStatusDb(FeedType.Home).mapStatus(event.colorScheme) }
-                                .map { it.copy(replyType = ReplyType.CHILD, replyIndention = 0) }
-                        val repliesGraph = after.groupBy { it.inReplyTo ?: event.statusId }
-
+                        val after = statuses.descendants.map {
+                            it.toStatusDb(FeedType.Home).copy(replyIndention = 0)
+                        }
                         currentConvo = currentConvo.copy(
                             before = statuses.ancestors
                                 .map { it.toStatusDb(FeedType.Home).mapStatus(event.colorScheme) }
                                 .map { it.copy(replyType = ReplyType.CHILD, replyIndention = 0) },
-                            after = repliesGraph[event.statusId]?.let {
-                                replyIndentionLogic.addIndentionToStatus(it, repliesGraph, 0).toList()
-                            } ?: emptyList(),
+                            after = conversationReplyRearrangerMediator
+                                .rearrangeConversations(after, event.statusId)
+                                .map { it.mapStatus(event.colorScheme) }
+                                .map { it.copy(replyType = ReplyType.CHILD) },
                         )
 
                         val conversations = model.conversations.toMutableMap()
