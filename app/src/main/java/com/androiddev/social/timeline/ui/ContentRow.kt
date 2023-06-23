@@ -112,6 +112,7 @@ fun TimelineCard(
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
 ) {
 
+    val urlHandlerMediator = LocalUserComponent.current.urlHandlerMediator()
     Column(
         modifier
             .padding(
@@ -204,28 +205,21 @@ fun TimelineCard(
                             onClick = {
                                 clicked = !clicked
                                 if (!clicked && showReply) showReply = false
-                                val annotation = text!!.getStringAnnotations(
-                                    tag = "URL", start = it,
-                                    end = it
-                                )
+                                val annotation = text!!
+                                    .getStringAnnotations(
+                                        tag = "URL", start = it,
+                                        end = it
+                                    )
                                     .firstOrNull()
 
-                                if (annotation != null && URLUtil.isValidUrl(annotation.item)) {
-                                    val uri = Uri.parse(annotation.item)
-                                    val fixedUri = URI(
-                                        uri.scheme?.lowercase(), uri.authority,
-                                        uri.path, uri.query, uri.fragment
-                                    )
-                                    uriHandler.openUri(fixedUri.toASCIIString())
-                                    Log.d("Clicked URL", annotation.item)
-                                } else {
-                                    if (annotation?.item?.startsWith("###TAG") == true) goToTag(
-                                        annotation.item.removePrefix("###TAG")
-                                    )
-                                    else if (annotation?.item != null) goToProfile(annotation.item)
-                                    else if (ui.replyCount > 0 || ui.inReplyTo != null)
-                                        goToConversation(ui)
-                                }
+                                urlHandlerMediator.givenUrl(
+                                    ui = ui,
+                                    url = annotation?.item,
+                                    openUri = uriHandler::openUri,
+                                    goToTag = goToTag,
+                                    goToProfile = goToProfile,
+                                    goToConversation = goToConversation,
+                                )
                             },
                             inlineContent = mapping ?: emptyMap()
                         )

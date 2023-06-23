@@ -8,6 +8,7 @@ import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.ui.ConversationReplyRearrangerMediator
+import com.androiddev.social.timeline.ui.UrlHandlerMediator
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi
@@ -36,6 +37,8 @@ interface SkeletonComponent  {
             @BindsInstance fireflyApp: FireflyApp,
         ): SkeletonComponent
     }
+
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
 @ContributesSubcomponent(
@@ -48,6 +51,7 @@ interface AppComponent  {
     interface AppParentComponent {
         fun appComponent(): AppComponent
     }
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
 @ContributesSubcomponent(
@@ -66,6 +70,7 @@ interface UserComponent  {
     fun oauthRepository(): OauthRepository
     fun api(): UserApi
     fun request(): AccessTokenRequest
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
 @ContributesTo(AppScope::class)
