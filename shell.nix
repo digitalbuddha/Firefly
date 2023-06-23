@@ -1,7 +1,7 @@
 let
   pkgs = import
     (
-      fetchGit { url = "/home/hadi/dev/nixpkgs"; rev = "ef2479994272b8749733539e441daf165fc63f51"; }
+      fetchGit { url = "/home/hadi/dev/nixpkgs"; rev = "9f9f5dde5c687f3cb9d67715af7318c1a7cc4103"; }
     )
     {
       config.android_sdk.accept_license = true;
