@@ -215,6 +215,7 @@ fun TimelineCard(
                                 urlHandlerMediator.givenUrl(
                                     ui = ui,
                                     url = annotation?.item,
+                                    isValidUrl = URLUtil::isValidUrl,
                                     openUri = uriHandler::openUri,
                                     goToTag = goToTag,
                                     goToProfile = goToProfile,
@@ -315,9 +316,14 @@ fun TimelineCard(
                 )
             ) {
 
+                ui?.card?.let { card ->
+                    ContentCard(
+                        card = card,
+                    )
+                }
+
                 val current = LocalAuthComponent.current
                 var justBookmarked by remember { mutableStateOf(false) }
-
 
                 ButtonBar(
                     status = ui,
@@ -342,11 +348,6 @@ fun TimelineCard(
                     onShowReplies = {
                         goToConversation(ui!!)
                     },
-                    goToConversation = {
-                        goToConversation(ui!!)
-                    },
-                    goToProfile = goToProfile,
-                    goToTag = goToTag,
                     bookmarked = ui?.bookmarked ?: false || justBookmarked,
                     onBookmark = {
                         justBookmarked = true

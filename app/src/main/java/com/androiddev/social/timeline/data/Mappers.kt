@@ -14,7 +14,9 @@ import android.view.View
 import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.core.net.toUri
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.PollHashUI
 import com.androiddev.social.timeline.ui.model.PollUI
 import com.androiddev.social.timeline.ui.model.UI
@@ -68,6 +70,7 @@ fun Status.toStatusDb(feedType: FeedType = FeedType.Home): StatusDB {
         inReplyTo = status.inReplyToId,
         bookmarked = status.bookmarked ?: false,
         attachments = status.mediaAttachments ?: emptyList(),
+        card = status.card,
         poll = status.poll,
     )
 }
@@ -180,6 +183,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
             )
         },
         attachments = status.attachments,
+        card = status.card?.mapCard(),
         poll = status.poll?.mapPoll(),
         replyIndention = status.replyIndention,
     )
@@ -211,6 +215,11 @@ fun PollHash.mapPollHash(
     )
 )
 
+fun Card.mapCard(): CardUI = CardUI(
+    title = AnnotatedString(title),
+    description = AnnotatedString(description),
+    url = url,
+)
 
 /**
  * Finds links, mentions, and hashtags in a piece of text and makes them clickable, associating

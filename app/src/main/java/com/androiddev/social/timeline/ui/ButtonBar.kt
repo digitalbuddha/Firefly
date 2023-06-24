@@ -54,9 +54,6 @@ fun ButtonBar(
     onFavorite: () -> Unit,
     onReply: () -> Unit,
     onShowReplies: () -> Unit,
-    goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit,
     bookmarked: Boolean,
     onBookmark: () -> Unit
 ) {
@@ -132,6 +129,7 @@ fun ButtonBar(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     onClick = {
+                        onShowReplies()
                     }
                 ) {
                     Image(

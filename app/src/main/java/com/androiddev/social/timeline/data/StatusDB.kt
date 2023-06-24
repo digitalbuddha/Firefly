@@ -41,6 +41,7 @@ data class StatusDB(
     val boostedById: String?,
     val bookmarked: Boolean,
     val attachments: List<Attachment>,
+    val card: Card?,
     val poll: Poll?,
     val replyIndention: Int = 0,
 )
@@ -104,7 +105,7 @@ interface StatusDao {
     )
 }
 
-@Database(entities = [StatusDB::class], version = 20)
+@Database(entities = [StatusDB::class], version = 21)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -160,5 +161,15 @@ class Converters {
     @TypeConverter
     fun fromPoll(poll: Poll?): String? {
         return poll?.let { p -> Json.encodeToString(Poll.serializer(), p) }
+    }
+
+    @TypeConverter
+    fun toCard(value: String?): Card? {
+        return value?.let { c -> Json.decodeFromString(Card.serializer(), c) }
+    }
+
+    @TypeConverter
+    fun fromCard(card: Card?): String? {
+        return card?.let { c -> Json.encodeToString(Card.serializer(), c) }
     }
 }

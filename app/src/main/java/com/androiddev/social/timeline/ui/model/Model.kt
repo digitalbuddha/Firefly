@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
 import com.androiddev.social.theme.PaddingSize2_5
 import com.androiddev.social.timeline.data.Attachment
+import com.androiddev.social.timeline.data.Card
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Mention
@@ -65,6 +66,7 @@ data class UI(
     val originalId: String,
     val bookmarked: Boolean,
     val attachments: List<Attachment>,
+    val card: CardUI?,
     val poll: PollUI?,
     val replyIndention: Int = 0,
 )
@@ -91,6 +93,12 @@ data class PollUI(
 data class PollHashUI(
     val voteContent: AnnotatedString,
     val percentage: AnnotatedString,
+)
+
+data class CardUI(
+    val title: AnnotatedString,
+    val description: AnnotatedString,
+    val url: String,
 )
 
 fun String.parseAsMastodonHtml(): Spanned {
