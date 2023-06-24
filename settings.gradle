@@ -17,4 +17,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Firefly"
 include ':app'
-include ':encrpytion'
+//include ':encrpytion'
