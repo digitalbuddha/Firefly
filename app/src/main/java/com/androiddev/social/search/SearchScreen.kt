@@ -19,6 +19,7 @@ import com.androiddev.social.search.topbar.TopBar
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.ui.BottomSheetContent
 import com.androiddev.social.timeline.ui.BottomSheetContentProvider
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.slack.exercise.search.SearchState
 import com.slack.exercise.search.rememberSearchState
@@ -38,6 +39,7 @@ fun SearchScreen(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val bottomState: ModalBottomSheetState =
         rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
@@ -50,7 +52,8 @@ fun SearchScreen(
         onQueryChange = onQueryChange,
         goToProfile = goToProfile,
         goToTag = goToTag,
-        goToConversation = goToConversation
+        goToConversation = goToConversation,
+        onOpenCard = onOpenCard,
     )
 }
 
@@ -65,6 +68,7 @@ fun SearchView(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     ModalBottomSheetLayout(
         sheetState = bottomSheetContentProvider.bottomState,
@@ -96,7 +100,8 @@ fun SearchView(
                 goToBottomSheet = bottomSheetContentProvider::showContent,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
-                goToConversation = goToConversation
+                goToConversation = goToConversation,
+                onOpenCard = onOpenCard,
             )
         }
     }

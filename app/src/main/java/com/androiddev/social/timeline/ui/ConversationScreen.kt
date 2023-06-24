@@ -1,6 +1,5 @@
 package com.androiddev.social.timeline.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -40,7 +40,8 @@ fun ConversationScreen(
     navController: NavHostController, statusId: String, type: String,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -99,6 +100,7 @@ fun ConversationScreen(
         ScaffoldParent(
             navController = navController,
             pullRefreshState = pullRefreshState,
+            mainConversationStatusId = statusId,
             before = before,
             statuses = statuses,
             presenter = presenter,
@@ -106,7 +108,8 @@ fun ConversationScreen(
             goToConversation = goToConversation,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToProfile = goToProfile,
-            goToTag = goToTag
+            goToTag = goToTag,
+            onOpenCard = onOpenCard,
         )
     }
 }
@@ -116,6 +119,7 @@ fun ConversationScreen(
 private fun ScaffoldParent(
     navController: NavHostController,
     pullRefreshState: PullRefreshState,
+    mainConversationStatusId: String,
     before: List<UI>,
     statuses: List<UI>,
     presenter: ConversationPresenter,
@@ -123,7 +127,8 @@ private fun ScaffoldParent(
     goToConversation: (UI) -> Unit,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     BackBar(navController, "Conversation")
 
@@ -141,11 +146,13 @@ private fun ScaffoldParent(
         statuses.render(
             mutableSharedFlow = submitPresenter.events,
             goToBottomSheet = goToBottomSheet,
+            mainConversationStatusId = mainConversationStatusId,
             presenter = presenter,
             goToConversation = goToConversation,
             state = state,
             goToProfile = goToProfile,
             goToTag = goToTag,
+            onOpenCard = onOpenCard,
         )
 
         CustomViewPullRefreshView(
@@ -158,11 +165,13 @@ private fun ScaffoldParent(
 private fun List<UI>.render(
     mutableSharedFlow: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
+    mainConversationStatusId: String,
     presenter: ConversationPresenter,
     goToConversation: (UI) -> Unit,
     state: LazyListState,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val statuses = this
 
@@ -178,11 +187,13 @@ private fun List<UI>.render(
                 modifier = Modifier,
                 status = it,
                 account = presenter.model.account,
+                mainConversationStatusId = mainConversationStatusId,
                 events = mutableSharedFlow,
                 goToBottomSheet = goToBottomSheet,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
-                goToTag=goToTag
+                goToTag = goToTag,
+                onOpenCard = onOpenCard,
             )
         }
 

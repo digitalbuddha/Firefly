@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -54,7 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -67,7 +64,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.androiddev.social.theme.PaddingSize0_5
@@ -77,11 +73,10 @@ import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
-import com.androiddev.social.theme.PaddingSizeNone
-import com.androiddev.social.theme.ThickLg
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.LinkListener
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.PollHashUI
 import com.androiddev.social.timeline.ui.model.PollUI
 import com.androiddev.social.timeline.ui.model.UI
@@ -91,30 +86,40 @@ import com.google.accompanist.placeholder.shimmer
 import me.saket.swipe.SwipeAction
 import social.androiddev.firefly.R
 import java.lang.Integer.min
-import java.net.URI
-import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineCard(
+    modifier: Modifier = Modifier,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     ui: UI?,
+    mainConversationStatusId: String? = null,
     account: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
     onReplying: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
 
     val urlHandlerMediator = LocalUserComponent.current.urlHandlerMediator()
-    Column(
+
+    val cardModifier = if (
+        mainConversationStatusId != null &&
+        mainConversationStatusId == ui?.remoteId
+    ) {
+        modifier.background(color = colorScheme.tertiaryContainer)
+    } else {
         modifier
+    }
+
+    Column(
+        cardModifier
             .padding(
                 bottom = PaddingSize1,
                 start = PaddingSize1,
@@ -319,6 +324,7 @@ fun TimelineCard(
                 ui?.card?.let { card ->
                     ContentCard(
                         card = card,
+                        onOpenCard = onOpenCard,
                     )
                 }
 

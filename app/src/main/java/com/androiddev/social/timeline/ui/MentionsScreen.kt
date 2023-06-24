@@ -28,6 +28,7 @@ import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -37,7 +38,8 @@ fun MentionsScreen(
     goToConversation: (UI) -> Unit,
     showBackBar: Boolean,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -97,7 +99,8 @@ fun MentionsScreen(
             goToProfile = goToProfile,
             goToTag = goToTag,
             showBackBar = showBackBar,
-            navController = navController
+            navController = navController,
+            onOpenCard = onOpenCard,
         )
     }
 }
@@ -113,6 +116,7 @@ private fun ScaffoldParent(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
     showBackBar: Boolean,
     navController: NavHostController,
 ) {
@@ -138,7 +142,8 @@ private fun ScaffoldParent(
                     goToBottomSheet = goToBottomSheet,
                     goToConversation = goToConversation,
                     goToProfile = goToProfile,
-                    goToTag = goToTag
+                    goToTag = goToTag,
+                    onOpenCard = onOpenCard,
                 )
             }
         }

@@ -43,6 +43,7 @@ import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.search.SearchScreen
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.dataStore
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
@@ -155,6 +156,7 @@ fun Navigator(
                         goToTag = { tag: String ->
                             navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
                         },
+                        onOpenCard = { card -> }
                     )
                 }
             }
@@ -181,8 +183,8 @@ fun Navigator(
                             goToTag = { tag: String ->
                                 navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
                             },
-
-                            )
+                            onOpenCard = { card -> }
+                        )
                     }
                 }
             }
@@ -197,14 +199,15 @@ fun Navigator(
                         goToConversation = { status ->
                             navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                         },
-                        true,
+                        showBackBar = true,
                         goToProfile = { accountId: String ->
                             navController.navigate("profile/${it.arguments?.getString("code")}/${accountId}")
                         },
-
-                        ) { tag: String ->
-                        navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
-                    }
+                        goToTag = { tag: String ->
+                            navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
+                        },
+                        onOpenCard = { card -> },
+                    )
                 }
             }
         }
@@ -223,9 +226,10 @@ fun Navigator(
                     {
                         navController.navigate("followers/${it.arguments?.getString("code")}/$accountId")
                     },
-                    {
+                    goToFollowing = {
                         navController.navigate("following/${it.arguments?.getString("code")}/$accountId")
                     },
+                    onOpenCard = { card -> }
                 )
             }
 
@@ -330,20 +334,19 @@ fun Navigator(
                     goToConversation = { status ->
                         navController.navigate("conversation/${it.arguments?.getString("code")}/${status.remoteId}/${status.type.type}")
                     },
+                    onOpenCard = { card -> }
                 )
             }
 
         }
 
         composable(
-//                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
-            route = "conversation/{code}/{statusId}/{type}",
+            route = "card/{code}/{url}",
         ) {
             val userComponent = getUserComponent(code = it.arguments?.getString("code")!!)
             val statusId = it.arguments?.getString("statusId")!!
             val type = it.arguments?.getString("type")!!
             CompositionLocalProvider(LocalUserComponent provides userComponent) {
-                val userComponent: UserComponent = LocalUserComponent.current
 
                 val component = retain(
                     key = userComponent.request().domain ?: ""
@@ -363,6 +366,8 @@ fun Navigator(
                         },
                         goToTag = { tag ->
                             navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
+                        },
+                        onOpenCard = { card ->
 
                         }
                     )
@@ -393,9 +398,8 @@ fun Navigator(
                         },
                         goToTag = { tag ->
                             navController.navigate("tag/${it.arguments?.getString("code")}/${tag}")
-
-                        }
-
+                        },
+                        onOpenCard = { card -> }
                     )
                 }
             }

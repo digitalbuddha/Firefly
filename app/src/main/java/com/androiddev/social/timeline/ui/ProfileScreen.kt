@@ -72,6 +72,7 @@ import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.ProfilePresenter
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -92,7 +93,8 @@ fun ProfileScreen(
     code: String,
     accountId: String,
     goToFollowers: () -> Unit,
-    goToFollowing: () -> Unit
+    goToFollowing: () -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val homePresenter by remember(key1 = accountId) {
         mutableStateOf(
@@ -160,7 +162,8 @@ fun ProfileScreen(
             homePresenter = homePresenter,
             code = code,
             goToBottomSheet = bottomSheetContentProvider::showContent,
-            scope = scope
+            scope = scope,
+            onOpenCard = onOpenCard,
         )
     }
 }
@@ -177,6 +180,7 @@ private fun ScaffoldParent(
     homePresenter: TimelinePresenter,
     code: String,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
     scope: CoroutineScope
 ) {
     FireflyTheme {
@@ -286,11 +290,13 @@ private fun ScaffoldParent(
                     events = events,
                     code = code,
                     goToBottomSheet = goToBottomSheet,
-                ) {
-                    scope.launch {
-                        scaffoldState.conceal()
-                    }
-                }
+                    changeHeight = {
+                        scope.launch {
+                            scaffoldState.conceal()
+                        }
+                    },
+                    onOpenCard = onOpenCard,
+                )
             },
             // Defaults to BackdropScaffoldDefaults.PeekHeight
             peekHeight = 106.dp,
@@ -316,7 +322,8 @@ private fun posts(
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
-    changeHeight: (Int) -> Unit
+    changeHeight: (Int) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val pagerState = rememberPagerState()
     Column {
@@ -437,6 +444,7 @@ private fun posts(
                     onVote = { statusId, pollId, choices ->
                         events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
                     },
+                    onOpenCard = onOpenCard,
                 )
             }
         }

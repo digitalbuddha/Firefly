@@ -255,17 +255,7 @@ private fun SelectorExpanded(
     Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
-            InputSelector.REPLIES  ->
-                status?.let {
-                    After(
-                        status = it,
-                        account = account,
-                        goToBottomSheet = goToBottomSheet,
-                        goToConversation = goToConversation,
-                        goToProfile = goToProfile,
-                        goToTag = goToTag
-                    )
-                }
+            InputSelector.REPLIES  -> {}
             InputSelector.PICTURE -> PhotoPickerResultComposable(addUri) {
                 onClearSelector()
             }

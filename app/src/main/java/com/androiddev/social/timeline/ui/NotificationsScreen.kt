@@ -42,6 +42,7 @@ import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import social.androiddev.firefly.R
 
@@ -51,7 +52,8 @@ fun NotificationsScreen(
     navController: NavHostController,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -111,6 +113,7 @@ fun NotificationsScreen(
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToConversation = goToConversation,
             goToTag = goToTag,
+            onOpenCard = onOpenCard,
             navController = navController
         )
     }
@@ -128,6 +131,7 @@ private fun ScaffoldParent(
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
     navController: NavHostController,
 ) {
     Box(
@@ -178,7 +182,8 @@ private fun ScaffoldParent(
                         goToBottomSheet = goToBottomSheet,
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,
-                        goToTag = goToTag
+                        goToTag = goToTag,
+                        onOpenCard = onOpenCard,
                     )
                 }
 

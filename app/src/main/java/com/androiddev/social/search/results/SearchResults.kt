@@ -40,6 +40,7 @@ import com.androiddev.social.timeline.ui.LocalAuthComponent
 import com.androiddev.social.timeline.ui.SheetContentState
 import com.androiddev.social.timeline.ui.SubmitPresenter
 import com.androiddev.social.timeline.ui.card
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -60,6 +61,7 @@ fun SearchResults(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val pagerState = rememberPagerState()
 
@@ -124,7 +126,8 @@ fun SearchResults(
                             goToProfile = goToProfile,
                             goToTag = goToTag,
                             goToConversation = goToConversation,
-                            submitPresenter = submitPresenter
+                            submitPresenter = submitPresenter,
+                            onOpenCard = onOpenCard,
                         )
                     } else {
                         Surface(
@@ -140,7 +143,7 @@ fun SearchResults(
 
                 2 -> {
                     if (model.hashtags != null) {
-                        HashTagTab(model.hashtags, goToProfile, submitPresenter)
+                        HashTagTab(model.hashtags, submitPresenter)
                     } else {
                         Surface(
                             color = Color.Transparent,
@@ -166,7 +169,8 @@ private fun StatusTab(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
-    submitPresenter: SubmitPresenter
+    submitPresenter: SubmitPresenter,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     LazyColumn(
         Modifier
@@ -183,7 +187,8 @@ private fun StatusTab(
                 goToBottomSheet = goToBottomSheet,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
-                goToTag = goToTag
+                goToTag = goToTag,
+                onOpenCard = onOpenCard,
             )
         }
     }
@@ -192,7 +197,6 @@ private fun StatusTab(
 @Composable
 private fun HashTagTab(
     results: List<Tag>,
-    goToProfile: (String) -> Unit,
     submitPresenter: SubmitPresenter
 ) {
     LazyColumn(Modifier.fillMaxSize()) {

@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,13 +20,14 @@ import com.androiddev.social.timeline.ui.model.CardUI
 @Composable
 fun ContentCard(
     card: CardUI,
-
+    onOpenCard: (CardUI) -> Unit,
 ) {
     Surface(
-        shadowElevation = TonalSurfaceElevation,
+        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = TonalSurfaceElevation,
         shape = RoundedCornerShape(PaddingSize1),
         onClick = {
-
+            onOpenCard(card)
         }
     ) {
         Column(

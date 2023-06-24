@@ -26,6 +26,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
 
@@ -35,6 +36,7 @@ fun TagScreen(
     navController: NavHostController,
     tag: String,
     goToConversation: (UI) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
     showBackBar: Boolean,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
@@ -107,7 +109,8 @@ fun TagScreen(
             goToTag = goToTag,
             homePresenter = homePresenter,
             submitPresenter = submitPresenter,
-            goToConversation = goToConversation
+            goToConversation = goToConversation,
+            onOpenCard = onOpenCard,
         )
     }
 }
@@ -125,7 +128,8 @@ private fun ScaffoldParent(
     goToTag: (String) -> Unit,
     homePresenter: TimelinePresenter,
     submitPresenter: SubmitPresenter,
-    goToConversation: (UI) -> Unit
+    goToConversation: (UI) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         CustomViewPullRefreshView(
@@ -179,6 +183,7 @@ private fun ScaffoldParent(
                 onVote = { statusId, pollId, choices ->
                     submitPresenter.handle(SubmitPresenter.VotePoll(statusId, pollId, choices))
                 },
+                onOpenCard = onOpenCard,
             )
         }
 

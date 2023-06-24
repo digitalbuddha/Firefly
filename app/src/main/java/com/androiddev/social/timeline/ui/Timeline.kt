@@ -40,6 +40,7 @@ import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
 import dev.marcellogalhardo.retained.compose.retainInActivity
@@ -68,6 +69,7 @@ fun TimelineScreen(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val component =
         retainInActivity(
@@ -145,6 +147,7 @@ fun TimelineScreen(
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
+                onOpenCard = onOpenCard,
             )
         }
     }
@@ -171,6 +174,7 @@ private fun ScaffoldParent(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
     var refresh: Boolean by remember { mutableStateOf(false) }
@@ -309,6 +313,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
 
@@ -328,6 +333,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
 
@@ -347,6 +353,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
 
@@ -366,6 +373,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
                 FeedType.User -> {}
@@ -387,6 +395,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
 
@@ -406,6 +415,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
 
@@ -425,6 +435,7 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
+                        onOpenCard = onOpenCard,
                     )
                 }
             }
@@ -449,6 +460,7 @@ private fun timelineTab(
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     refresh: Boolean,
     doneRefreshing: () -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = tabToLoad, key2 = domain, key3 = tabToLoad.tagName) {
@@ -518,6 +530,7 @@ private fun timelineTab(
                 onVote = { statusId, pollId, choices ->
                     submitEvents.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
                 },
+                onOpenCard = onOpenCard,
             )
         }
         CustomViewPullRefreshView(
@@ -549,6 +562,7 @@ fun TimelineRows(
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     lazyListState: LazyListState,
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
+    onOpenCard: (CardUI) -> Unit,
 ) {
 
 
@@ -558,17 +572,18 @@ fun TimelineRows(
                 items(3) {
                     TimelineCard(
                         goToBottomSheet = goToBottomSheet,
-                        goToProfile,
+                        goToProfile = goToProfile,
                         goToTag = goToTag,
-                        null,
-                        null,
-                        replyToStatus,
-                        boostStatus,
-                        favoriteStatus,
-                        goToConversation,
+                        ui = null,
+                        account = null,
+                        replyToStatus = replyToStatus,
+                        boostStatus = boostStatus,
+                        favoriteStatus = favoriteStatus,
+                        goToConversation = goToConversation,
                         onReplying = onReplying,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
+                        onOpenCard = onOpenCard,
                     )
                 }
             }
@@ -579,17 +594,18 @@ fun TimelineRows(
                     key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
                     TimelineCard(
                         goToBottomSheet = goToBottomSheet,
-                        goToProfile,
+                        goToProfile = goToProfile,
                         goToTag = goToTag,
-                        it,
+                        ui = it,
                         account = account,
-                        replyToStatus,
-                        boostStatus,
-                        favoriteStatus,
-                        goToConversation,
+                        replyToStatus = replyToStatus,
+                        boostStatus = boostStatus,
+                        favoriteStatus = favoriteStatus,
+                        goToConversation = goToConversation,
                         onReplying = onReplying,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
+                        onOpenCard = onOpenCard,
                     )
                 }
             }
