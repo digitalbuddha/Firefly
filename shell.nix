@@ -1,18 +1,10 @@
 let
-  pkgs = import
-    (
-      fetchGit { url = "/home/hadi/dev/nixpkgs"; rev = "9f9f5dde5c687f3cb9d67715af7318c1a7cc4103"; }
-    )
-    {
+  pkgs = import (
+      fetchTarball https://github.com/nixos/nixpkgs/tarball/9f9f5dde5c687f3cb9d67715af7318c1a7cc4103
+    ) {
       config.android_sdk.accept_license = true;
       config.allowUnfree = true;
     };
-  # pkgs = import (
-  #     fetchTarball https://github.com/nixos/nixpkgs/tarball/8ad88f68a17a55e37b87f6be5b40f7e2ef9223d1
-  #   ) {
-  #     config.android_sdk.accept_license = true;
-  #     config.allowUnfree = true;
-  #   };
 
   android = {
     versions = {
@@ -23,9 +15,7 @@ let
         "32.0.0"
         "33.0.2"
       ];
-      ndk = "25.1.8937393";
       cmdLine = "8.0";
-      cmake = "3.10.2";
       emulator = "32.1.12";
     };
 
@@ -45,9 +35,6 @@ let
     systemImageTypes = [ "google_apis_playstore" ];
     abiVersions = android.abis;
     cmdLineToolsVersion = android.versions.cmdLine;
-    cmakeVersions = [ android.versions.cmake ];
-    includeNDK = true;
-    ndkVersions = [ android.versions.ndk ];
     useGoogleAPIs = false;
     extraLicenses = [
       "android-sdk-preview-license"
@@ -83,7 +70,7 @@ let
 in
 with pkgs;
 pkgs.mkShell {
-  name = "dodo-mastodon";
+  name = "firefly-mastodon";
 
   packages = [
     androidEmulator
@@ -114,7 +101,6 @@ pkgs.mkShell {
   shellHook = ''
     mkdir -p ${androidAvdHome}
     # Add cmake to the path.
-    cmake_root="$(echo "$ANDROID_HOME/cmake/${android.versions.cmake}"*/)"
     export PATH="$cmake_root/bin:${jdk}/bin:$PATH"
 
     # Write out local.properties for Android Studio.
