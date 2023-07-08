@@ -13,6 +13,7 @@ import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.data.updateOldStatus
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -170,7 +171,7 @@ class RealSubmitPresenter @Inject constructor(
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
                                 result.getOrThrow().let { newStatus ->
-                                    statusDao.updateStatus(newStatus.toStatusDb(event.feedType))
+                                    statusDao.updateOldStatus(newStatus.toStatusDb(event.feedType))
                                 }
                             }
                         }
@@ -188,7 +189,7 @@ class RealSubmitPresenter @Inject constructor(
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
                                 result.getOrThrow().let { newStatus ->
-                                    statusDao.updateStatus(newStatus.toStatusDb(event.feedType))
+                                    statusDao.updateOldStatus(newStatus.toStatusDb(event.feedType))
                                 }
                             }
                         }
@@ -213,7 +214,7 @@ class RealSubmitPresenter @Inject constructor(
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
                                 result.getOrThrow().let { newStatus ->
-                                    statusDao.updateStatus(newStatus.toStatusDb())
+                                    statusDao.updateOldStatus(newStatus.toStatusDb())
                                 }
                             }
                         }

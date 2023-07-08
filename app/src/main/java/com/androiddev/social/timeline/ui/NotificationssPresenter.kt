@@ -10,6 +10,7 @@ import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.timeline.data.toStatusDb
+import com.androiddev.social.timeline.data.updateOldStatus
 import com.androiddev.social.ui.util.Presenter
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -86,7 +87,7 @@ class RealNotificationsRepository @Inject constructor(
             )
             notification.forEach { notif ->
                 notif.status?.let {status ->
-                    statusDao.updateStatus(status.toStatusDb())
+                    statusDao.updateOldStatus(status.toStatusDb())
                 }
             }
             notification

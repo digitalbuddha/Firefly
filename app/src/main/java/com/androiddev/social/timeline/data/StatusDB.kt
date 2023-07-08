@@ -80,6 +80,79 @@ interface StatusDao {
 
     @Query(
         """UPDATE status
+            SET
+              type= :type,
+              isDirectMessage= :isDirectMessage,
+              uri= :uri,
+              createdAt= :createdAt,
+              content= :content,
+              accountId= :accountId,
+              visibility= :visibility,
+              spoilerText= :spoilerText,
+              avatarUrl= :avatarUrl,
+              imageUrl= :imageUrl,
+              accountAddress= :accountAddress,
+              applicationName= :applicationName,
+              userName= :userName,
+              displayName= :displayName,
+              repliesCount= :repliesCount,
+              favouritesCount= :favouritesCount,
+              reblogsCount= :reblogsCount,
+              emoji= :emoji,
+              accountEmojis= :accountEmojis,
+              boostedEmojis= :boostedEmojis,
+              mentions= :mentions,
+              tags= :tags,
+              boostedBy= :boostedBy,
+              boostedAvatar= :boostedAvatar,
+              favorited= :favorited,
+              boosted= :boosted,
+              inReplyTo= :inReplyTo,
+              boostedById= :boostedById,
+              bookmarked= :bookmarked,
+              attachments= :attachments,
+              card= :card,
+              poll= :poll
+        WHERE  (originalId = :statusId OR remoteId = :statusId)"""
+    )
+    fun updateStatus(
+        statusId: String,
+        type: String,
+        isDirectMessage: Boolean,
+        uri: String,
+        createdAt: Long,
+        content: String,
+        accountId: String?,
+        visibility: String,
+        spoilerText: String,
+        avatarUrl: String,
+        imageUrl: String?,
+        accountAddress: String,
+        applicationName: String,
+        userName: String,
+        displayName: String,
+        repliesCount: Int?,
+        favouritesCount: Int?,
+        reblogsCount: Int?,
+        emoji: List<Emoji>,
+        accountEmojis: List<Emoji>,
+        boostedEmojis: List<Emoji>,
+        mentions: List<Mention>,
+        tags: List<Tag>,
+        boostedBy: String?,
+        boostedAvatar: String?,
+        favorited: Boolean,
+        boosted: Boolean,
+        inReplyTo: String?,
+        boostedById: String?,
+        bookmarked: Boolean,
+        attachments: List<Attachment>,
+        card: Card?,
+        poll: Poll?,
+    )
+
+    @Query(
+        """UPDATE status
              SET poll = :poll
            WHERE  (originalId = :statusId OR remoteId = :statusId)
            """
@@ -89,19 +162,57 @@ interface StatusDao {
         poll: Poll,
     )
 
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateStatus(statusDB: StatusDB)
-
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
 
     @Query(
         """DELETE FROM status
            WHERE  (originalId = :statusId OR remoteId = :statusId)
-           """
+        """
     )
-    fun delete(
-        statusId: String,
+    fun delete(statusId: String)
+}
+
+/**
+ * There are some columns in the status table that we don't want to be sync with the server side,
+ * such as [StatusDB.replyIndention], or [StatusDB.dbOrder], which are calculated in the client.
+ * Therefore, we have to explicitly mention what columns we want to be updated.
+ */
+fun StatusDao.updateOldStatus(newStatus: StatusDB) = with(newStatus) {
+    updateStatus(
+        statusId = remoteId,
+        type = type,
+        isDirectMessage = isDirectMessage,
+        uri = uri,
+        createdAt = createdAt,
+        content = content,
+        accountId = accountId,
+        visibility = visibility,
+        spoilerText = spoilerText,
+        avatarUrl = avatarUrl,
+        imageUrl = imageUrl,
+        accountAddress = accountAddress,
+        applicationName = applicationName,
+        userName = userName,
+        displayName = displayName,
+        repliesCount = repliesCount,
+        favouritesCount = favouritesCount,
+        reblogsCount = reblogsCount,
+        emoji = emoji,
+        accountEmojis = accountEmojis,
+        boostedEmojis = boostedEmojis,
+        mentions = mentions,
+        tags = tags,
+        boostedBy = boostedBy,
+        boostedAvatar = boostedAvatar,
+        favorited = favorited,
+        boosted = boosted,
+        inReplyTo = inReplyTo,
+        boostedById = boostedById,
+        bookmarked = bookmarked,
+        attachments = attachments,
+        card = card,
+        poll = poll,
     )
 }
 
