@@ -55,7 +55,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -67,12 +66,10 @@ import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize2
-import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.ProfilePresenter
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -83,6 +80,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
+import java.net.URI
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -94,7 +92,6 @@ fun ProfileScreen(
     accountId: String,
     goToFollowers: () -> Unit,
     goToFollowing: () -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val homePresenter by remember(key1 = accountId) {
         mutableStateOf(
@@ -118,6 +115,11 @@ fun ProfileScreen(
     LaunchedEffect(key1 = { accountId }) {
         presenter.handle(ProfilePresenter.Load(accountId))
     }
+    val uriPresenter = remember { component.urlPresenter().get() }
+    LaunchedEffect(key1 = accountId) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
 
     val bottomState: ModalBottomSheetState =
         rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
@@ -160,10 +162,10 @@ fun ProfileScreen(
             goToFollowers = goToFollowers,
             goToFollowing = goToFollowing,
             homePresenter = homePresenter,
+            uriPresenter = uriPresenter,
             code = code,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             scope = scope,
-            onOpenCard = onOpenCard,
         )
     }
 }
@@ -178,14 +180,12 @@ private fun ScaffoldParent(
     goToFollowers: () -> Unit,
     goToFollowing: () -> Unit,
     homePresenter: TimelinePresenter,
+    uriPresenter: UriPresenter,
     code: String,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
     scope: CoroutineScope
 ) {
     FireflyTheme {
-        var clicked by remember { mutableStateOf(false) }
-
         val scaffoldState = rememberBackdropScaffoldState(BackdropValue.Concealed)
         BackdropScaffold(
             scaffoldState = scaffoldState,
@@ -295,7 +295,9 @@ private fun ScaffoldParent(
                             scaffoldState.conceal()
                         }
                     },
-                    onOpenCard = onOpenCard,
+                    onOpenURI = { uri, type ->
+                        uriPresenter.handle(UriPresenter.Open(uri, type))
+                    },
                 )
             },
             // Defaults to BackdropScaffoldDefaults.PeekHeight
@@ -323,7 +325,7 @@ private fun posts(
     code: String,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     changeHeight: (Int) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val pagerState = rememberPagerState()
     Column {
@@ -444,7 +446,7 @@ private fun posts(
                     onVote = { statusId, pollId, choices ->
                         events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
                     },
-                    onOpenCard = onOpenCard,
+                    onOpenURI = onOpenURI,
                 )
             }
         }

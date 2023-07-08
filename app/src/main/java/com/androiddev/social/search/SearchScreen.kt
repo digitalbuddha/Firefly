@@ -19,7 +19,7 @@ import com.androiddev.social.search.topbar.TopBar
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.ui.BottomSheetContent
 import com.androiddev.social.timeline.ui.BottomSheetContentProvider
-import com.androiddev.social.timeline.ui.model.CardUI
+import com.androiddev.social.timeline.ui.UriPresenter
 import com.androiddev.social.timeline.ui.model.UI
 import com.slack.exercise.search.SearchState
 import com.slack.exercise.search.rememberSearchState
@@ -35,11 +35,11 @@ import com.slack.exercise.search.rememberSearchState
 fun SearchScreen(
     model: SearchModel,
     navController: NavController,
+    uriPresenter: UriPresenter,
     onQueryChange: (String) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val bottomState: ModalBottomSheetState =
         rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
@@ -48,12 +48,12 @@ fun SearchScreen(
     SearchView(
         state = model,
         navController = navController,
+        uriPresenter = uriPresenter,
         bottomSheetContentProvider = bottomSheetContentProvider,
         onQueryChange = onQueryChange,
         goToProfile = goToProfile,
         goToTag = goToTag,
         goToConversation = goToConversation,
-        onOpenCard = onOpenCard,
     )
 }
 
@@ -63,12 +63,12 @@ fun SearchScreen(
 fun SearchView(
     state: SearchModel,
     navController: NavController,
+    uriPresenter: UriPresenter,
     bottomSheetContentProvider: BottomSheetContentProvider,
     onQueryChange: (String) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     ModalBottomSheetLayout(
         sheetState = bottomSheetContentProvider.bottomState,
@@ -101,7 +101,9 @@ fun SearchView(
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = goToConversation,
-                onOpenCard = onOpenCard,
+                onOpenURI = { uri, type ->
+                    uriPresenter.handle(UriPresenter.Open(uri, type))
+                },
             )
         }
     }

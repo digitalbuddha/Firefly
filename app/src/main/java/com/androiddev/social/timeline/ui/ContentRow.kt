@@ -57,7 +57,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
@@ -75,8 +74,8 @@ import com.androiddev.social.theme.PaddingSize6
 import com.androiddev.social.theme.PaddingSize7
 import com.androiddev.social.theme.ThickSm
 import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.LinkListener
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.PollHashUI
 import com.androiddev.social.timeline.ui.model.PollUI
 import com.androiddev.social.timeline.ui.model.UI
@@ -86,6 +85,7 @@ import com.google.accompanist.placeholder.shimmer
 import me.saket.swipe.SwipeAction
 import social.androiddev.firefly.R
 import java.lang.Integer.min
+import java.net.URI
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -104,7 +104,7 @@ fun TimelineCard(
     onReplying: (Boolean) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit = { a, b -> },
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
 
     val urlHandlerMediator = LocalUserComponent.current.urlHandlerMediator()
@@ -184,7 +184,6 @@ fun TimelineCard(
                         if (clicked) onReplying(false)
                     }
 
-                    val uriHandler = LocalUriHandler.current
                     Box(
                         modifier = Modifier
                             .placeholder(
@@ -217,11 +216,11 @@ fun TimelineCard(
                                     )
                                     .firstOrNull()
 
-                                urlHandlerMediator.givenUrl(
+                                urlHandlerMediator.givenUri(
                                     ui = ui,
-                                    url = annotation?.item,
+                                    uri = annotation?.item,
                                     isValidUrl = URLUtil::isValidUrl,
-                                    openUri = uriHandler::openUri,
+                                    onOpenURI = onOpenURI,
                                     goToTag = goToTag,
                                     goToProfile = goToProfile,
                                     goToConversation = goToConversation,
@@ -324,7 +323,8 @@ fun TimelineCard(
                 ui?.card?.let { card ->
                     ContentCard(
                         card = card,
-                        onOpenCard = onOpenCard,
+                        feedType = ui.type,
+                        onOpenURI = onOpenURI,
                     )
                 }
 

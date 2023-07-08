@@ -35,12 +35,12 @@ import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Tag
 import com.androiddev.social.timeline.ui.LocalAuthComponent
 import com.androiddev.social.timeline.ui.SheetContentState
 import com.androiddev.social.timeline.ui.SubmitPresenter
 import com.androiddev.social.timeline.ui.card
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -52,6 +52,7 @@ import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import kotlinx.coroutines.launch
+import java.net.URI
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -61,7 +62,7 @@ fun SearchResults(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val pagerState = rememberPagerState()
 
@@ -127,7 +128,7 @@ fun SearchResults(
                             goToTag = goToTag,
                             goToConversation = goToConversation,
                             submitPresenter = submitPresenter,
-                            onOpenCard = onOpenCard,
+                            onOpenURI = onOpenURI,
                         )
                     } else {
                         Surface(
@@ -170,7 +171,7 @@ private fun StatusTab(
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
     submitPresenter: SubmitPresenter,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     LazyColumn(
         Modifier
@@ -188,7 +189,7 @@ private fun StatusTab(
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
-                onOpenCard = onOpenCard,
+                onOpenURI = onOpenURI,
             )
         }
     }

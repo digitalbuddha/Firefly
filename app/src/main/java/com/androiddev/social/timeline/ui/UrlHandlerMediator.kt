@@ -3,17 +3,18 @@ package com.androiddev.social.timeline.ui
 import android.net.Uri
 import android.util.Log
 import com.androiddev.social.SkeletonScope
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import com.squareup.anvil.annotations.ContributesBinding
 import java.net.URI
 import javax.inject.Inject
 
 interface UrlHandlerMediator {
-    fun givenUrl(
+    fun givenUri(
         ui: UI,
-        url: String?,
+        uri: String?,
         isValidUrl: (String) -> Boolean,
-        openUri: (String) -> Unit,
+        onOpenURI: (URI, FeedType) -> Unit,
         goToTag: (String) -> Unit,
         goToProfile: (String) -> Unit,
         goToConversation: (UI) -> Unit,
@@ -21,32 +22,33 @@ interface UrlHandlerMediator {
 }
 
 @ContributesBinding(SkeletonScope::class, boundType = UrlHandlerMediator::class)
-class RealUrlHandlerMediator @Inject constructor() : UrlHandlerMediator{
+class RealUrlHandlerMediator @Inject constructor() : UrlHandlerMediator {
 
-    override fun givenUrl(
+    override fun givenUri(
         ui: UI,
-        url: String?,
+        uri: String?,
         isValidUrl: (String) -> Boolean,
-        openUri: (String) -> Unit,
+        onOpenURI: (URI, FeedType) -> Unit,
         goToTag: (String) -> Unit,
         goToProfile: (String) -> Unit,
         goToConversation: (UI) -> Unit,
     ) {
         when {
-            url != null && isValidUrl(url) -> {
-                val uri = Uri.parse(url)
+            uri != null && isValidUrl(uri) -> {
+                val parsedUri = Uri.parse(uri)
                 val fixedUri = URI(
-                    uri.scheme?.lowercase(), uri.authority,
-                    uri.path, uri.query, uri.fragment
+                    parsedUri.scheme?.lowercase(), parsedUri.authority,
+                    parsedUri.path, parsedUri.query, parsedUri.fragment
                 )
-                openUri(fixedUri.toASCIIString())
-                Log.d("Clicked URL", url)
+                onOpenURI(fixedUri, ui.type)
+                Log.d("Clicked URI", uri)
             }
 
-            url?.startsWith("###TAG") == true ->{
-                goToTag(url.removePrefix("###TAG"))
+            uri?.startsWith("###TAG") == true -> {
+                goToTag(uri.removePrefix("###TAG"))
             }
-            url != null -> goToProfile(url)
+
+            uri != null -> goToProfile(uri)
             ui.replyCount > 0 || ui.inReplyTo != null -> {
                 goToConversation(ui)
             }

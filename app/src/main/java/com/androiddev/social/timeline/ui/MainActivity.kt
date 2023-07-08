@@ -57,6 +57,7 @@ interface AuthRequiredInjector {
     fun submitPresenter(): SubmitPresenter
     fun followerPresenter(): FollowerPresenter
     fun conversationPresenter(): Provider<ConversationPresenter>
+    fun urlPresenter(): Provider<UriPresenter>
 }
 
 @OptIn(ExperimentalMaterialNavigationApi::class)

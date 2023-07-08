@@ -44,8 +44,9 @@ abstract class SubmitPresenter :
     ) : SubmitEvent
 
 
-    data class BoostMessage(val statusId: String, val feedType: FeedType, val boosted: Boolean) :
-        SubmitEvent
+    data class BoostMessage(
+        val statusId: String, val feedType: FeedType, val boosted: Boolean,
+    ) : SubmitEvent
 
     data class Follow(val accountId: String, val unfollow: Boolean = false) :
         SubmitEvent
@@ -53,8 +54,9 @@ abstract class SubmitPresenter :
     data class FollowTag(val tagName: String, val unfollow: Boolean = false) :
         SubmitEvent
 
-    data class FavoriteMessage(val statusId: String, val feedType: FeedType, val favourited: Boolean) :
-        SubmitEvent
+    data class FavoriteMessage(
+        val statusId: String, val feedType: FeedType, val favourited: Boolean,
+    ) : SubmitEvent
 
     data class BookmarkMessage(val statusId: String, val feedType: FeedType) :
         SubmitEvent

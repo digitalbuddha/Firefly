@@ -27,7 +27,9 @@ abstract class ConversationPresenter :
     ) {
     sealed interface ConversationEvent
 
-    data class Load(val statusId: String, val type: FeedType, val colorScheme: ColorScheme) : ConversationEvent
+    data class Load(
+        val statusId: String, val type: FeedType, val colorScheme: ColorScheme,
+    ) : ConversationEvent
 
     data class ConversationModel(
         val conversations: Map<String, ConvoUI> = emptyMap(),
@@ -49,29 +51,33 @@ class RealConversationPresenter @Inject constructor(
     ConversationPresenter() {
 
 
-    override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope)= withContext(Dispatchers.IO) {
-        when (event) {
-            is Load -> {
-                model = model.copy(account = accountRepository.getCurrent())
-                val token = repository.getAuthHeader()
-                var currentConvo = model.conversations.getOrDefault(event.statusId, ConvoUI())
+    override suspend fun eventHandler(event: ConversationEvent, coroutineScope: CoroutineScope) =
+        withContext(Dispatchers.IO) {
+            when (event) {
+                is Load -> {
+                    model = model.copy(account = accountRepository.getCurrent())
+                    val token = repository.getAuthHeader()
+                    var currentConvo = model.conversations.getOrDefault(event.statusId, ConvoUI())
 
-                withContext(Dispatchers.IO) {
                     val status = kotlin.runCatching {
-                        statusRepository.get(FeedStoreRequest(event.statusId, event.type))
-                    }
-                    if (status.isSuccess) currentConvo =
-                        currentConvo.copy(
-                            status = status.getOrThrow().mapStatus(event.colorScheme)
-                                .copy(replyIndention = 0)
+                        statusRepository.get(
+                            FeedStoreRequest(
+                                event.statusId,
+                                event.type,
+                            )
                         )
+                    }
+                    if (status.isSuccess) {
+                        currentConvo =
+                            currentConvo.copy(
+                                status = status.getOrThrow().mapStatus(event.colorScheme)
+                                    .copy(replyIndention = 0)
+                            )
+                    }
                     val conversations = model.conversations.toMutableMap()
                     conversations.put(event.statusId, currentConvo)
                     model = model.copy(conversations = conversations)
-                }
 
-
-                withContext(Dispatchers.IO) {
                     val conversation = kotlin.runCatching {
                         api.conversation(
                             authHeader = token,
@@ -100,7 +106,6 @@ class RealConversationPresenter @Inject constructor(
                 }
             }
         }
-    }
 
 }
 

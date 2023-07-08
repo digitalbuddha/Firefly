@@ -58,6 +58,8 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("q") searchTerm: String,
         @Query("limit") limit: String = "40",
+        @Query("resolve") resolve: Boolean = false,
+        @Query("following") following: Boolean = false,
     ): SearchResult
 
     @GET("/api/v1/notifications")

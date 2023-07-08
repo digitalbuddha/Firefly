@@ -118,7 +118,6 @@ dependencies {
     androidTestImplementation(libs.espresso)
     androidTestImplementation(libs.junit.ext)
 
-    def  room_version = "2.5.0"
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)

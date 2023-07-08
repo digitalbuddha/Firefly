@@ -1,13 +1,10 @@
 package com.androiddev.social
 
 
-
-
 import android.app.Application
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
-import com.androiddev.social.timeline.ui.ConversationReplyRearrangerMediator
 import com.androiddev.social.timeline.ui.UrlHandlerMediator
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
@@ -20,8 +17,10 @@ import kotlin.reflect.KClass
 
 class FireflyApp : Application() {
     val component by lazy {
-        (DaggerSkeletonComponent.factory().create(this as Application, this) as AppComponent.AppParentComponent).appComponent()
+        (DaggerSkeletonComponent.factory()
+            .create(this as Application, this) as AppComponent.AppParentComponent).appComponent()
     }
+
     override fun onCreate() {
         super.onCreate()
     }
@@ -29,7 +28,7 @@ class FireflyApp : Application() {
 
 @MergeComponent(SkeletonScope::class)
 @SingleIn(SkeletonScope::class)
-interface SkeletonComponent  {
+interface SkeletonComponent {
     @Component.Factory
     interface Factory {
         fun create(
@@ -46,11 +45,12 @@ interface SkeletonComponent  {
     parentScope = SkeletonScope::class,
 )
 @SingleIn(AppScope::class)
-interface AppComponent  {
+interface AppComponent {
     @ContributesTo(SkeletonScope::class)
     interface AppParentComponent {
         fun appComponent(): AppComponent
     }
+
     fun urlHandlerMediator(): UrlHandlerMediator
 }
 
@@ -59,7 +59,7 @@ interface AppComponent  {
     parentScope = AppScope::class
 )
 @SingleIn(UserScope::class)
-interface UserComponent  {
+interface UserComponent {
     @ContributesSubcomponent.Factory
     interface Factory {
         fun userComponent(

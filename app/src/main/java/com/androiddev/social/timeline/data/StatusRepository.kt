@@ -12,6 +12,7 @@ import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.get
+import java.net.URLDecoder
 import javax.inject.Inject
 
 interface StatusRepository {
@@ -25,6 +26,7 @@ class RealStatusRepository @Inject constructor(
     val api: UserApi,
     val oauthRepository: OauthRepository,
 ) : StatusRepository {
+
     private val fetcher = Fetcher.of { status: FeedStoreRequest ->
         api.getStatus(oauthRepository.getAuthHeader(), status.remoteId)
     }
@@ -49,4 +51,7 @@ class RealStatusRepository @Inject constructor(
     }
 }
 
-data class FeedStoreRequest(val remoteId: String, val feedType: FeedType = FeedType.Home)
+data class FeedStoreRequest(
+    val remoteId: String,
+    val feedType: FeedType = FeedType.Home,
+)

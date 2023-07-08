@@ -21,9 +21,9 @@ interface UserManagerProvider {
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
 class RealUserManager @Inject constructor(val app: FireflyApp) : UserManager {
-    val cache = CacheBuilder<String, UserComponent>()
+    private val cache = CacheBuilder<String, UserComponent>()
         .build()
-    val atomicReference = AtomicReference<UserComponent>()
+    private val atomicReference = AtomicReference<UserComponent>()
 
 
     override fun userComponentFor(accessTokenRequest: AccessTokenRequest): UserComponent {

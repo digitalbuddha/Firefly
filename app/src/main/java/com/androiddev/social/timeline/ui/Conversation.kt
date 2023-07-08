@@ -9,9 +9,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.androiddev.social.timeline.data.Account
-import com.androiddev.social.timeline.ui.model.CardUI
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableSharedFlow
+import java.net.URI
 
 @Composable
 fun card(
@@ -24,7 +25,7 @@ fun card(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
 
     var eagerStatus by remember { mutableStateOf(status) }
@@ -76,7 +77,7 @@ fun card(
                 onVote = { statusId, pollId, choices ->
                     events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
                 },
-                onOpenCard = onOpenCard,
+                onOpenURI = onOpenURI,
             )
         }
     }

@@ -14,20 +14,23 @@ import androidx.compose.ui.unit.sp
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.TonalSurfaceElevation
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.ui.model.CardUI
+import java.net.URI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentCard(
     card: CardUI,
-    onOpenCard: (CardUI) -> Unit,
+    feedType: FeedType,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         tonalElevation = TonalSurfaceElevation,
         shape = RoundedCornerShape(PaddingSize1),
         onClick = {
-            onOpenCard(card)
+            onOpenURI(URI(card.url), feedType)
         }
     ) {
         Column(

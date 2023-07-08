@@ -39,13 +39,17 @@ class UserModule {
 
     @Provides
     @SingleIn(UserScope::class)
-    fun provideDB(applicationContext: Application, accessTokenRequest: AccessTokenRequest): AppDatabase =
+    fun provideDB(
+        applicationContext: Application,
+        accessTokenRequest: AccessTokenRequest
+    ): AppDatabase =
         Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, accessTokenRequest.domain
         )
             .fallbackToDestructiveMigration()
             .build()
+
     @Provides
     @SingleIn(UserScope::class)
     fun provideAccountStore() = dataStore("account", LoggedInAccountsSerializer)

@@ -42,7 +42,6 @@ import com.androiddev.social.timeline.data.Notification
 import com.androiddev.social.timeline.data.Type
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import social.androiddev.firefly.R
 
@@ -50,10 +49,10 @@ import social.androiddev.firefly.R
 @Composable
 fun NotificationsScreen(
     navController: NavHostController,
+    code: String,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
@@ -72,6 +71,12 @@ fun NotificationsScreen(
     LaunchedEffect(key1 = userComponent.request()) {
         submitPresenter.start()
     }
+    val uriPresenter = remember { component.urlPresenter().get() }
+    LaunchedEffect(key1 = userComponent.request()) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
+
     val pullRefreshState = rememberPullRefreshState(false, {
         notificationPresenter.handle(NotificationPresenter.Load)
     })
@@ -110,10 +115,10 @@ fun NotificationsScreen(
             goToProfile = goToProfile,
             notificationPresenter = notificationPresenter,
             submitPresenter = submitPresenter,
+            uriPresenter = uriPresenter,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToConversation = goToConversation,
             goToTag = goToTag,
-            onOpenCard = onOpenCard,
             navController = navController
         )
     }
@@ -128,10 +133,10 @@ private fun ScaffoldParent(
     goToProfile: (String) -> Unit,
     notificationPresenter: NotificationPresenter,
     submitPresenter: SubmitPresenter,
+    uriPresenter: UriPresenter,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
     navController: NavHostController,
 ) {
     Box(
@@ -183,7 +188,9 @@ private fun ScaffoldParent(
                         goToConversation = goToConversation,
                         goToProfile = goToProfile,
                         goToTag = goToTag,
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 

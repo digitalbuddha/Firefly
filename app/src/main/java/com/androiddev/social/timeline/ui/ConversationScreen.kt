@@ -30,25 +30,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.flow.MutableSharedFlow
+import java.net.URI
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationScreen(
     navController: NavHostController, statusId: String, type: String,
+    code: String,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
     val submitPresenter = component.submitPresenter()
-    val provider = component.conversationPresenter().get()
-    val presenter by remember { mutableStateOf(provider) }
+    val presenter by remember { mutableStateOf(component.conversationPresenter().get()) }
 
     LaunchedEffect(key1 = userComponent.request()) {
         presenter.start()
@@ -58,8 +57,18 @@ fun ConversationScreen(
     }
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = statusId, type) {
-        presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type), colorScheme))
+        presenter.handle(
+            ConversationPresenter.Load(
+                statusId, FeedType.valueOf(type), colorScheme,
+            )
+        )
     }
+    val uriPresenter = remember { component.urlPresenter().get() }
+    LaunchedEffect(key1 = statusId, type) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
+
     val conversation = presenter.model.conversations.get(statusId)
     val after = conversation?.after ?: emptyList()
     val before = conversation?.before ?: emptyList()
@@ -68,7 +77,9 @@ fun ConversationScreen(
     val statuses = before + status + after
 
     val pullRefreshState = rememberPullRefreshState(false, {
-        presenter.handle(ConversationPresenter.Load(statusId, FeedType.valueOf(type), colorScheme))
+        presenter.handle(
+            ConversationPresenter.Load(statusId, FeedType.valueOf(type), colorScheme)
+        )
     })
     val bottomState: ModalBottomSheetState =
         rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
@@ -89,10 +100,14 @@ fun ConversationScreen(
                 goToTag = goToTag,
                 goToConversation = {},
                 onMuteAccount = {
-                    submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                    submitPresenter.handle(
+                        SubmitPresenter.MuteAccount(it, true)
+                    )
                 },
                 onBlockAccount = {
-                    submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
+                    submitPresenter.handle(
+                        SubmitPresenter.BlockAccount(it, true)
+                    )
                 },
             )
         },
@@ -105,11 +120,11 @@ fun ConversationScreen(
             statuses = statuses,
             presenter = presenter,
             submitPresenter = submitPresenter,
+            uriPresenter = uriPresenter,
             goToConversation = goToConversation,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToProfile = goToProfile,
             goToTag = goToTag,
-            onOpenCard = onOpenCard,
         )
     }
 }
@@ -124,11 +139,11 @@ private fun ScaffoldParent(
     statuses: List<UI>,
     presenter: ConversationPresenter,
     submitPresenter: SubmitPresenter,
+    uriPresenter: UriPresenter,
     goToConversation: (UI) -> Unit,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     BackBar(navController, "Conversation")
 
@@ -152,7 +167,9 @@ private fun ScaffoldParent(
             state = state,
             goToProfile = goToProfile,
             goToTag = goToTag,
-            onOpenCard = onOpenCard,
+            onOpenURI = { uri, type ->
+                uriPresenter.handle(UriPresenter.Open(uri, type))
+            },
         )
 
         CustomViewPullRefreshView(
@@ -171,7 +188,7 @@ private fun List<UI>.render(
     state: LazyListState,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val statuses = this
 
@@ -193,7 +210,7 @@ private fun List<UI>.render(
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
-                onOpenCard = onOpenCard,
+                onOpenURI = onOpenURI,
             )
         }
 

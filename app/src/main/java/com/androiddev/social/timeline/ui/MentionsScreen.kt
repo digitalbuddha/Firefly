@@ -28,24 +28,24 @@ import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.mapStatus
 import com.androiddev.social.timeline.data.toStatusDb
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MentionsScreen(
     navController: NavHostController,
+    code: String,
     goToConversation: (UI) -> Unit,
     showBackBar: Boolean,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val component = LocalAuthComponent.current
     val userComponent = LocalUserComponent.current
 
     val mentionsPresenter = component.mentionsPresenter()
     val submitPresenter = component.submitPresenter()
+    val uriPresenter = remember { component.urlPresenter().get() }
     LaunchedEffect(key1 = userComponent.request()) {
         mentionsPresenter.start()
     }
@@ -58,6 +58,10 @@ fun MentionsScreen(
     LaunchedEffect(key1 = userComponent.request()) {
         submitPresenter.start()
     }
+    LaunchedEffect(key1 = userComponent.request()) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
 
     val pullRefreshState = rememberPullRefreshState(false, {
         component.mentionsPresenter().handle(MentionsPresenter.Load)
@@ -94,13 +98,14 @@ fun MentionsScreen(
             statuses = statuses,
             mentionsPresenter = mentionsPresenter,
             submitPresenter = submitPresenter,
+            uriPresenter = uriPresenter,
             goToBottomSheet = bottomSheetContentProvider::showContent,
             goToConversation = goToConversation,
             goToProfile = goToProfile,
             goToTag = goToTag,
             showBackBar = showBackBar,
             navController = navController,
-            onOpenCard = onOpenCard,
+
         )
     }
 }
@@ -112,11 +117,11 @@ private fun ScaffoldParent(
     statuses: List<UI>,
     mentionsPresenter: MentionsPresenter,
     submitPresenter: SubmitPresenter,
+    uriPresenter: UriPresenter,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
     showBackBar: Boolean,
     navController: NavHostController,
 ) {
@@ -143,7 +148,9 @@ private fun ScaffoldParent(
                     goToConversation = goToConversation,
                     goToProfile = goToProfile,
                     goToTag = goToTag,
-                    onOpenCard = onOpenCard,
+                    onOpenURI = { uri, type ->
+                        uriPresenter.handle(UriPresenter.Open(uri, type))
+                    },
                 )
             }
         }

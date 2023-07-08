@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -40,7 +41,6 @@ import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.Search
 import dev.marcellogalhardo.retained.compose.retainInActivity
@@ -48,6 +48,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
+import java.net.URI
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
 val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
@@ -58,6 +59,7 @@ val LocalImageLoader = compositionLocalOf<ImageLoader> { error("No component fou
 )
 @Composable
 fun TimelineScreen(
+    navController: NavController,
     accessTokenRequest: AccessTokenRequest,
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
@@ -69,7 +71,6 @@ fun TimelineScreen(
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     val component =
         retainInActivity(
@@ -80,6 +81,7 @@ fun TimelineScreen(
         val homePresenter = component.homePresenter()
         val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
+        val uriPresenter = remember { component.urlPresenter().get() }
         val scope = rememberCoroutineScope()
         LaunchedEffect(key1 = accessTokenRequest) {
             homePresenter.start(scope)
@@ -90,6 +92,10 @@ fun TimelineScreen(
         LaunchedEffect(key1 = accessTokenRequest) {
             submitPresenter.start()
         }
+        LaunchedEffect(key1 = accessTokenRequest) {
+            uriPresenter.start()
+        }
+        OpenHandledUri(uriPresenter, navController, accessTokenRequest.code)
 
         val bottomState: ModalBottomSheetState =
             rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
@@ -144,10 +150,10 @@ fun TimelineScreen(
                 homePresenter = homePresenter,
                 bottomSheetContentProvider = bottomSheetContentProvider,
                 submitPresenter = submitPresenter,
+                uriPresenter = uriPresenter,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
                 goToTag = goToTag,
-                onOpenCard = onOpenCard,
             )
         }
     }
@@ -171,10 +177,10 @@ private fun ScaffoldParent(
     homePresenter: TimelinePresenter,
     bottomSheetContentProvider: BottomSheetContentProvider,
     submitPresenter: SubmitPresenter,
+    uriPresenter: UriPresenter,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
 ) {
     var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
     var refresh: Boolean by remember { mutableStateOf(false) }
@@ -313,7 +319,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 
@@ -333,7 +341,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 
@@ -353,7 +363,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 
@@ -373,7 +385,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
                 FeedType.User -> {}
@@ -395,7 +409,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 
@@ -415,7 +431,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
 
@@ -435,7 +453,9 @@ private fun ScaffoldParent(
                         onProfileClick = onProfileClick,
                         refresh = refresh,
                         doneRefreshing = { refresh = false },
-                        onOpenCard = onOpenCard,
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
                     )
                 }
             }
@@ -460,7 +480,7 @@ private fun timelineTab(
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     refresh: Boolean,
     doneRefreshing: () -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = tabToLoad, key2 = domain, key3 = tabToLoad.tagName) {
@@ -530,7 +550,7 @@ private fun timelineTab(
                 onVote = { statusId, pollId, choices ->
                     submitEvents.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
                 },
-                onOpenCard = onOpenCard,
+                onOpenURI = onOpenURI,
             )
         }
         CustomViewPullRefreshView(
@@ -562,7 +582,7 @@ fun TimelineRows(
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     lazyListState: LazyListState,
     onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
 
 
@@ -583,7 +603,7 @@ fun TimelineRows(
                         onReplying = onReplying,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
-                        onOpenCard = onOpenCard,
+                        onOpenURI = onOpenURI,
                     )
                 }
             }
@@ -605,7 +625,7 @@ fun TimelineRows(
                         onReplying = onReplying,
                         onProfileClick = onProfileClick,
                         onVote = onVote,
-                        onOpenCard = onOpenCard,
+                        onOpenURI = onOpenURI,
                     )
                 }
             }

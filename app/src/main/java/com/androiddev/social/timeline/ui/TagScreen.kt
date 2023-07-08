@@ -8,7 +8,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberModalBottomSheetState
@@ -26,17 +25,17 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.timeline.data.FeedType
-import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.delay
+import java.net.URI
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TagScreen(
     navController: NavHostController,
+    code: String,
     tag: String,
     goToConversation: (UI) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
     showBackBar: Boolean,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
@@ -49,6 +48,7 @@ fun TagScreen(
         )
     }
     val submitPresenter = component.submitPresenter()
+    val uriPresenter = remember { component.urlPresenter().get() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = tag) {
         homePresenter.start(scope)
@@ -64,7 +64,10 @@ fun TagScreen(
     LaunchedEffect(key1 = { tag }) {
         homePresenter.handle(TimelinePresenter.Load(feedType, colorScheme = colorScheme))
     }
-
+    LaunchedEffect(key1 = tag) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
 
     val pullRefreshState = rememberPullRefreshState(false, {
         homePresenter.handle(TimelinePresenter.Load(feedType, colorScheme = colorScheme))
@@ -110,7 +113,9 @@ fun TagScreen(
             homePresenter = homePresenter,
             submitPresenter = submitPresenter,
             goToConversation = goToConversation,
-            onOpenCard = onOpenCard,
+            onOpenURI = { uri, type ->
+                uriPresenter.handle(UriPresenter.Open(uri, type))
+            },
         )
     }
 }
@@ -129,7 +134,7 @@ private fun ScaffoldParent(
     homePresenter: TimelinePresenter,
     submitPresenter: SubmitPresenter,
     goToConversation: (UI) -> Unit,
-    onOpenCard: (CardUI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         CustomViewPullRefreshView(
@@ -183,7 +188,7 @@ private fun ScaffoldParent(
                 onVote = { statusId, pollId, choices ->
                     submitPresenter.handle(SubmitPresenter.VotePoll(statusId, pollId, choices))
                 },
-                onOpenCard = onOpenCard,
+                onOpenURI = onOpenURI,
             )
         }
 
