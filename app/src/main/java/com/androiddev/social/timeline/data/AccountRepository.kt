@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreRequest
+import org.mobilenativefoundation.store.store5.fresh
 import org.mobilenativefoundation.store.store5.get
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
@@ -19,6 +20,7 @@ import javax.inject.Inject
 interface AccountRepository {
     suspend fun get(accountId: String): Account
     suspend fun clear(accountId: String)
+    suspend fun fresh(accountId: String)
     suspend fun subscribe(accountId: String): Flow<Account>
     suspend fun getCurrent(): Account?
 }
@@ -51,6 +53,10 @@ class RealAccountRepository @Inject constructor(
 
     override suspend fun clear(accountId: String) {
         store.clear(accountId)
+    }
+
+    override suspend fun fresh(accountId: String) {
+        store.fresh(accountId)
     }
 
     override suspend fun subscribe(accountId: String): Flow<Account> {

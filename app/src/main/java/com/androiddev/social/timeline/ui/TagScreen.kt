@@ -157,7 +157,7 @@ private fun ScaffoldParent(
                 goToProfile,
                 goToTag,
                 items,
-                account = homePresenter.model.account,
+                currentAccount = homePresenter.model.currentAccount,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitPresenter.handle(
                         SubmitPresenter.PostMessage(

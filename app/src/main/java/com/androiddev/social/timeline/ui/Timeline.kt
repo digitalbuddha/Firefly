@@ -291,7 +291,7 @@ private fun ScaffoldParent(
             if (!isReplying) {
                 FAB(MaterialTheme.colorScheme) {
                     scope.launch {
-                        homePresenter.model.account?.let {
+                        homePresenter.model.currentAccount?.let {
                             bottomSheetContentProvider.showContent(SheetContentState.UserInput(it))
                         }
                     }
@@ -313,7 +313,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Home,
                         items = model.homeStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -335,7 +335,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Local,
                         items = model.localStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -357,7 +357,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Federated,
                         items = model.federatedStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -379,7 +379,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Trending,
                         items = model.trendingStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -403,7 +403,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Bookmarks,
                         items = model.bookmarkedStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -425,7 +425,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Favorites,
                         items = model.favoriteStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -447,7 +447,7 @@ private fun ScaffoldParent(
                         submitEvents = submitPresenter.events,
                         tabToLoad = FeedType.Hashtag,
                         items = model.hashtagStatuses?.collectAsLazyPagingItems(),
-                        account = model.account,
+                        currentAccount = model.currentAccount,
                         goToConversation = goToConversation,
                         onReplying = { isReplying = it },
                         onProfileClick = onProfileClick,
@@ -474,7 +474,7 @@ private fun timelineTab(
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<UI>?,
-    account: Account?,
+    currentAccount: Account?,
     goToConversation: (UI) -> Unit,
     onReplying: (Boolean) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
@@ -519,7 +519,7 @@ private fun timelineTab(
                 goToProfile,
                 goToTag,
                 items,
-                account = account,
+                currentAccount = currentAccount,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitEvents.tryEmit(
                         SubmitPresenter.PostMessage(
@@ -573,7 +573,7 @@ fun TimelineRows(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     ui: LazyPagingItems<UI>,
-    account: Account?,
+    currentAccount: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
@@ -617,7 +617,7 @@ fun TimelineRows(
                         goToProfile = goToProfile,
                         goToTag = goToTag,
                         ui = it,
-                        account = account,
+                        account = currentAccount,
                         replyToStatus = replyToStatus,
                         boostStatus = boostStatus,
                         favoriteStatus = favoriteStatus,

@@ -255,7 +255,7 @@ private fun ScaffoldParent(
                 val userStatuses = homePresenter.model.userStatuses
                 val withReplies = homePresenter.model.userWithRepliesStatuses
                 val withMedia = homePresenter.model.userWithMediaStatuses
-                val account = presenter.model.account
+                val currentAccount = presenter.model.currentAccount
                 val colorScheme = MaterialTheme.colorScheme
                 LaunchedEffect(key1 = accountId) {
                     homePresenter.handle(
@@ -271,13 +271,6 @@ private fun ScaffoldParent(
                 val pagingListUserStatus = userStatuses?.collectAsLazyPagingItems()
                 val pagingListWithReplies = withReplies?.collectAsLazyPagingItems()
                 val pagingListWithMedia = withMedia?.collectAsLazyPagingItems()
-//                LaunchedEffect(key1 = account?.id) {
-//                    //very unexact way to run after the first append/prepend ran
-//                    //otherwise infinite scroll never calls append on first launch
-//                    // and I have no idea why
-//                    delay(200)
-//                    pagingList?.refresh()
-//                }
 
                 val events: MutableSharedFlow<SubmitPresenter.SubmitEvent> =
                     submitPresenter.events
@@ -286,7 +279,7 @@ private fun ScaffoldParent(
                     statuses = pagingListUserStatus,
                     withReplies = pagingListWithReplies,
                     withMedia = pagingListWithMedia,
-                    account = account,
+                    currentAccount = currentAccount,
                     events = events,
                     code = code,
                     goToBottomSheet = goToBottomSheet,
@@ -313,14 +306,14 @@ private fun ScaffoldParent(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun posts(
     navController: NavHostController,
     statuses: LazyPagingItems<UI>?,
     withReplies: LazyPagingItems<UI>?,
     withMedia: LazyPagingItems<UI>?,
-    account: Account?,
+    currentAccount: Account?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
@@ -409,7 +402,7 @@ private fun posts(
                     },
 
                     ui = it,
-                    account = account,
+                    currentAccount = currentAccount,
                     replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                         events.tryEmit(
                             SubmitPresenter.PostMessage(

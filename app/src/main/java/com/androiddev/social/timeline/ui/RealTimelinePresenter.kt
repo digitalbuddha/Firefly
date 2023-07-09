@@ -91,7 +91,7 @@ class RealTimelinePresenter @Inject constructor(
     override suspend fun eventHandler(event: HomeEvent, scope: CoroutineScope) {
         when (event) {
             is Load -> {
-                model = model.copy(account = accountRepository.getCurrent())
+                model = model.copy(currentAccount = accountRepository.getCurrent())
                 when (event.feedType) {
                     FeedType.Home -> {
                         model = model.copy(homeStatuses = homeFlow.map {
@@ -241,7 +241,7 @@ abstract class TimelinePresenter :
     data class HomeModel(
         val loading: Boolean,
         val homeStatuses: Flow<PagingData<UI>>? = null,
-        val account: Account? = null,
+        val currentAccount: Account? = null,
         val federatedStatuses: Flow<PagingData<UI>>? = null,
         val trendingStatuses: Flow<PagingData<UI>>? = null,
         val bookmarkedStatuses: Flow<PagingData<UI>>? = null,

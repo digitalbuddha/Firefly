@@ -242,8 +242,7 @@ class RealSubmitPresenter @Inject constructor(
                     when {
                         result.isSuccess -> {
                             withContext(Dispatchers.IO) {
-                                accountRepository.clear(event.accountId)
-                                accountRepository.get(event.accountId)
+                                accountRepository.fresh(event.accountId)
                             }
                         }
                     }
