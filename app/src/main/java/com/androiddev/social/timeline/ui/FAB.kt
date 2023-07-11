@@ -1,6 +1,5 @@
 package com.androiddev.social.timeline.ui
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
@@ -20,17 +19,20 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import social.androiddev.firefly.R
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun FAB(colorScheme: ColorScheme, modifier: Modifier = Modifier, onClick: () -> Unit, ) {
-    var clicked by remember { mutableStateOf(false) }
 
+@Composable
+fun FAB(
+    visible: Boolean,
+    colorScheme: ColorScheme,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     val size: Float by animateFloatAsState(
-        if (clicked) 0f else 1f,
+        if (visible) 1f else 0f,
         animationSpec = TweenSpec(durationMillis = 150), label = ""
     )
     val imageSize: Float by animateFloatAsState(
-        if (clicked) 1.2f else 1f,
+        if (visible) 1f else 1.2f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioHighBouncy,
             stiffness = Spring.StiffnessMedium // with medium speed
@@ -47,7 +49,7 @@ fun FAB(colorScheme: ColorScheme, modifier: Modifier = Modifier, onClick: () -> 
             .clip(shape)
             .size((90 * size).dp),
         content = {
-            if (!clicked) {
+            if (visible) {
                 Image(
                     modifier = Modifier
                         .size(60.dp)
@@ -62,7 +64,6 @@ fun FAB(colorScheme: ColorScheme, modifier: Modifier = Modifier, onClick: () -> 
             }
         },
         onClick = {
-            clicked = !clicked
             onClick()
         }
     )

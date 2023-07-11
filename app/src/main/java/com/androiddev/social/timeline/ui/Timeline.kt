@@ -161,9 +161,8 @@ fun TimelineScreen(
 
 @Composable
 @OptIn(
-    ExperimentalMaterialApi::class,
     ExperimentalComposeUiApi::class,
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class
 )
 private fun ScaffoldParent(
     accessTokenRequest: AccessTokenRequest,
@@ -185,7 +184,9 @@ private fun ScaffoldParent(
     var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
     var refresh: Boolean by remember { mutableStateOf(false) }
     var expanded: Boolean by remember { mutableStateOf(false) }
-    var isReplying: Boolean by remember { mutableStateOf(false) }
+    var isReplying: Boolean by remember(bottomSheetContentProvider.bottomState.currentValue) {
+        mutableStateOf(bottomSheetContentProvider.bottomState.currentValue == ModalBottomSheetValue.Expanded)
+    }
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
     val items = mutableListOf(
         Tab(
@@ -288,15 +289,14 @@ private fun ScaffoldParent(
         isFloatingActionButtonDocked = true,
         floatingActionButton = {
             val scope = rememberCoroutineScope()
-            if (!isReplying) {
-                FAB(MaterialTheme.colorScheme) {
+                FAB(visible = !isReplying, MaterialTheme.colorScheme) {
                     scope.launch {
                         homePresenter.model.currentAccount?.let {
                             bottomSheetContentProvider.showContent(SheetContentState.UserInput(it))
                         }
                     }
+                    isReplying = true
                 }
-            }
         }
     ) { padding ->
         Box {
