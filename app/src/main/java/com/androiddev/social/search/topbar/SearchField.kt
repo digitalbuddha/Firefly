@@ -25,10 +25,9 @@ fun RowScope.SearchField(
         focusRequester.requestFocus()
     }
 
-
     BasicTextField(
         value = query,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.surface),
+        textStyle = MaterialTheme.typography.bodyLarge,
         onValueChange = onQueryChange,
         singleLine = true,
         modifier = Modifier

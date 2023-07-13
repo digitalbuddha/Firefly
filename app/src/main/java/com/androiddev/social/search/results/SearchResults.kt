@@ -34,8 +34,11 @@ import com.androiddev.social.accounts.AccountTab
 import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
+import com.androiddev.social.timeline.data.Account
+import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Tag
 import com.androiddev.social.timeline.ui.LocalAuthComponent
+import com.androiddev.social.timeline.ui.SheetContentState
 import com.androiddev.social.timeline.ui.SubmitPresenter
 import com.androiddev.social.timeline.ui.card
 import com.androiddev.social.timeline.ui.model.UI
@@ -49,21 +52,23 @@ import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import kotlinx.coroutines.launch
+import java.net.URI
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun SearchResults(
-    results: SearchPresenter.SearchModel,
+    model: SearchPresenter.SearchModel,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
-    val padding = PaddingSize1
     val pagerState = rememberPagerState()
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
+            .background(colorScheme.background)
     ) {
         TabRow(
             // Our selected tab is our current page
@@ -80,7 +85,7 @@ fun SearchResults(
             // Add tabs for all of our pages
             tabs.forEachIndexed { index, title ->
                 Tab(
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                    modifier = Modifier.background(colorScheme.background),
                     text = { Text(title, color = colorScheme.primary) },
                     selected = pagerState.currentPage == index,
                     onClick = { scope.launch { pagerState.scrollToPage(index) } },
@@ -99,8 +104,8 @@ fun SearchResults(
         ) { page ->
             when (page) {
                 0 -> {
-                    if (results.accounts != null) {
-                        AccountTab(results = results.accounts, null, goToProfile)
+                    if (model.accounts != null) {
+                        AccountTab(results = model.accounts, null, goToProfile)
                     } else {
                         Surface(
                             color = Color.Transparent,
@@ -114,13 +119,16 @@ fun SearchResults(
                 }
 
                 1 -> {
-                    if (results.statuses != null) {
+                    if (model.statuses != null) {
                         StatusTab(
-                            results.statuses,
-                            goToProfile,
-                            goToTag,
-                            goToConversation,
-                            submitPresenter
+                            account = model.account,
+                            results = model.statuses,
+                            goToBottomSheet = goToBottomSheet,
+                            goToProfile = goToProfile,
+                            goToTag = goToTag,
+                            goToConversation = goToConversation,
+                            submitPresenter = submitPresenter,
+                            onOpenURI = onOpenURI,
                         )
                     } else {
                         Surface(
@@ -135,8 +143,8 @@ fun SearchResults(
                 }
 
                 2 -> {
-                    if (results.hashtags != null) {
-                        HashTagTab(results.hashtags, goToProfile, submitPresenter)
+                    if (model.hashtags != null) {
+                        HashTagTab(model.hashtags, submitPresenter)
                     } else {
                         Surface(
                             color = Color.Transparent,
@@ -156,11 +164,14 @@ fun SearchResults(
 
 @Composable
 private fun StatusTab(
+    account: Account?,
     results: List<UI>,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     goToConversation: (UI) -> Unit,
-    submitPresenter: SubmitPresenter
+    submitPresenter: SubmitPresenter,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     LazyColumn(
         Modifier
@@ -172,11 +183,13 @@ private fun StatusTab(
             card(
                 modifier = Modifier.background(Color.Transparent),
                 status = it,
+                account = account,
                 events = submitPresenter.events,
-                showInlineReplies = false,
+                goToBottomSheet = goToBottomSheet,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
-                goToTag = goToTag
+                goToTag = goToTag,
+                onOpenURI = onOpenURI,
             )
         }
     }
@@ -185,7 +198,6 @@ private fun StatusTab(
 @Composable
 private fun HashTagTab(
     results: List<Tag>,
-    goToProfile: (String) -> Unit,
     submitPresenter: SubmitPresenter
 ) {
     LazyColumn(Modifier.fillMaxSize()) {

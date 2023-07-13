@@ -4,6 +4,7 @@ import com.androiddev.social.search.SearchResult
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.NewStatus
 import com.androiddev.social.timeline.data.Notification
+import com.androiddev.social.timeline.data.Poll
 import com.androiddev.social.timeline.data.Relationship
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
@@ -57,6 +58,8 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("q") searchTerm: String,
         @Query("limit") limit: String = "40",
+        @Query("resolve") resolve: Boolean = false,
+        @Query("following") following: Boolean = false,
     ): SearchResult
 
     @GET("/api/v1/notifications")
@@ -246,5 +249,46 @@ interface UserApi {
         @Part focus: MultipartBody.Part? = null
     ): UploadIds
 
+    @GET("/api/v1/polls/{id}")
+    suspend fun viewPoll(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    ): Poll
 
+    @POST("/api/v1/polls/{id}/votes")
+    suspend fun votePoll(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+        @Query("choices[]") choices: List<Int>,
+    ): Poll
+
+    @DELETE("/api/v1/statuses/{id}")
+    suspend fun deleteStatus(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/mute")
+    suspend fun muteAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/unmute")
+    suspend fun unMuteAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/block")
+    suspend fun blockAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
+
+    @POST("/api/v1/accounts/{id}/unblock")
+    suspend fun unblockAccount(
+        @Header("Authorization") authHeader: String,
+        @Path("id") id: String,
+    )
 }

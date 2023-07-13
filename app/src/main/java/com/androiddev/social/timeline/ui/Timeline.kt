@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -33,6 +35,7 @@ import com.androiddev.social.UserComponent
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.tabselector.Tab
 import com.androiddev.social.theme.BottomBarElevation
+import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize2
 import com.androiddev.social.theme.PaddingSize8
 import com.androiddev.social.theme.PaddingSizeNone
@@ -45,17 +48,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
+import java.net.URI
 
 val LocalAuthComponent = compositionLocalOf<AuthRequiredInjector> { error("No component found!") }
 val LocalUserComponent = compositionLocalOf<UserComponent> { error("No component found!") }
 val LocalImageLoader = compositionLocalOf<ImageLoader> { error("No component found!") }
 
 @OptIn(
-    ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class,
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterialApi::class
 )
 @Composable
 fun TimelineScreen(
+    navController: NavController,
     accessTokenRequest: AccessTokenRequest,
     userComponent: UserComponent,
     onChangeTheme: () -> Unit,
@@ -66,7 +70,7 @@ fun TimelineScreen(
     goToSearch: () -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit
+    goToTag: (String) -> Unit,
 ) {
     val component =
         retainInActivity(
@@ -74,10 +78,10 @@ fun TimelineScreen(
             key = accessTokenRequest.domain ?: ""
         ) { (userComponent as AuthRequiredComponent.ParentComponent).createAuthRequiredComponent() } as AuthRequiredInjector
     CompositionLocalProvider(LocalAuthComponent provides component) {
-
         val homePresenter = component.homePresenter()
         val submitPresenter = component.submitPresenter()
         val avatarPresenter = component.avatarPresenter()
+        val uriPresenter = remember { component.urlPresenter().get() }
         val scope = rememberCoroutineScope()
         LaunchedEffect(key1 = accessTokenRequest) {
             homePresenter.start(scope)
@@ -88,315 +92,381 @@ fun TimelineScreen(
         LaunchedEffect(key1 = accessTokenRequest) {
             submitPresenter.start()
         }
-        val state = rememberModalBottomSheetState(
-            initialValue = ModalBottomSheetValue.Hidden,
-        )
-        var replying by remember { mutableStateOf(false) }
-        var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
-        var currentIndex by rememberSaveable { mutableStateOf(0) }
-        var refresh: Boolean by remember { mutableStateOf(false) }
-        var expanded: Boolean by remember { mutableStateOf(false) }
-        if (!state.isVisible) replying = false
-        var selectedIndex by rememberSaveable { mutableStateOf(0) }
-        val items = mutableListOf(
-            Tab(
-                "Home",
-                R.drawable.house,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Home"); selectedIndex = 0; expanded = false
-                }),
-            Tab(
-                "Local",
-                R.drawable.local,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Local"); selectedIndex = 1; expanded = false
-                }),
-            Tab(
-                "Federated",
-                R.drawable.world,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Federated"); selectedIndex = 2; expanded = false
-                }),
-            Tab(
-                "Trending",
-                R.drawable.trend,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Trending"); selectedIndex = 3; expanded = false
-                }),
-            Tab(
-                "Bookmarks",
-                R.drawable.bookmark,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Bookmarks"); selectedIndex = 4; expanded = false
-                }),
-            Tab(
-                "Favorites",
-                R.drawable.star,
-                onClick = {
-                    tabToLoad = FeedType.valueOf("Favorites"); selectedIndex = 5; expanded = false
-                }),
+        LaunchedEffect(key1 = accessTokenRequest) {
+            uriPresenter.start()
+        }
+        OpenHandledUri(uriPresenter, navController, accessTokenRequest.code)
 
-            )
+        val bottomState: ModalBottomSheetState =
+            rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+        val bottomSheetContentProvider = remember { BottomSheetContentProvider(bottomState) }
+        val context = LocalContext.current
 
-        Scaffold(
-            topBar = {
-                TopAppBar(modifier = Modifier.clickable {
-                    refresh = true
-                },
-                    backgroundColor = MaterialTheme.colorScheme.background,
-
-                    title = {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            LaunchedEffect(key1 = accessTokenRequest.domain) {
-                                avatarPresenter.start()
-                            }
-
-
-
-                            LaunchedEffect(key1 = accessTokenRequest.domain) {
-                                avatarPresenter.events.tryEmit(AvatarPresenter.Load)
-                            }
-                            Box {
-                                AccountChooser(
-                                    model = avatarPresenter.model,
-                                    onChangeTheme = onChangeTheme,
-                                    onNewAccount = onNewAccount,
-                                    onProfileClick = onProfileClick
-                                )
-                            }
-
-                            Box(Modifier.align(Alignment.CenterVertically)) {
-                                TabSelector(items, selectedIndex, expanded) { expanded = !expanded }
-                            }
-                            Search {
-                                goToSearch()
-                            }
-                        }
-                    })
-            },
-
-
-            backgroundColor = Color.Transparent,
-            bottomBar = {
-                AnimatedVisibility(!replying, enter = fadeIn(), exit = fadeOut()) {
-                    BottomAppBar(
-                        modifier = Modifier.height(PaddingSize8),
-                        contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
-                        elevation = BottomBarElevation,
-                        backgroundColor = MaterialTheme.colorScheme.surface,
-                    ) {
-                        BottomBar(
-                            goToMentions = goToMentions,
-                            goToNotifications = goToNotifications,
+        ModalBottomSheetLayout(
+            sheetState = bottomState,
+            sheetShape = RoundedCornerShape(topStart = PaddingSize1, topEnd = PaddingSize1),
+            sheetElevation = PaddingSize2,
+            sheetBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            sheetContent = {
+                BottomSheetContent(
+                    bottomSheetContentProvider = bottomSheetContentProvider,
+                    onShareStatus = { context.shareStatus(it) },
+                    onDelete = { statusId->
+                        submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
+                    },
+                    onMessageSent = { it, visibility, uris ->
+                        submitPresenter.handle(
+                            SubmitPresenter.PostMessage(
+                                content = it,
+                                visibility = visibility,
+                                uris = uris
+                            )
                         )
-                    }
-                }
-
-            },
-            floatingActionButtonPosition = FabPosition.Center,
-            isFloatingActionButtonDocked = true,
-            floatingActionButton = {
-                val scope = rememberCoroutineScope()
-                if (!replying) {
-                    FAB(MaterialTheme.colorScheme) {
-                        replying = true
                         scope.launch {
-                            state.show()
+                            bottomSheetContentProvider.hide()
+                        }
+                    },
+                    goToConversation = goToConversation,
+                    goToProfile = goToProfile,
+                    goToTag = goToTag,
+                    onMuteAccount = {
+                        submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                    },
+                    onBlockAccount = {
+                        submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
+                    },
+                )
+            },
+        ) {
+            ScaffoldParent(
+                accessTokenRequest = accessTokenRequest,
+                avatarPresenter = avatarPresenter,
+                onChangeTheme = onChangeTheme,
+                onNewAccount = onNewAccount,
+                onProfileClick = onProfileClick,
+                goToSearch = goToSearch,
+                goToMentions = goToMentions,
+                goToNotifications = goToNotifications,
+                homePresenter = homePresenter,
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                submitPresenter = submitPresenter,
+                uriPresenter = uriPresenter,
+                goToConversation = goToConversation,
+                goToProfile = goToProfile,
+                goToTag = goToTag,
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(
+    ExperimentalComposeUiApi::class,
+    ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class
+)
+private fun ScaffoldParent(
+    accessTokenRequest: AccessTokenRequest,
+    avatarPresenter: AvatarPresenter,
+    onChangeTheme: () -> Unit,
+    onNewAccount: () -> Unit,
+    onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
+    goToSearch: () -> Unit,
+    goToMentions: () -> Unit,
+    goToNotifications: () -> Unit,
+    homePresenter: TimelinePresenter,
+    bottomSheetContentProvider: BottomSheetContentProvider,
+    submitPresenter: SubmitPresenter,
+    uriPresenter: UriPresenter,
+    goToConversation: (UI) -> Unit,
+    goToProfile: (String) -> Unit,
+    goToTag: (String) -> Unit,
+) {
+    var tabToLoad: FeedType by rememberSaveable { mutableStateOf(FeedType.Home) }
+    var refresh: Boolean by remember { mutableStateOf(false) }
+    var expanded: Boolean by remember { mutableStateOf(false) }
+    var isReplying: Boolean by remember(bottomSheetContentProvider.bottomState.currentValue) {
+        mutableStateOf(bottomSheetContentProvider.bottomState.currentValue == ModalBottomSheetValue.Expanded)
+    }
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
+    val items = mutableListOf(
+        Tab(
+            "Home",
+            R.drawable.house,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Home"); selectedIndex = 0; expanded = false
+            }),
+        Tab(
+            "Local",
+            R.drawable.local,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Local"); selectedIndex = 1; expanded = false
+            }),
+        Tab(
+            "Federated",
+            R.drawable.world,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Federated"); selectedIndex = 2; expanded = false
+            }),
+        Tab(
+            "Trending",
+            R.drawable.trend,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Trending"); selectedIndex = 3; expanded = false
+            }),
+        Tab(
+            "Bookmarks",
+            R.drawable.bookmark,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Bookmarks"); selectedIndex = 4; expanded = false
+            }),
+        Tab(
+            "Favorites",
+            R.drawable.star,
+            onClick = {
+                tabToLoad = FeedType.valueOf("Favorites"); selectedIndex = 5; expanded = false
+            }),
+
+        )
+    Scaffold(
+        topBar = {
+            TopAppBar(modifier = Modifier.clickable {
+                refresh = true
+            },
+                backgroundColor = MaterialTheme.colorScheme.background,
+
+                title = {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        LaunchedEffect(key1 = accessTokenRequest.domain) {
+                            avatarPresenter.start()
+                        }
+
+
+
+                        LaunchedEffect(key1 = accessTokenRequest.domain) {
+                            avatarPresenter.events.tryEmit(AvatarPresenter.Load)
+                        }
+                        Box {
+                            AccountChooser(
+                                model = avatarPresenter.model,
+                                onChangeTheme = onChangeTheme,
+                                onNewAccount = onNewAccount,
+                                onProfileClick = onProfileClick
+                            )
+                        }
+
+                        Box(Modifier.align(Alignment.CenterVertically)) {
+                            TabSelector(items, selectedIndex, expanded) { expanded = !expanded }
+                        }
+                        Search {
+                            goToSearch()
                         }
                     }
+                })
+        },
+
+        backgroundColor = Color.Transparent,
+        bottomBar = {
+            AnimatedVisibility(!isReplying, enter = fadeIn(), exit = fadeOut()) {
+                BottomAppBar(
+                    modifier = Modifier.height(PaddingSize8),
+                    contentPadding = PaddingValues(PaddingSizeNone, PaddingSizeNone),
+                    elevation = BottomBarElevation,
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                ) {
+                    BottomBar(
+                        goToMentions = goToMentions,
+                        goToNotifications = goToNotifications,
+                    )
                 }
-            }) { padding ->
-            Box() {
-                ModalBottomSheetLayout(sheetBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                    sheetElevation = PaddingSize2,
-                    sheetState = state,
-                    sheetContent = {
-                        var done by remember { mutableStateOf(false) }
-                        if (done) {
-                            LaunchedEffect(Unit) {
-                                state.hide()
-                            }
+            }
+
+        },
+        floatingActionButtonPosition = FabPosition.Center,
+        isFloatingActionButtonDocked = true,
+        floatingActionButton = {
+            val scope = rememberCoroutineScope()
+                FAB(visible = !isReplying, MaterialTheme.colorScheme) {
+                    scope.launch {
+                        homePresenter.model.currentAccount?.let {
+                            bottomSheetContentProvider.showContent(SheetContentState.UserInput(it))
                         }
-                        UserInput(
-                            status = null,
-                            modifier = Modifier.padding(bottom = 0.dp),
-                            onMessageSent = { it, visibility, uris ->
-                                submitPresenter.handle(
-                                    SubmitPresenter.PostMessage(
-                                        content = it,
-                                        visibility = visibility,
-                                        uris = uris
-                                    )
-                                )
-                                done = true
-                            },
-                            participants = "",
-                            showReplies = false,
-                            goToConversation = goToConversation,
-                            goToProfile = goToProfile,
-                            goToTag = goToTag
-                        )
-                    }) {
-                    val model = homePresenter.model
-
-                    when (tabToLoad) {
-                        FeedType.Home -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Home,
-                                items = model.homeStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                isReplying = {
-                                    replying = it
-                                },
-                                onProfileClick = onProfileClick,
-                                refresh,
-                                { refresh = false }
-                            )
-                        }
-
-                        FeedType.Local -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Local,
-                                model.localStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                { replying = it },
-                                onProfileClick,
-                                refresh,
-                                { refresh = false }
-
-                            )
-                        }
-
-                        FeedType.Federated -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Federated,
-                                model.federatedStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                { replying = it },
-                                onProfileClick,
-                                refresh,
-                                { refresh = false }
-                            )
-                        }
-
-                        FeedType.Trending -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Trending,
-                                model.trendingStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                { replying = it },
-                                onProfileClick,
-                                refresh,
-                                { refresh = false }
-                            )
-                        }
-
-                        FeedType.User -> {
-
-                        }
-
-                        FeedType.UserWithMedia -> {}
-                        FeedType.UserWithReplies -> {
-
-                        }
-
-                        FeedType.Bookmarks -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Bookmarks,
-                                model.bookmarkedStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                { replying = it },
-                                onProfileClick,
-                                refresh,
-                                { refresh = false }
-                            )
-                        }
-
-                        FeedType.Favorites -> {
-                            timelineTab(
-                                goToProfile,
-                                goToTag,
-                                accessTokenRequest.domain,
-                                homePresenter.events,
-                                submitPresenter.events,
-                                FeedType.Favorites,
-                                model.favoriteStatuses?.collectAsLazyPagingItems(),
-                                account = model.account,
-                                state,
-                                goToConversation,
-                                { replying = it },
-                                onProfileClick,
-                                refresh,
-                                { refresh = false }
-                            )
-                        }
-
-                        FeedType.Hashtag -> timelineTab(
-                            goToProfile,
-                            goToTag,
-                            accessTokenRequest.domain,
-                            homePresenter.events,
-                            submitPresenter.events,
-                            FeedType.Hashtag,
-                            model.hashtagStatuses?.collectAsLazyPagingItems(),
-                            account = model.account,
-                            state,
-                            goToConversation,
-                            { replying = it },
-                            onProfileClick,
-                            refresh,
-                            { refresh = false }
-                        )
                     }
+                    isReplying = true
+                }
+        }
+    ) { padding ->
+        Box {
+            val model = homePresenter.model
+
+            when (tabToLoad) {
+                FeedType.Home -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Home,
+                        items = model.homeStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+
+                FeedType.Local -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Local,
+                        items = model.localStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+
+                FeedType.Federated -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Federated,
+                        items = model.federatedStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+
+                FeedType.Trending -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Trending,
+                        items = model.trendingStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+                FeedType.User -> {}
+                FeedType.UserWithMedia -> {}
+                FeedType.UserWithReplies -> {}
+                FeedType.Bookmarks -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Bookmarks,
+                        items = model.bookmarkedStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+
+                FeedType.Favorites -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Favorites,
+                        items = model.favoriteStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
+                }
+
+                FeedType.Hashtag -> {
+                    timelineTab(
+                        goToBottomSheet = bottomSheetContentProvider::showContent,
+                        goToProfile = goToProfile,
+                        goToTag = goToTag,
+                        domain = accessTokenRequest.domain,
+                        events = homePresenter.events,
+                        submitEvents = submitPresenter.events,
+                        tabToLoad = FeedType.Hashtag,
+                        items = model.hashtagStatuses?.collectAsLazyPagingItems(),
+                        currentAccount = model.currentAccount,
+                        goToConversation = goToConversation,
+                        onReplying = { isReplying = it },
+                        onProfileClick = onProfileClick,
+                        refresh = refresh,
+                        doneRefreshing = { refresh = false },
+                        onOpenURI = { uri, type ->
+                            uriPresenter.handle(UriPresenter.Open(uri, type))
+                        },
+                    )
                 }
             }
         }
     }
 }
 
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun timelineTab(
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     domain: String?,
@@ -404,19 +474,18 @@ private fun timelineTab(
     submitEvents: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     tabToLoad: FeedType,
     items: LazyPagingItems<UI>?,
-    account: Account?,
-    state: ModalBottomSheetState,
+    currentAccount: Account?,
     goToConversation: (UI) -> Unit,
-    isReplying: (Boolean) -> Unit,
+    onReplying: (Boolean) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
     refresh: Boolean,
-    doneRefreshing: () -> Unit
+    doneRefreshing: () -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LaunchedEffect(key1 = tabToLoad, key2 = domain, key3 = tabToLoad.tagName) {
         events.tryEmit(TimelinePresenter.Load(tabToLoad, colorScheme = colorScheme))
     }
-
 
     val refreshing = items?.loadState?.refresh is LoadState.Loading
     val pullRefreshState = rememberPullRefreshState(refreshing, {
@@ -446,9 +515,11 @@ private fun timelineTab(
                 if (items.itemCount == 0) items.refresh()
             }
             TimelineRows(
+                goToBottomSheet = goToBottomSheet,
                 goToProfile,
                 goToTag,
                 items,
+                currentAccount = currentAccount,
                 replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                     submitEvents.tryEmit(
                         SubmitPresenter.PostMessage(
@@ -472,11 +543,14 @@ private fun timelineTab(
                             .FavoriteMessage(statusId, tabToLoad, favourited)
                     )
                 },
-                state,
-                isReplying,
+                onReplying = onReplying,
                 goToConversation = goToConversation,
                 onProfileClick = onProfileClick,
-                lazyListState
+                lazyListState,
+                onVote = { statusId, pollId, choices ->
+                    submitEvents.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                },
+                onOpenURI = onOpenURI,
             )
         }
         CustomViewPullRefreshView(
@@ -495,17 +569,20 @@ private data class ScrollKeyParams(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TimelineRows(
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
     ui: LazyPagingItems<UI>,
+    currentAccount: Account?,
     replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
-    state: ModalBottomSheetState,
-    isReplying: (Boolean) -> Unit,
+    onReplying: (Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
     onProfileClick: (accountId: String, isCurrent: Boolean) -> Unit,
-    lazyListState: LazyListState
+    lazyListState: LazyListState,
+    onVote: (statusId: String, pollId: String, choices: List<Int>) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
 
 
@@ -514,17 +591,19 @@ fun TimelineRows(
             LazyColumn {
                 items(3) {
                     TimelineCard(
-                        goToProfile,
+                        goToBottomSheet = goToBottomSheet,
+                        goToProfile = goToProfile,
                         goToTag = goToTag,
-                        null,
-                        replyToStatus,
-                        boostStatus,
-                        favoriteStatus,
-                        state,
-                        goToConversation,
-                        isReplying,
-                        false,
+                        ui = null,
+                        account = null,
+                        replyToStatus = replyToStatus,
+                        boostStatus = boostStatus,
+                        favoriteStatus = favoriteStatus,
+                        goToConversation = goToConversation,
+                        onReplying = onReplying,
                         onProfileClick = onProfileClick,
+                        onVote = onVote,
+                        onOpenURI = onOpenURI,
                     )
                 }
             }
@@ -534,21 +613,22 @@ fun TimelineRows(
                     items = item,
                     key = { "${it.originalId}  ${it.boostCount} ${it.replyCount}" }) {
                     TimelineCard(
-                        goToProfile,
+                        goToBottomSheet = goToBottomSheet,
+                        goToProfile = goToProfile,
                         goToTag = goToTag,
-                        it,
-                        replyToStatus,
-                        boostStatus,
-                        favoriteStatus,
-                        state,
-                        goToConversation,
-                        isReplying,
-                        false,
+                        ui = it,
+                        account = currentAccount,
+                        replyToStatus = replyToStatus,
+                        boostStatus = boostStatus,
+                        favoriteStatus = favoriteStatus,
+                        goToConversation = goToConversation,
+                        onReplying = onReplying,
                         onProfileClick = onProfileClick,
+                        onVote = onVote,
+                        onOpenURI = onOpenURI,
                     )
                 }
             }
         }
     }
 }
-

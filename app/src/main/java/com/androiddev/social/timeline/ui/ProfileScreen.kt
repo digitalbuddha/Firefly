@@ -1,11 +1,13 @@
 package com.androiddev.social.timeline.ui
 
 import android.annotation.SuppressLint
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.SwipeableDefaults
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults.Indicator
@@ -49,7 +54,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -57,17 +64,23 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.androiddev.social.theme.FireflyTheme
 import com.androiddev.social.theme.PaddingSize0_5
+import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize2
+import com.androiddev.social.theme.PaddingSizeNone
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.data.ProfilePresenter
 import com.androiddev.social.timeline.ui.model.UI
 import com.androiddev.social.ui.util.emojiText
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
+import java.net.URI
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -78,7 +91,7 @@ fun ProfileScreen(
     code: String,
     accountId: String,
     goToFollowers: () -> Unit,
-    goToFollowing: () -> Unit
+    goToFollowing: () -> Unit,
 ) {
     val homePresenter by remember(key1 = accountId) {
         mutableStateOf(
@@ -102,10 +115,77 @@ fun ProfileScreen(
     LaunchedEffect(key1 = { accountId }) {
         presenter.handle(ProfilePresenter.Load(accountId))
     }
+    val uriPresenter = remember { component.urlPresenter().get() }
+    LaunchedEffect(key1 = accountId) {
+        uriPresenter.start()
+    }
+    OpenHandledUri(uriPresenter, navController, code)
 
+    val bottomState: ModalBottomSheetState =
+        rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val bottomSheetContentProvider = remember { BottomSheetContentProvider(bottomState) }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomState,
+        sheetShape = RoundedCornerShape(topStart = PaddingSize1, topEnd = PaddingSize1),
+        sheetContent = {
+            BottomSheetContent(
+                bottomSheetContentProvider = bottomSheetContentProvider,
+                onShareStatus = {},
+                onDelete = { statusId->
+                    submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
+                },
+                onMessageSent = { _, _, _ -> },
+                goToProfile = { accountId: String ->
+                    navController.navigate("profile/${code}/${accountId}")
+                },
+                goToTag = { tag: String ->
+                    navController.navigate("tag/${code}/${tag}")
+                },
+                goToConversation = { status: UI ->
+                    navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
+                },
+                onMuteAccount = {
+                    submitPresenter.handle(SubmitPresenter.MuteAccount(it, true))
+                },
+                onBlockAccount = {
+                    submitPresenter.handle(SubmitPresenter.BlockAccount(it, true))
+                },
+            )
+        },
+    ) {
+        ScaffoldParent(
+            presenter = presenter,
+            submitPresenter = submitPresenter,
+            accountId = accountId,
+            navController = navController,
+            goToFollowers = goToFollowers,
+            goToFollowing = goToFollowing,
+            homePresenter = homePresenter,
+            uriPresenter = uriPresenter,
+            code = code,
+            goToBottomSheet = bottomSheetContentProvider::showContent,
+            scope = scope,
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun ScaffoldParent(
+    presenter: ProfilePresenter,
+    submitPresenter: SubmitPresenter,
+    accountId: String,
+    navController: NavHostController,
+    goToFollowers: () -> Unit,
+    goToFollowing: () -> Unit,
+    homePresenter: TimelinePresenter,
+    uriPresenter: UriPresenter,
+    code: String,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
+    scope: CoroutineScope
+) {
     FireflyTheme {
-        var clicked by remember { mutableStateOf(false) }
-
         val scaffoldState = rememberBackdropScaffoldState(BackdropValue.Concealed)
         BackdropScaffold(
             scaffoldState = scaffoldState,
@@ -161,13 +241,21 @@ fun ProfileScreen(
                 )
             },
             backLayerContent = {
-                profile(presenter, goToFollowers, goToFollowing)
+                profile(presenter, goToFollowers,
+                    goToFollowing,
+                    onMute = {
+                        submitPresenter.handle(SubmitPresenter.MuteAccount(accountId, it))
+                    },
+                    onBlock = {
+                        submitPresenter.handle(SubmitPresenter.BlockAccount(accountId, it))
+                    }
+                )
             },
             frontLayerContent = {
                 val userStatuses = homePresenter.model.userStatuses
                 val withReplies = homePresenter.model.userWithRepliesStatuses
                 val withMedia = homePresenter.model.userWithMediaStatuses
-                val account = presenter.model.account
+                val currentAccount = presenter.model.currentAccount
                 val colorScheme = MaterialTheme.colorScheme
                 LaunchedEffect(key1 = accountId) {
                     homePresenter.handle(
@@ -183,28 +271,27 @@ fun ProfileScreen(
                 val pagingListUserStatus = userStatuses?.collectAsLazyPagingItems()
                 val pagingListWithReplies = withReplies?.collectAsLazyPagingItems()
                 val pagingListWithMedia = withMedia?.collectAsLazyPagingItems()
-//                LaunchedEffect(key1 = account?.id) {
-//                    //very unexact way to run after the first append/prepend ran
-//                    //otherwise infinite scroll never calls append on first launch
-//                    // and I have no idea why
-//                    delay(200)
-//                    pagingList?.refresh()
-//                }
 
                 val events: MutableSharedFlow<SubmitPresenter.SubmitEvent> =
                     submitPresenter.events
                 posts(
                     navController = navController,
-                    pagingListUserStatus,
-                    pagingListWithReplies,
-                    pagingListWithMedia,
-                    events,
-                    code
-                ) {
-                    scope.launch {
-                        scaffoldState.conceal()
-                    }
-                }
+                    statuses = pagingListUserStatus,
+                    withReplies = pagingListWithReplies,
+                    withMedia = pagingListWithMedia,
+                    currentAccount = currentAccount,
+                    events = events,
+                    code = code,
+                    goToBottomSheet = goToBottomSheet,
+                    changeHeight = {
+                        scope.launch {
+                            scaffoldState.conceal()
+                        }
+                    },
+                    onOpenURI = { uri, type ->
+                        uriPresenter.handle(UriPresenter.Open(uri, type))
+                    },
+                )
             },
             // Defaults to BackdropScaffoldDefaults.PeekHeight
             peekHeight = 106.dp,
@@ -219,16 +306,19 @@ fun ProfileScreen(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun posts(
     navController: NavHostController,
     statuses: LazyPagingItems<UI>?,
     withReplies: LazyPagingItems<UI>?,
     withMedia: LazyPagingItems<UI>?,
+    currentAccount: Account?,
     events: MutableSharedFlow<SubmitPresenter.SubmitEvent>,
     code: String,
-    changeHeight: (Int) -> Unit
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
+    changeHeight: (Int) -> Unit,
+    onOpenURI: (URI, FeedType) -> Unit,
 ) {
     val pagerState = rememberPagerState()
     Column {
@@ -303,6 +393,7 @@ private fun posts(
             }
             ui?.let {
                 TimelineRows(
+                    goToBottomSheet = goToBottomSheet,
                     goToProfile = { accountId: String ->
                         navController.navigate("profile/${code}/${accountId}")
                     },
@@ -311,6 +402,7 @@ private fun posts(
                     },
 
                     ui = it,
+                    currentAccount = currentAccount,
                     replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
                         events.tryEmit(
                             SubmitPresenter.PostMessage(
@@ -336,19 +428,18 @@ private fun posts(
                         )
 
                     },
-                    state = rememberModalBottomSheetState(
-                        ModalBottomSheetValue.Hidden,
-                        SwipeableDefaults.AnimationSpec,
-                        skipHalfExpanded = true
-                    ),
-                    isReplying = { },
+                    onReplying = {},
                     goToConversation = { status: UI ->
                         navController.navigate("conversation/${code}/${status.remoteId}/${status.type.type}")
                     },
                     onProfileClick ={ accountId, _ ->
                         navController.navigate("profile/${code}/${accountId}")
                     },
-                    rememberLazyListState()
+                    rememberLazyListState(),
+                    onVote = { statusId, pollId, choices ->
+                        events.tryEmit(SubmitPresenter.VotePoll(statusId, pollId, choices))
+                    },
+                    onOpenURI = onOpenURI,
                 )
             }
         }
@@ -359,7 +450,9 @@ private fun posts(
 private fun profile(
     presenter: ProfilePresenter,
     goToFollowers: () -> Unit,
-    goToFollowing: () -> Unit
+    goToFollowing: () -> Unit,
+    onMute: (Boolean) -> Unit,
+    onBlock: (Boolean) -> Unit,
 ) {
     Box(
         Modifier
@@ -387,8 +480,6 @@ private fun profile(
                     .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
-
-
                 val emojis = account.emojis
                 val unformatted = account.displayName
                 val (inlineContentMap, text) = inlineEmojis(
@@ -416,17 +507,38 @@ private fun profile(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier
-                        .padding(PaddingSize0_5)
+                        .padding(PaddingSize0_5, PaddingSizeNone)
                         .align(Alignment.CenterHorizontally),
                     text = "@${account.username}",
                 )
 
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(PaddingSizeNone),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ProfileSecondaryButton(
+                        onMute,
+                        account.muting == true,
+                        R.drawable.mute,
+                        onText = "Unmute",
+                        offText = "Mute",
+                    )
 
+                    ProfileSecondaryButton(
+                        onBlock,
+                        account.blocking == true,
+                        R.drawable.block,
+                        onText = "Unblock",
+                        offText = "Block",
+                    )
+                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(PaddingSize2),
+                        .padding(PaddingSize2, PaddingSizeNone),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Boosted(
@@ -457,7 +569,6 @@ private fun profile(
                 )
                 val scroll = rememberScrollState(0)
 
-
                 Text(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.secondary,
@@ -471,5 +582,48 @@ private fun profile(
             }
 
         }
+    }
+}
+
+@Composable
+private fun ProfileSecondaryButton(
+    onClick: (Boolean) -> Unit,
+    on: Boolean,
+    @DrawableRes icon: Int,
+    onText: String,
+    offText: String,
+) {
+    var clicked by remember { mutableStateOf(on) }
+    val scope = rememberCoroutineScope()
+
+    TextButton(
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+        contentPadding = PaddingValues(PaddingSize1, PaddingSizeNone),
+        onClick = {
+            val oldClicked = clicked
+            clicked = !clicked
+            scope.launch {
+                onClick(!oldClicked)
+            }
+        }
+    ) {
+        Image(
+            modifier = Modifier
+                .padding(PaddingSize1, PaddingSizeNone)
+                .size(PaddingSize2),
+            painter = painterResource(icon),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(
+                if (clicked) MaterialTheme.colorScheme.scrim else MaterialTheme.colorScheme.secondary
+            ),
+        )
+        Text(
+            modifier = Modifier
+                .padding(PaddingSize0_5, PaddingSizeNone),
+            color = if (clicked) MaterialTheme.colorScheme.scrim else MaterialTheme.colorScheme.secondary,
+            fontSize = if (clicked) 10.sp else 8.sp,
+            text = AnnotatedString(if (clicked) onText else offText),
+            maxLines = 1,
+        )
     }
 }

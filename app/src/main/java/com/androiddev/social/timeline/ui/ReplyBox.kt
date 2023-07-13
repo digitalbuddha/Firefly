@@ -55,6 +55,7 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.LocalImageLoader
 import com.androiddev.social.theme.*
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
@@ -83,8 +84,10 @@ enum class EmojiStickerSelector {
 @Composable
 fun UserInput(
     status: UI?,
+    account: Account?,
     connection: NestedScrollConnection? = null,
     modifier: Modifier = Modifier,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     onMessageSent: (String, String, Set<Uri>) -> Unit,
     resetScroll: () -> Unit = {},
     defaultVisiblity: String = "Public",
@@ -160,12 +163,14 @@ fun UserInput(
                 showReplies = showReplies
             )
             SelectorExpanded(
+                account = account,
                 currentSelector = currentInputSelector,
                 onCloseRequested = dismissKeyboard,
                 onClearSelector = { currentInputSelector = InputSelector.NONE },
                 onTextAdded = { textState = textState.addText(it) },
                 connection = connection,
-                { uris.add(it) },
+                goToBottomSheet = goToBottomSheet,
+                addUri = { uris.add(it) },
                 status = status,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
@@ -224,6 +229,8 @@ private fun TextFieldValue.addText(newString: String): TextFieldValue {
 @Composable
 private fun SelectorExpanded(
     currentSelector: InputSelector,
+    account: Account?,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     onCloseRequested: () -> Unit,
     onClearSelector: () -> Unit,
     onTextAdded: (String) -> Unit,
@@ -234,7 +241,6 @@ private fun SelectorExpanded(
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit
 ) {
-    val currentSelectorLocal = currentSelector
     if (currentSelector == InputSelector.NONE) return
 
     // Request focus to force the TextField to lose it
@@ -249,9 +255,7 @@ private fun SelectorExpanded(
     Surface(tonalElevation = PaddingSize1) {
         when (currentSelector) {
             InputSelector.EMOJI -> EmojiSelector(onTextAdded, focusRequester, connection)
-            InputSelector.REPLIES  ->
-                status?.let { After(status = it, goToConversation = goToConversation,
-                    goToProfile = goToProfile, goToTag=goToTag) }
+            InputSelector.REPLIES  -> {}
             InputSelector.PICTURE -> PhotoPickerResultComposable(addUri) {
                 onClearSelector()
             }

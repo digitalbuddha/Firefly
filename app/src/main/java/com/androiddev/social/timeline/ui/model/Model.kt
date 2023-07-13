@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.parseAsHtml
 import com.androiddev.social.theme.PaddingSize2_5
 import com.androiddev.social.timeline.data.Attachment
+import com.androiddev.social.timeline.data.Card
 import com.androiddev.social.timeline.data.Emoji
 import com.androiddev.social.timeline.data.FeedType
 import com.androiddev.social.timeline.data.Mention
@@ -28,12 +29,15 @@ import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.Tag
 import com.androiddev.social.timeline.ui.AvatarImage
 import com.androiddev.social.ui.util.EmojiText
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 data class UI(
     val imageUrl: String? = null,
     val displayName: String = "FriendlyMike",
     val userName: String = "FriendlyMike@androiddev.social",
     private val content: String = "",
+    val sharingUri: String,
     val replyCount: Int = 0,
     val boostCount: Int = 0,
     val favoriteCount: Int = 0,
@@ -61,13 +65,41 @@ data class UI(
     val accountEmojiText: EmojiText?,
     val originalId: String,
     val bookmarked: Boolean,
-    val attachments: List<Attachment>
+    val attachments: List<Attachment>,
+    val card: CardUI?,
+    val poll: PollUI?,
+    val replyIndention: Int = 0,
 )
 
 enum class ReplyType {
     PARENT,
     CHILD
 }
+
+data class PollUI(
+    val remoteId: String,
+    val expiresAt: String,
+    val expired: Boolean,
+    val multiple: Boolean,
+    val votesCount: Int? = null,
+    val votersCount: Int? = null,
+    val voted: Boolean? = null,
+    val content: String?,
+    val ownVotes: List<Int>? = null,
+    val options: List<PollHashUI>? = null,
+    val emojis: List<Emoji>? = null,
+)
+
+data class PollHashUI(
+    val voteContent: AnnotatedString,
+    val percentage: AnnotatedString,
+)
+
+data class CardUI(
+    val title: AnnotatedString,
+    val description: AnnotatedString,
+    val url: String,
+)
 
 fun String.parseAsMastodonHtml(): Spanned {
     return this.replace("<br> ", "<br>&nbsp;")

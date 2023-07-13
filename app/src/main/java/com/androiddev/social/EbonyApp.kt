@@ -1,12 +1,11 @@
 package com.androiddev.social
 
 
-
-
 import android.app.Application
 import com.androiddev.social.auth.data.AccessTokenRequest
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.ui.UrlHandlerMediator
 import com.squareup.anvil.annotations.ContributesSubcomponent
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi
@@ -18,8 +17,10 @@ import kotlin.reflect.KClass
 
 class FireflyApp : Application() {
     val component by lazy {
-        (DaggerSkeletonComponent.factory().create(this as Application, this) as AppComponent.AppParentComponent).appComponent()
+        (DaggerSkeletonComponent.factory()
+            .create(this as Application, this) as AppComponent.AppParentComponent).appComponent()
     }
+
     override fun onCreate() {
         super.onCreate()
     }
@@ -27,7 +28,7 @@ class FireflyApp : Application() {
 
 @MergeComponent(SkeletonScope::class)
 @SingleIn(SkeletonScope::class)
-interface SkeletonComponent  {
+interface SkeletonComponent {
     @Component.Factory
     interface Factory {
         fun create(
@@ -35,6 +36,8 @@ interface SkeletonComponent  {
             @BindsInstance fireflyApp: FireflyApp,
         ): SkeletonComponent
     }
+
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
 @ContributesSubcomponent(
@@ -42,41 +45,39 @@ interface SkeletonComponent  {
     parentScope = SkeletonScope::class,
 )
 @SingleIn(AppScope::class)
-@OptIn(ExperimentalAnvilApi::class)
-interface AppComponent  {
-    @OptIn(ExperimentalAnvilApi::class)
+interface AppComponent {
     @ContributesTo(SkeletonScope::class)
     interface AppParentComponent {
         fun appComponent(): AppComponent
     }
+
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
-@OptIn(ExperimentalAnvilApi::class)
 @ContributesSubcomponent(
     scope = UserScope::class,
     parentScope = AppScope::class
 )
 @SingleIn(UserScope::class)
-interface UserComponent  {
-    @OptIn(ExperimentalAnvilApi::class)
+interface UserComponent {
     @ContributesSubcomponent.Factory
     interface Factory {
         fun userComponent(
             @BindsInstance accessTokenRequest: AccessTokenRequest
         ): UserComponent
     }
-    fun oauthRepository():OauthRepository
-    fun api():UserApi
-    fun request():AccessTokenRequest
+
+    fun oauthRepository(): OauthRepository
+    fun api(): UserApi
+    fun request(): AccessTokenRequest
+    fun urlHandlerMediator(): UrlHandlerMediator
 }
 
 @ContributesTo(AppScope::class)
 interface UserParentComponent {
-    @OptIn(ExperimentalAnvilApi::class)
     fun createUserComponent(): UserComponent.Factory
 }
 
-@OptIn(ExperimentalAnvilApi::class)
 @ContributesSubcomponent(
     scope = AuthRequiredScope::class,
     parentScope = UserScope::class
@@ -86,8 +87,6 @@ interface AuthRequiredComponent {
 
     @ContributesTo(UserScope::class)
     interface ParentComponent {
-        @OptIn(ExperimentalAnvilApi::class)
-
         fun createAuthRequiredComponent(): AuthRequiredComponent
     }
 }
@@ -142,6 +141,7 @@ abstract class AuthRequiredScope private constructor()
 abstract class AuthOptionalScope private constructor()
 abstract class AuthOptionalScreenScope private constructor()
 abstract class AuthRequiredScreenScope private constructor()
+
 @Scope
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SingleIn(val clazz: KClass<*>)

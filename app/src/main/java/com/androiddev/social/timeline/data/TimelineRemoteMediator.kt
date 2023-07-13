@@ -6,7 +6,9 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.ui.TimelineReplyRearrangerMediator
 import com.squareup.anvil.annotations.ContributesMultibinding
+import kotlinx.coroutines.flow.toCollection
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -14,7 +16,6 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
 abstract class TimelineRemoteMediator : RemoteMediator<Int, StatusDB>() {
-    @OptIn(ExperimentalPagingApi::class)
     abstract override suspend fun load(
         loadType: LoadType, state: PagingState<Int, StatusDB>
     ): MediatorResult
@@ -28,7 +29,8 @@ class LocalTimelineRemoteMediator @Inject constructor(
     private val dao: StatusDao,
     private val database: AppDatabase,
     private val userApi: UserApi,
-    private val oauthRepository: OauthRepository
+    private val oauthRepository: OauthRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
 
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
@@ -52,12 +54,15 @@ class LocalTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
-            val response = userApi.getLocalTimeline(authHeader = " Bearer $token", since = loadKey)
+            val response = userApi.getLocalTimeline(authHeader = oauthRepository.getAuthHeader(), since = loadKey)
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.Local) },
+            )
 
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Local) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -78,7 +83,8 @@ class HomeTimelineRemoteMediator @Inject constructor(
     private val dao: StatusDao,
     private val database: AppDatabase,
     private val userApi: UserApi,
-    private val oauthRepository: OauthRepository
+    private val oauthRepository: OauthRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
@@ -100,11 +106,14 @@ class HomeTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
-            val response = userApi.getHomeTimeline(authHeader = " Bearer $token", since = loadKey)
+            val response = userApi.getHomeTimeline(authHeader = oauthRepository.getAuthHeader(), since = loadKey)
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.Home) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Home) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -127,6 +136,7 @@ class FederatedTimelineRemoteMediator @Inject constructor(
     private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
 
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
@@ -150,15 +160,18 @@ class FederatedTimelineRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response = userApi.getLocalTimeline(
-                authHeader = " Bearer $token",
+                authHeader = oauthRepository.getAuthHeader(),
                 since = loadKey,
                 localOnly = false
             )
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.Federated) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Federated) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -179,7 +192,8 @@ class TrendingRemoteMediator @Inject constructor(
     private val dao: StatusDao,
     private val database: AppDatabase,
     private val userApi: UserApi,
-    private val oauthRepository: OauthRepository
+    private val oauthRepository: OauthRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
 
@@ -202,12 +216,15 @@ class TrendingRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
-                userApi.getTrending(authHeader = " Bearer $token", offset = loadKey.toString())
+                userApi.getTrending(authHeader = oauthRepository.getAuthHeader(), offset = loadKey.toString())
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.Trending) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Trending) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -230,8 +247,7 @@ class UserRemoteMediator @Inject constructor(
     private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
-    private val accountRepository: AccountRepository
-
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
     lateinit var accountId: String
@@ -254,17 +270,20 @@ class UserRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountId,
                     since = null,
                     excludeReplies = true
                 )
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.User) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.User) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -286,8 +305,8 @@ class UserWithMediaRemoteMediator @Inject constructor(
     private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
-    private val accountRepository: AccountRepository
-
+    private val accountRepository: AccountRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
     lateinit var accountId: String
 
@@ -311,17 +330,20 @@ class UserWithMediaRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountRepository.get(accountId).id,
                     onlyMedia = true,
                     since = null
                 )
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.UserWithMedia) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.UserWithMedia) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -343,8 +365,8 @@ class UserWithRepliesRemoteMediator @Inject constructor(
     private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
-    private val accountRepository: AccountRepository
-
+    private val accountRepository: AccountRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) : TimelineRemoteMediator() {
     lateinit var accountId: String
 
@@ -368,17 +390,20 @@ class UserWithRepliesRemoteMediator @Inject constructor(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response =
                 userApi.accountStatuses(
-                    authHeader = " Bearer $token",
+                    authHeader = oauthRepository.getAuthHeader(),
                     accountId = accountRepository.get(accountId).id,
                     since = loadKey,
                     excludeReplies = false
                 )
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.UserWithReplies) },
+            )
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.UserWithReplies) })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(
@@ -397,12 +422,13 @@ class HashtagRemoteMediatorFactory @Inject constructor(
     private val dao: StatusDao,
     private val database: AppDatabase,
     private val userApi: UserApi,
-    private val oauthRepository: OauthRepository
+    private val oauthRepository: OauthRepository,
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
 ) {
 
     @OptIn(ExperimentalPagingApi::class)
     fun from(hashtag: String) =
-        HashtagRemoteMediator(dao, database, userApi, oauthRepository, hashtag)
+        HashtagRemoteMediator(dao, database, userApi, oauthRepository, timelineReplyRearrangerMediator, hashtag)
 }
 
 @ExperimentalPagingApi
@@ -412,7 +438,8 @@ class HashtagRemoteMediator(
     private val database: AppDatabase,
     private val userApi: UserApi,
     private val oauthRepository: OauthRepository,
-    private val hashtag: String
+    private val timelineReplyRearrangerMediator: TimelineReplyRearrangerMediator,
+    private val hashtag: String,
 ) : TimelineRemoteMediator() {
 
     override suspend fun initialize(): InitializeAction = InitializeAction.SKIP_INITIAL_REFRESH
@@ -436,18 +463,19 @@ class HashtagRemoteMediator(
                 }
             }
 
-            val token = oauthRepository.getCurrent()
             val response = userApi.getTagTimeline(
-                authHeader = " Bearer $token",
+                authHeader = oauthRepository.getAuthHeader(),
                 since = loadKey,
                 tag = hashtag
             )
 
+            val statuses = timelineReplyRearrangerMediator.rearrangeTimeline(
+                response.map { it.toStatusDb(FeedType.Hashtag) }.map { it.copy(type = it.type + hashtag) },
+            )
 
+            val collection = statuses.toCollection(mutableListOf())
             database.withTransaction {
-                dao.insertAll(response.map { it.toStatusDb(FeedType.Hashtag) }.map {
-                    it.copy(type = it.type + hashtag)
-                })
+                dao.insertAll(collection)
             }
 
             MediatorResult.Success(

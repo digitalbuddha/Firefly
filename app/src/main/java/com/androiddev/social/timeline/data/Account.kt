@@ -40,10 +40,11 @@ data class Account(
     @SerialName("suspended") val suspended: Boolean? = null,
     @SerialName("mute_expires_at") val muteExpiresAt: String? = null,
 
-    val domain: String?=null,
-    val isFollowed: Boolean=false,
-
-    )
+    val domain: String? = null,
+    val isFollowed: Boolean = false,
+    val muting: Boolean? = null,
+    val blocking: Boolean? = null,
+)
 
 @Serializable
 data class Source(

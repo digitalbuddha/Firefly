@@ -29,6 +29,7 @@ import com.androiddev.social.FireflyApp
 import com.androiddev.social.auth.ui.SignInPresenter
 import com.androiddev.social.search.SearchPresenter
 import com.androiddev.social.theme.*
+import com.androiddev.social.timeline.data.ProfilePresenter
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -56,6 +57,7 @@ interface AuthRequiredInjector {
     fun submitPresenter(): SubmitPresenter
     fun followerPresenter(): FollowerPresenter
     fun conversationPresenter(): Provider<ConversationPresenter>
+    fun urlPresenter(): Provider<UriPresenter>
 }
 
 @OptIn(ExperimentalMaterialNavigationApi::class)

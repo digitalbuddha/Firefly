@@ -12,6 +12,7 @@ data class StatusDB(
     val isDirectMessage: Boolean,
     val remoteId: String,
     val originalId: String,
+    val dbOrder: String,
     val uri: String,
     val createdAt: Long,
     val content: String,
@@ -39,16 +40,18 @@ data class StatusDB(
     val inReplyTo: String?,
     val boostedById: String?,
     val bookmarked: Boolean,
-    val attachments: List<Attachment>
-//    var uid: Int = 0,
+    val attachments: List<Attachment>,
+    val card: Card?,
+    val poll: Poll?,
+    val replyIndention: Int = 0,
 )
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM status WHERE type = :type ORDER BY originalId Desc")
+    @Query("SELECT * FROM status WHERE type = :type ORDER BY dbOrder Desc")
     fun getTimeline(type: String): PagingSource<Int, StatusDB>
 
-    @Query("SELECT * FROM status WHERE type = :type AND accountId = :accountId ORDER BY remoteId Desc")
+    @Query("SELECT * FROM status WHERE type = :type AND accountId = :accountId ORDER BY dbOrder Desc")
     fun getUserTimeline(type: String, accountId: String): PagingSource<Int, StatusDB>
 
 
@@ -75,15 +78,145 @@ interface StatusDao {
         boostedAvatar: String
     )
 
+    @Query(
+        """UPDATE status
+            SET
+              type= :type,
+              isDirectMessage= :isDirectMessage,
+              uri= :uri,
+              createdAt= :createdAt,
+              content= :content,
+              accountId= :accountId,
+              visibility= :visibility,
+              spoilerText= :spoilerText,
+              avatarUrl= :avatarUrl,
+              imageUrl= :imageUrl,
+              accountAddress= :accountAddress,
+              applicationName= :applicationName,
+              userName= :userName,
+              displayName= :displayName,
+              repliesCount= :repliesCount,
+              favouritesCount= :favouritesCount,
+              reblogsCount= :reblogsCount,
+              emoji= :emoji,
+              accountEmojis= :accountEmojis,
+              boostedEmojis= :boostedEmojis,
+              mentions= :mentions,
+              tags= :tags,
+              boostedBy= :boostedBy,
+              boostedAvatar= :boostedAvatar,
+              favorited= :favorited,
+              boosted= :boosted,
+              inReplyTo= :inReplyTo,
+              boostedById= :boostedById,
+              bookmarked= :bookmarked,
+              attachments= :attachments,
+              card= :card,
+              poll= :poll
+        WHERE  (originalId = :statusId OR remoteId = :statusId)"""
+    )
+    fun updateStatus(
+        statusId: String,
+        type: String,
+        isDirectMessage: Boolean,
+        uri: String,
+        createdAt: Long,
+        content: String,
+        accountId: String?,
+        visibility: String,
+        spoilerText: String,
+        avatarUrl: String,
+        imageUrl: String?,
+        accountAddress: String,
+        applicationName: String,
+        userName: String,
+        displayName: String,
+        repliesCount: Int?,
+        favouritesCount: Int?,
+        reblogsCount: Int?,
+        emoji: List<Emoji>,
+        accountEmojis: List<Emoji>,
+        boostedEmojis: List<Emoji>,
+        mentions: List<Mention>,
+        tags: List<Tag>,
+        boostedBy: String?,
+        boostedAvatar: String?,
+        favorited: Boolean,
+        boosted: Boolean,
+        inReplyTo: String?,
+        boostedById: String?,
+        bookmarked: Boolean,
+        attachments: List<Attachment>,
+        card: Card?,
+        poll: Poll?,
+    )
+
+    @Query(
+        """UPDATE status
+             SET poll = :poll
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+           """
+    )
+    fun updatePoll(
+        statusId: String,
+        poll: Poll,
+    )
+
     @Query("UPDATE status SET repliesCount=:replyCount WHERE remoteId = :statusId")
     fun update(replyCount: Int, statusId: String)
 
-    @Query("DELETE FROM status")
-    fun delete()
+    @Query(
+        """DELETE FROM status
+           WHERE  (originalId = :statusId OR remoteId = :statusId)
+        """
+    )
+    fun delete(statusId: String)
 }
 
+/**
+ * There are some columns in the status table that we don't want to be sync with the server side,
+ * such as [StatusDB.replyIndention], or [StatusDB.dbOrder], which are calculated in the client.
+ * Therefore, we have to explicitly mention what columns we want to be updated.
+ */
+fun StatusDao.updateOldStatus(newStatus: StatusDB) = with(newStatus) {
+    updateStatus(
+        statusId = remoteId,
+        type = type,
+        isDirectMessage = isDirectMessage,
+        uri = uri,
+        createdAt = createdAt,
+        content = content,
+        accountId = accountId,
+        visibility = visibility,
+        spoilerText = spoilerText,
+        avatarUrl = avatarUrl,
+        imageUrl = imageUrl,
+        accountAddress = accountAddress,
+        applicationName = applicationName,
+        userName = userName,
+        displayName = displayName,
+        repliesCount = repliesCount,
+        favouritesCount = favouritesCount,
+        reblogsCount = reblogsCount,
+        emoji = emoji,
+        accountEmojis = accountEmojis,
+        boostedEmojis = boostedEmojis,
+        mentions = mentions,
+        tags = tags,
+        boostedBy = boostedBy,
+        boostedAvatar = boostedAvatar,
+        favorited = favorited,
+        boosted = boosted,
+        inReplyTo = inReplyTo,
+        boostedById = boostedById,
+        bookmarked = bookmarked,
+        attachments = attachments,
+        card = card,
+        poll = poll,
+    )
+}
 
-@Database(entities = [StatusDB::class], version = 16)
+@Database(entities = [StatusDB::class], version = 21)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statusDao(): StatusDao
@@ -121,7 +254,6 @@ class Converters {
         return Json.encodeToString(ListSerializer(Tag.serializer()), tag)
     }
 
-
     @TypeConverter
     fun toMention(value: String): List<Mention> {
         return Json.decodeFromString(ListSerializer(Mention.serializer()), value)
@@ -130,5 +262,25 @@ class Converters {
     @TypeConverter
     fun fromMention(mention: List<Mention>): String {
         return Json.encodeToString(ListSerializer(Mention.serializer()), mention)
+    }
+
+    @TypeConverter
+    fun toPoll(value: String?): Poll? {
+        return value?.let { p -> Json.decodeFromString(Poll.serializer(), p) }
+    }
+
+    @TypeConverter
+    fun fromPoll(poll: Poll?): String? {
+        return poll?.let { p -> Json.encodeToString(Poll.serializer(), p) }
+    }
+
+    @TypeConverter
+    fun toCard(value: String?): Card? {
+        return value?.let { c -> Json.decodeFromString(Card.serializer(), c) }
+    }
+
+    @TypeConverter
+    fun fromCard(card: Card?): String? {
+        return card?.let { c -> Json.encodeToString(Card.serializer(), c) }
     }
 }

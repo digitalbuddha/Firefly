@@ -2,6 +2,7 @@
 
 package com.androiddev.social.timeline.ui
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -33,6 +34,7 @@ import com.androiddev.social.theme.PaddingSize0_5
 import com.androiddev.social.theme.PaddingSize1
 import com.androiddev.social.theme.PaddingSize3
 import com.androiddev.social.theme.ThickSm
+import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.launch
 import social.androiddev.firefly.R
@@ -40,21 +42,18 @@ import social.androiddev.firefly.R
 @Composable
 fun ButtonBar(
     status: UI?,
+    account: Account?,
     replyCount: Int? = null,
     boostCount: Int? = null,
     favoriteCount: Int? = null,
-    favorited: Boolean?=false,
-    boosted: Boolean?=false,
-    hasParent: Boolean?=false,
-    showInlineReplies: Boolean?=false,
+    favorited: Boolean? = false,
+    boosted: Boolean? = false,
+    hasParent: Boolean? = false,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
     onBoost: () -> Unit,
     onFavorite: () -> Unit,
     onReply: () -> Unit,
-    showReply: Boolean?=false,
     onShowReplies: () -> Unit,
-    goToConversation: (UI) -> Unit,
-    goToProfile: (String) -> Unit,
-    goToTag: (String) -> Unit,
     bookmarked: Boolean,
     onBookmark: () -> Unit
 ) {
@@ -130,6 +129,7 @@ fun ButtonBar(
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                     contentPadding = PaddingValues(PaddingSize1, 0.dp),
                     onClick = {
+                        onShowReplies()
                     }
                 ) {
                     Image(
@@ -140,10 +140,9 @@ fun ButtonBar(
                     )
                 }
             }
-        }
-        AnimatedVisibility(visible = showReply == true && showInlineReplies == true) {
+
             if (status != null) {
-                After(status = status, goToConversation = goToConversation, goToProfile = goToProfile, goToTag=goToTag)
+                MoreMenu(status, account, goToBottomSheet)
             }
         }
     }
@@ -151,11 +150,44 @@ fun ButtonBar(
 }
 
 @Composable
+private fun MoreMenu(
+    status: UI,
+    account: Account?,
+    goToBottomSheet: suspend (SheetContentState) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    TextButton(
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+        contentPadding = PaddingValues(PaddingSize1, 0.dp),
+        onClick = {
+            coroutineScope.launch {
+                if (status.accountId == account?.id) {
+                    goToBottomSheet(
+                        SheetContentState.OwnedStatusMenu(status)
+                    )
+                } else {
+                    goToBottomSheet(
+                        SheetContentState.StatusMenu(status)
+                    )
+                }
+            }
+        }
+    ) {
+        Image(
+            modifier = Modifier.size(PaddingSize3),
+            painter = painterResource(R.drawable.more_vert),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(Color.Gray)
+        )
+    }
+}
+
+@Composable
 private fun SpringyButton(
     onClick: () -> Unit,
     on: Boolean,
-    onIcon: Int,
-    offIcon: Int,
+    @DrawableRes onIcon: Int,
+    @DrawableRes offIcon: Int,
     count: Int?,
     iconSize:Dp = PaddingSize3
 ) {
@@ -163,17 +195,17 @@ private fun SpringyButton(
     var clicked by remember { mutableStateOf(on) }
     var localCount by remember { mutableStateOf(count) }
 
-    val imageSize = 1
     val scope = rememberCoroutineScope()
 
     TextButton(
         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
         contentPadding = PaddingValues(PaddingSize1, 0.dp),
         onClick = {
+            localCount?.let {
+                localCount = it + if (clicked) { if (it > 0) -1 else 0 } else 1
+            }
             clicked = !clicked
             scope.launch {
-//                delay(500)
-//                if (count != null && count + 1 >= localCount!!) localCount = count + 1
                 onClick()
             }
         }

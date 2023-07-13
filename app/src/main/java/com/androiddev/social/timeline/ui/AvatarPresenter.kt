@@ -42,11 +42,10 @@ class RealAvatarPresenter @Inject constructor(
 ) :
     AvatarPresenter() {
 
-    override suspend fun eventHandler(event: AvatarEvent, coroutineScope: CoroutineScope) = withContext(
-        Dispatchers.IO) {
+    override suspend fun eventHandler(event: AvatarEvent, scope: CoroutineScope) = withContext(Dispatchers.IO) {
         when (event) {
             is Load -> {
-                val touch = oauthRepository.getCurrent()//touch it to make sure we save it
+                val touch = oauthRepository.getCurrent() // touch it to make sure we save it
                 val accountTokens: List<AccessTokenRequest> = application.baseContext.getAccounts()
                 val accounts = accountTokens.map { accountTokenRequest ->
                     val account: Result<Account?> =
@@ -55,9 +54,7 @@ class RealAvatarPresenter @Inject constructor(
                                 userManager.userComponentFor(accessTokenRequest = accountTokenRequest)
                             val credentials = userComponent.api()
                                 .accountVerifyCredentials(
-                                    " Bearer ${
-                                        userComponent.oauthRepository().getCurrent()
-                                    }"
+                                    userComponent.oauthRepository().getAuthHeader()
                                 )
                             credentials
                         }

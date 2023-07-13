@@ -4,6 +4,7 @@ import com.androiddev.social.SingleIn
 import com.androiddev.social.UserScope
 import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
+import com.androiddev.social.timeline.ui.ConversationReplyRearrangerMediator
 import com.squareup.anvil.annotations.ContributesBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,6 +12,7 @@ import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.get
+import java.net.URLDecoder
 import javax.inject.Inject
 
 interface StatusRepository {
@@ -22,11 +24,11 @@ interface StatusRepository {
 class RealStatusRepository @Inject constructor(
     val statusDao: StatusDao,
     val api: UserApi,
-    val oauthRepository: OauthRepository
+    val oauthRepository: OauthRepository,
 ) : StatusRepository {
+
     private val fetcher = Fetcher.of { status: FeedStoreRequest ->
-        val token = " Bearer ${oauthRepository.getCurrent()}"
-        api.getStatus(token, status.remoteId)
+        api.getStatus(oauthRepository.getAuthHeader(), status.remoteId)
     }
 
     private val sourceOfTruth = SourceOfTruth.of<FeedStoreRequest, Status, StatusDB>(
@@ -45,9 +47,11 @@ class RealStatusRepository @Inject constructor(
     ).build()
 
     override suspend fun get(feedStoreRequest: FeedStoreRequest): StatusDB = withContext(Dispatchers.IO) {
-        val get = store.get(feedStoreRequest)
-         get
+        store.get(feedStoreRequest)
     }
 }
 
-data class FeedStoreRequest(val remoteId: String, val feedType: FeedType = FeedType.Home)
+data class FeedStoreRequest(
+    val remoteId: String,
+    val feedType: FeedType = FeedType.Home,
+)
