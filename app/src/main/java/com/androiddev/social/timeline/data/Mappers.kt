@@ -14,7 +14,6 @@ import android.view.View
 import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.core.net.toUri
 import com.androiddev.social.timeline.ui.model.CardUI
 import com.androiddev.social.timeline.ui.model.PollHashUI
@@ -92,7 +91,7 @@ fun StatusDB.mapStatus(colorScheme: ColorScheme): UI {
             }
 
             years > 1 -> {
-                "$years year ago"
+                "$years years ago"
             }
 
             months == 1 -> {

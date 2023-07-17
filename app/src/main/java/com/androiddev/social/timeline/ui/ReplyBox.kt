@@ -1,5 +1,7 @@
 package com.androiddev.social.timeline.ui
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,13 +13,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -36,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -44,11 +51,14 @@ import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -58,14 +68,23 @@ import com.androiddev.social.theme.*
 import com.androiddev.social.timeline.data.Account
 import com.androiddev.social.timeline.ui.model.UI
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import social.androiddev.firefly.R
+
+
 enum class InputSelector {
     NONE,
     MAP,
     REPLIES,
     EMOJI,
     PHONE,
-    PICTURE
+    PICTURE,
+    POLL,
 }
 
 enum class EmojiStickerSelector {
@@ -73,11 +92,17 @@ enum class EmojiStickerSelector {
     STICKER
 }
 
-//@Preview
-//@Composable
-//fun UserInputPreview() {
-//    UserInput(onMessageSent = {})
-//}
+data class PostNewMessageUI(
+    val content: String,
+    val visibility: String,
+    val uris: Set<Uri>,
+    val replyStatusId: String? = null,
+    val replyCount: Int = 0,
+    val pollOptions: List<String>? = null,
+    val pollExpiresIn: Int = 60 * 60 * 24 * 7, // a week
+    val pollMultipleChoices: Boolean = false,
+    val pollHideTotals: Boolean = false,
+)
 
 @ExperimentalMaterialApi
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
@@ -88,7 +113,7 @@ fun UserInput(
     connection: NestedScrollConnection? = null,
     modifier: Modifier = Modifier,
     goToBottomSheet: suspend (SheetContentState) -> Unit,
-    onMessageSent: (String, String, Set<Uri>) -> Unit,
+    onMessageSent: (PostNewMessageUI) -> Unit,
     resetScroll: () -> Unit = {},
     defaultVisiblity: String = "Public",
     participants: String = " ",
@@ -117,6 +142,12 @@ fun UserInput(
     ) {
         val focusRequester = remember { FocusRequester() }
         val uris = remember { mutableStateListOf<Uri>() }
+        val pollOptions = remember { mutableStateListOf<String>() }
+        val multiOptionPoll = rememberSaveable { mutableStateOf(false) }
+        val hideTotalsInPoll = rememberSaveable { mutableStateOf(false) }
+        val expireInPoll = remember { mutableStateOf((60 * 60 * 24 * 7).fromExpireInToLocalDatetime()) }  // a week
+        val enableAddUris = rememberSaveable { mutableStateOf(true) }
+        val enableAddPoll = rememberSaveable { mutableStateOf(true) }
 
         Column(
             modifier = modifier
@@ -150,17 +181,29 @@ fun UserInput(
                 sendMessageEnabled = textState.text.isNotBlank(),
 
                 onMessageSent = {
-                    onMessageSent(textState.text, visibility, uris.toSet())
+                    onMessageSent(
+                        PostNewMessageUI(
+                            content = textState.text,
+                            visibility = visibility,
+                            uris = uris.toSet(),
+                            pollOptions = pollOptions.toList(),
+                            pollMultipleChoices = multiOptionPoll.value,
+                            pollHideTotals = hideTotalsInPoll.value,
+                            pollExpiresIn = expireInPoll.value.toInstant(TimeZone.currentSystemDefault()).toExpireIn(),
+                        )
+                    )
                     // Reset text field and close keyboard
                     textState = TextFieldValue()
+                    pollOptions.clear()
+                    multiOptionPoll.value = false
+                    hideTotalsInPoll.value = false
+                    expireInPoll.value = (60 * 60 * 24 * 7).fromExpireInToLocalDatetime() // a week
                     // Move scroll to bottom
                     resetScroll()
                     dismissKeyboard()
                     keyboardController?.hide()
                 },
                 currentInputSelector = currentInputSelector,
-                status = status,
-                showReplies = showReplies
             )
             SelectorExpanded(
                 account = account,
@@ -170,7 +213,16 @@ fun UserInput(
                 onTextAdded = { textState = textState.addText(it) },
                 connection = connection,
                 goToBottomSheet = goToBottomSheet,
-                addUri = { uris.add(it) },
+                addUri = {
+                    uris.add(it)
+                    enableAddUris.value = true
+                    enableAddPoll.value = false
+                },
+                pollOptionAdded = {
+                    pollOptions.add(it)
+                    enableAddUris.value = false
+                    enableAddPoll.value = true
+                },
                 status = status,
                 goToConversation = goToConversation,
                 goToProfile = goToProfile,
@@ -193,7 +245,13 @@ fun UserInput(
                             imageLoader = LocalImageLoader.current,
                             modifier = modifier
                                 .padding(PaddingSize0_5)
-                                .clickable { uris.remove(it) }
+                                .clickable {
+                                    uris.remove(it)
+                                    if (uris.isEmpty()) {
+                                        enableAddUris.value = true
+                                        enableAddPoll.value = true
+                                    }
+                                }
                                 .size(80.dp),
                             transform = AsyncImagePainter.DefaultTransform,
                             onState = { },
@@ -204,9 +262,108 @@ fun UserInput(
                             filterQuality = DrawScope.DefaultFilterQuality
                         )
                     }
-
                 }
             }
+            Column(
+                verticalArrangement = Arrangement.Top,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colorScheme.surface)
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        PaddingSize0_5
+                    )
+            ) {
+                if (pollOptions.isNotEmpty()) {
+                    PollExpireAt(
+                        expireAt = expireInPoll.value,
+                        onClick = {
+                            expireInPoll.value = it
+                        }
+                    )
+                    PollProperty(
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = colorScheme.onSurface,
+                            lineHeight = 18.sp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        option = "Multiple choice poll?",
+                        selected = multiOptionPoll.value,
+                        onClick = {
+                            multiOptionPoll.value = !multiOptionPoll.value
+                        }
+                    )
+                    PollProperty(
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = colorScheme.onSurface,
+                            lineHeight = 18.sp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        option = "Hide vote counts until the poll ends?",
+                        selected = hideTotalsInPoll.value,
+                        onClick = {
+                            hideTotalsInPoll.value = !hideTotalsInPoll.value
+                        }
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = PaddingSize2),
+                        text = "Added options:",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = colorScheme.onSurface,
+                        )
+                    )
+                }
+
+                pollOptions.forEach { option ->
+                    PollOption(modifier, option, pollOptions)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PollOption(
+    modifier: Modifier,
+    option: String,
+    pollOptions: SnapshotStateList<String>
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        ClickableText(
+            text = buildAnnotatedString { append(option) },
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .weight(1f)
+                .padding(horizontal = PaddingSize3, vertical = PaddingSize1),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = colorScheme.onSurface,
+                lineHeight = 16.sp
+            ),
+            onClick = {
+                pollOptions.remove(option)
+            },
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+        IconButton(
+            modifier = Modifier
+                .padding(horizontal = PaddingSize1)
+                .align(Alignment.CenterVertically),
+            onClick = {
+                pollOptions.remove(option)
+            }
+        ) {
+            Icon(
+                tint = colorScheme.error,
+                imageVector = Icons.Filled.Close,
+                contentDescription = "delete"
+            )
         }
     }
 }
@@ -236,6 +393,7 @@ private fun SelectorExpanded(
     onTextAdded: (String) -> Unit,
     connection: NestedScrollConnection?,
     addUri: (Uri) -> Unit = {},
+    pollOptionAdded: (String) -> Unit,
     status: UI?,
     goToConversation: (UI) -> Unit = {},
     goToProfile: (String) -> Unit,
@@ -247,7 +405,7 @@ private fun SelectorExpanded(
     val focusRequester = FocusRequester()
     // If the selector is shown, always request focus to trigger a TextField.onFocusChange.
     SideEffect {
-        if (currentSelector == InputSelector.EMOJI) {
+        if (currentSelector == InputSelector.EMOJI || currentSelector == InputSelector.POLL) {
             focusRequester.requestFocus()
         }
     }
@@ -259,6 +417,7 @@ private fun SelectorExpanded(
             InputSelector.PICTURE -> PhotoPickerResultComposable(addUri) {
                 onClearSelector()
             }
+            InputSelector.POLL -> { PollCreator(focusRequester, pollOptionAdded) }
 //            InputSelector.MAP -> FunctionalityNotAvailablePanel()
 //            InputSelector.PHONE -> FunctionalityNotAvailablePanel()
             else -> {
@@ -315,6 +474,49 @@ fun PhotoPickerResultComposable(addUri: (Uri) -> Unit, clearFocus: () -> Unit) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PollCreator(
+    focusRequester: FocusRequester,
+    pollOptionAdded: (String) -> Unit,
+) {
+    var option: TextFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+
+    TextField(
+        value = option,
+        onValueChange = {
+            option = it
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(
+                horizontal = PaddingSize1,
+                vertical = PaddingSize2
+            )
+            .focusRequester(focusRequester),
+        label = {
+            Text("Type an option for the poll, then make it done from keyboard.")
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Done,
+            capitalization = KeyboardCapitalization.Sentences
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                if (option.text.isNotBlank()) {
+                    pollOptionAdded(option.text)
+                    option = TextFieldValue("")
+                }
+            }
+        ),
+        maxLines = 1,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
+    )
+
+}
+
 @Composable
 private fun UserInputSelector(
     onSelectorChange: (InputSelector) -> Unit,
@@ -322,8 +524,6 @@ private fun UserInputSelector(
     onMessageSent: () -> Unit,
     currentInputSelector: InputSelector,
     modifier: Modifier = Modifier,
-    status: UI?,
-    showReplies: Boolean
 ) {
     Row(
         modifier = modifier
@@ -344,6 +544,13 @@ private fun UserInputSelector(
             selected = currentInputSelector == InputSelector.PICTURE,
             description = "Photo"
         )
+
+        InputSelectorButton(
+            onClick = { onSelectorChange(InputSelector.POLL) },
+            icon = ImageVector.vectorResource(R.drawable.vote),
+            selected = currentInputSelector == InputSelector.POLL,
+            description = "Poll"
+        )
 //        AnimatedVisibility(visible = showReplies) {
 //            InputSelectorButton(
 //                onClick = { onSelectorChange(InputSelector.REPLIES) },
@@ -357,7 +564,7 @@ private fun UserInputSelector(
         val border = if (!sendMessageEnabled) {
             BorderStroke(
                 width = ThickSm,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                color = colorScheme.onSurface.copy(alpha = 0.3f)
             )
         } else {
             null
@@ -610,10 +817,10 @@ fun ExtendedSelectorInnerButton(
     modifier: Modifier = Modifier
 ) {
     val colors = ButtonDefaults.buttonColors(
-        containerColor = if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        containerColor = if (selected) colorScheme.onSurface.copy(alpha = 0.08f)
         else Color.Transparent,
         disabledContainerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+        contentColor = colorScheme.onSurface,
 //        disabledContentColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.74f)
     )
     TextButton(
@@ -631,6 +838,148 @@ fun ExtendedSelectorInnerButton(
     }
 }
 
+private fun Int.fromExpireInToLocalDatetime(): LocalDateTime {
+    val secondsFromNow: Int = this
+    return Instant.fromEpochMilliseconds(
+        Clock.System.now().toEpochMilliseconds() + 1000 * secondsFromNow
+    ).toLocalDateTime(TimeZone.currentSystemDefault())
+}
+
+private fun Instant.toExpireIn(): Int {
+    val expirationFromNow = toEpochMilliseconds() - Clock.System.now().toEpochMilliseconds()
+    return (expirationFromNow / 1000f).toInt()
+}
+
+@Composable
+private fun PollExpireAt(
+    expireAt: LocalDateTime,
+    onClick: (LocalDateTime) -> Unit,
+) {
+    val datetime = remember { mutableStateOf(expireAt) }
+
+    val showTimePicker = showTimePicker(
+        initHour = expireAt.hour,
+        initMinute = expireAt.minute,
+        onSelect = { hour, minute ->
+            datetime.value = LocalDateTime(
+                year = datetime.value.year,
+                month = datetime.value.month,
+                dayOfMonth = datetime.value.dayOfMonth,
+                hour = hour,
+                minute = minute
+            )
+            onClick(datetime.value)
+        }
+    )
+    val showDatePicker = showDatePicker(
+        initYear = expireAt.year,
+        initMonth = expireAt.monthNumber,
+        initDayOfMonth = expireAt.dayOfMonth,
+        onSelect = { year, month, dayOfMonth ->
+            datetime.value = LocalDateTime(
+                year = year,
+                monthNumber = month,
+                dayOfMonth = dayOfMonth,
+                hour = expireAt.hour,
+                minute = expireAt.minute
+            )
+            showTimePicker.invoke()
+        }
+    )
+
+    ClickableText(
+        text = buildAnnotatedString { append("Expire at(click to change): ${datetime.value.format()}") },
+
+        modifier = Modifier
+            .padding(PaddingSize2),
+        style = MaterialTheme.typography.titleSmall.copy(
+            color = colorScheme.onSurface,
+        ),
+        onClick = {
+                  showDatePicker.invoke()
+        },
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+private fun LocalDateTime.format(): String {
+    return "$year-$monthNumber-$dayOfMonth $hour:$minute:$second"
+}
+
+@Composable
+private fun showDatePicker(
+    initYear: Int,
+    initMonth: Int,
+    initDayOfMonth: Int,
+    onSelect: (year: Int, month: Int, dayOfMonth: Int) -> Unit
+): () -> Unit {
+    val context = LocalContext.current
+    val datePickerDialog = DatePickerDialog(
+        context, { _, year, month, dayOfMonth ->
+            onSelect(year, month, dayOfMonth)
+        }, initYear, initMonth, initDayOfMonth
+    )
+    return {
+        datePickerDialog.show()
+    }
+}
+
+@Composable
+private fun showTimePicker(
+    initHour: Int,
+    initMinute: Int,
+    onSelect: (hour: Int, minute: Int) -> Unit
+): () -> Unit {
+    val context = LocalContext.current
+    val timePickerDialog = TimePickerDialog(
+        context,
+        {_, hour : Int, minute: Int ->
+            onSelect(hour, minute)
+        }, initHour, initMinute, false
+    )
+    return {
+        timePickerDialog.show()
+    }
+}
+
+@Composable
+private fun PollProperty(
+    modifier: Modifier,
+    style: TextStyle,
+    option: String,
+    selected: Boolean,
+    onClick: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        Checkbox(
+            checked = selected,
+            modifier = Modifier
+                .padding(horizontal = PaddingSize1)
+                .align(Alignment.CenterVertically),
+            onCheckedChange = {
+                onClick(selected)
+            }
+        )
+
+        ClickableText(
+            text = buildAnnotatedString { append(option) },
+            modifier = Modifier
+                .padding(PaddingSize1)
+                .weight(1f)
+                .alignByBaseline(),
+            style = style,
+            onClick = {
+                onClick(selected)
+            },
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
 @Composable
 fun EmojiTable(
     onTextAdded: (String) -> Unit,

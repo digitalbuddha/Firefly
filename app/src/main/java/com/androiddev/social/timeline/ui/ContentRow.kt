@@ -97,7 +97,7 @@ fun TimelineCard(
     ui: UI?,
     mainConversationStatusId: String? = null,
     account: Account?,
-    replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
+    replyToStatus: (PostNewMessageUI) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     goToConversation: (UI) -> Unit,
@@ -283,14 +283,13 @@ fun TimelineCard(
                                 account = account,
                                 connection = nestedScrollConnection,
                                 goToBottomSheet = goToBottomSheet,
-                                onMessageSent = { it, visibility, uris ->
-                                    ui?.let { it1 ->
+                                onMessageSent = {
+                                    ui?.let { ui ->
                                         replyToStatus(
-                                            it,
-                                            visibility,
-                                            it1.remoteId,
-                                            ui.replyCount,
-                                            uris
+                                            it.copy(
+                                                replyStatusId = ui.remoteId,
+                                                replyCount = ui.replyCount,
+                                            )
                                         )
                                     }
                                     showReply = false
@@ -572,7 +571,7 @@ fun ClickableText(
 }
 
 @Composable
-fun PollVoter(
+private fun PollVoter(
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
     poll: PollUI,
@@ -612,7 +611,7 @@ fun PollVoter(
 }
 
 @Composable
-fun MultipleChoicePollVoter(
+private fun MultipleChoicePollVoter(
     style: TextStyle,
     modifier: Modifier,
     content: String?,
@@ -697,7 +696,7 @@ fun MultipleChoicePollVoter(
 }
 
 @Composable
-fun SingleChoicePollVoter(
+private fun SingleChoicePollVoter(
     style: TextStyle,
     modifier: Modifier,
     content: String?,
@@ -740,7 +739,7 @@ fun SingleChoicePollVoter(
 }
 
 @Composable
-fun MultiChoicePollOptionVoter(
+private fun MultiChoicePollOptionVoter(
     modifier: Modifier,
     style: TextStyle,
     option: PollHashUI,
@@ -755,8 +754,8 @@ fun MultiChoicePollOptionVoter(
         Checkbox(
             checked = selected,
             modifier = Modifier
-                .padding(PaddingSize1)
-                .alignByBaseline(),
+                .padding(horizontal = PaddingSize1)
+                .align(Alignment.CenterVertically),
             enabled = !disabled,
             onCheckedChange = {
                 onClick(selected)
@@ -793,7 +792,7 @@ fun MultiChoicePollOptionVoter(
 }
 
 @Composable
-fun SingleChoicePollOptionVoter(
+private fun SingleChoicePollOptionVoter(
     modifier: Modifier,
     style: TextStyle,
     option: PollHashUI,
@@ -808,8 +807,8 @@ fun SingleChoicePollOptionVoter(
         RadioButton(
             selected = selected,
             modifier = Modifier
-                .padding(PaddingSize0_5)
-                .alignByBaseline(),
+                .padding(horizontal = PaddingSize1)
+                .align(Alignment.CenterVertically),
             enabled = !disabled,
             onClick = {
                 onClick()

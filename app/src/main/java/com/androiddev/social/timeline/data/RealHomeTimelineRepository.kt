@@ -39,5 +39,25 @@ data class NewStatus(
 //    val sensitive: Boolean,
     @SerialName("media_ids") val mediaIds: List<String>?,
 //    @SerialName("scheduled_at") val scheduledAt: String?,
+    val poll: NewPoll? = null,
+)
 
+@Serializable
+data class NewPoll(
+    /**
+     * Possible answers to the poll. If provided, [NewStatus.mediaIds] cannot be used, and [expiresIn] must be provided.
+     */
+    val options: List<String> = emptyList(),
+    /**
+     * Duration that the poll should be open, in seconds. If provided, [NewStatus.mediaIds] cannot be used, and [options] must be provided.
+     */
+    @SerialName("expires_in") val expiresIn: Int,
+    /**
+     * Allow multiple choices? Defaults to false.
+     */
+    val multiple: Boolean = false,
+    /**
+     * Hide vote counts until the poll ends? Defaults to false.
+     */
+    @SerialName("hide_totals") val hideTotals: Boolean = false,
 )

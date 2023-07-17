@@ -95,7 +95,9 @@ fun NotificationsScreen(
                 onDelete = { statusId->
                     submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
                 },
-                onMessageSent = { _, _, _ -> },
+                onMessageSent = { newMessage ->
+                    submitPresenter.handle(newMessage.toSubmitPostMessage())
+                },
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = {},

@@ -1,6 +1,5 @@
 package com.androiddev.social.timeline.ui
 
-import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +72,7 @@ sealed interface SheetContentState {
 @Composable
 fun BottomSheetContent(
     bottomSheetContentProvider: BottomSheetContentProvider,
-    onMessageSent: (String, String, Set<Uri>) -> Unit,
+    onMessageSent: (PostNewMessageUI) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit,
@@ -217,7 +215,7 @@ private fun BottomSheetMenuButton(
 fun UserInputSheetContent(
     bottomSheetContentProvider: BottomSheetContentProvider,
     state: SheetContentState.UserInput,
-    onMessageSent: (String, String, Set<Uri>) -> Unit,
+    onMessageSent: (PostNewMessageUI) -> Unit,
     goToConversation: (UI) -> Unit,
     goToProfile: (String) -> Unit,
     goToTag: (String) -> Unit

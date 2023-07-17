@@ -114,14 +114,8 @@ fun TimelineScreen(
                     onDelete = { statusId->
                         submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
                     },
-                    onMessageSent = { it, visibility, uris ->
-                        submitPresenter.handle(
-                            SubmitPresenter.PostMessage(
-                                content = it,
-                                visibility = visibility,
-                                uris = uris
-                            )
-                        )
+                    onMessageSent = { newMessage ->
+                        submitPresenter.handle(newMessage.toSubmitPostMessage())
                         scope.launch {
                             bottomSheetContentProvider.hide()
                         }
@@ -520,16 +514,8 @@ private fun timelineTab(
                 goToTag,
                 items,
                 currentAccount = currentAccount,
-                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                    submitEvents.tryEmit(
-                        SubmitPresenter.PostMessage(
-                            content = content,
-                            visibility = visiblity,
-                            replyStatusId = replyToId,
-                            replyCount = replyCount,
-                            uris = uris
-                        )
-                    )
+                replyToStatus = {
+                    submitEvents.tryEmit(it.toSubmitPostMessage())
                 },
                 boostStatus = { statusId, boosted ->
                     submitEvents.tryEmit(
@@ -574,7 +560,7 @@ fun TimelineRows(
     goToTag: (String) -> Unit,
     ui: LazyPagingItems<UI>,
     currentAccount: Account?,
-    replyToStatus: (String, String, String, Int, Set<Uri>) -> Unit,
+    replyToStatus: (PostNewMessageUI) -> Unit,
     boostStatus: (remoteId: String, boosted: Boolean) -> Unit,
     favoriteStatus: (remoteId: String, favourited: Boolean) -> Unit,
     onReplying: (Boolean) -> Unit,
@@ -632,3 +618,15 @@ fun TimelineRows(
         }
     }
 }
+
+fun PostNewMessageUI.toSubmitPostMessage(): SubmitPresenter.PostMessage = SubmitPresenter.PostMessage(
+    content = content,
+    visibility = visibility,
+    replyStatusId = replyStatusId,
+    replyCount = replyCount,
+    uris = uris,
+    pollOptions = pollOptions,
+    pollExpiresIn = pollExpiresIn,
+    pollMultipleChoices = pollMultipleChoices,
+    pollHideTotals = pollHideTotals
+)

@@ -9,7 +9,9 @@ import com.androiddev.social.auth.data.OauthRepository
 import com.androiddev.social.shared.UserApi
 import com.androiddev.social.timeline.data.AccountRepository
 import com.androiddev.social.timeline.data.FeedType
+import com.androiddev.social.timeline.data.NewPoll
 import com.androiddev.social.timeline.data.NewStatus
+import com.androiddev.social.timeline.data.Poll
 import com.androiddev.social.timeline.data.Status
 import com.androiddev.social.timeline.data.StatusDao
 import com.androiddev.social.timeline.data.toStatusDb
@@ -41,9 +43,12 @@ abstract class SubmitPresenter :
         val visibility: String,
         val replyStatusId: String? = null,
         val replyCount: Int = 0,
-        val uris: Set<Uri>
+        val uris: Set<Uri>,
+        val pollOptions: List<String>? = null,
+        val pollExpiresIn: Int,
+        val pollMultipleChoices: Boolean = false,
+        val pollHideTotals: Boolean = false,
     ) : SubmitEvent
-
 
     data class BoostMessage(
         val statusId: String, val feedType: FeedType, val boosted: Boolean,
@@ -128,12 +133,24 @@ class RealSubmitPresenter @Inject constructor(
                         return@map uploadResult.getOrNull()
                     }.filterNotNull().map { it.id }
 
+                    val poll = event.pollOptions?.takeIf {
+                        ids.isEmpty() && it.isNotEmpty()
+                    }?.let { options ->
+                        NewPoll(
+                            options = options,
+                            expiresIn = event.pollExpiresIn,
+                            multiple = event.pollMultipleChoices,
+                            hideTotals = event.pollHideTotals,
+                        )
+                    }
+
                     val result = kotlin.runCatching {
                         val status = NewStatus(
                             mediaIds = ids,
                             status = event.content,
                             visibility = event.visibility.toLowerCase(),
                             replyStatusId = event.replyStatusId,
+                            poll = poll,
                         )
                         api.newStatus(
                             authHeader = oauthRepository.getAuthHeader(),

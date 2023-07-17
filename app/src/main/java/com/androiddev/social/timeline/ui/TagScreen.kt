@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -88,7 +89,9 @@ fun TagScreen(
                 onDelete = { statusId->
                     submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
                 },
-                onMessageSent = { _, _, _ -> },
+                onMessageSent = { newMessage ->
+                    submitPresenter.handle(newMessage.toSubmitPostMessage())
+                },
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = {},
@@ -158,16 +161,8 @@ private fun ScaffoldParent(
                 goToTag,
                 items,
                 currentAccount = homePresenter.model.currentAccount,
-                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                    submitPresenter.handle(
-                        SubmitPresenter.PostMessage(
-                            content = content,
-                            visibility = visiblity,
-                            replyStatusId = replyToId,
-                            replyCount = replyCount,
-                            uris = uris
-                        )
-                    )
+                replyToStatus = {
+                    submitPresenter.handle(it.toSubmitPostMessage())
                 },
                 boostStatus = { statusId, boosted ->
                     submitPresenter.handle(

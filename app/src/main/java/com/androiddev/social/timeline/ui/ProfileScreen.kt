@@ -1,6 +1,7 @@
 package com.androiddev.social.timeline.ui
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -135,7 +136,9 @@ fun ProfileScreen(
                 onDelete = { statusId->
                     submitPresenter.handle(SubmitPresenter.DeleteStatus(statusId))
                 },
-                onMessageSent = { _, _, _ -> },
+                onMessageSent = { newMessage ->
+                    submitPresenter.handle(newMessage.toSubmitPostMessage())
+                },
                 goToProfile = { accountId: String ->
                     navController.navigate("profile/${code}/${accountId}")
                 },
@@ -403,16 +406,8 @@ private fun posts(
 
                     ui = it,
                     currentAccount = currentAccount,
-                    replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                        events.tryEmit(
-                            SubmitPresenter.PostMessage(
-                                content = content,
-                                visibility = visiblity,
-                                replyStatusId = replyToId,
-                                replyCount = replyCount,
-                                uris = uris
-                            )
-                        )
+                    replyToStatus = { newMessage ->
+                        events.tryEmit(newMessage.toSubmitPostMessage())
                     },
                     boostStatus = { statusId, boosted ->
                         events.tryEmit(

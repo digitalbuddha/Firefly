@@ -1,5 +1,6 @@
 package com.androiddev.social.timeline.ui
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -39,16 +40,8 @@ fun card(
                 ui = eagerStatus,
                 mainConversationStatusId = mainConversationStatusId,
                 account = account,
-                replyToStatus = { content, visiblity, replyToId, replyCount, uris ->
-                    events.tryEmit(
-                        SubmitPresenter.PostMessage(
-                            content = content,
-                            visibility = visiblity,
-                            replyStatusId = replyToId,
-                            replyCount = replyCount,
-                            uris = uris
-                        )
-                    )
+                replyToStatus = {
+                    events.tryEmit(it.toSubmitPostMessage())
                     eagerStatus = eagerStatus.copy(replyCount = eagerStatus.replyCount + 1)
                 },
                 boostStatus = { statusId, boosted ->

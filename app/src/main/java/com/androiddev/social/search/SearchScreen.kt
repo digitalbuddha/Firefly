@@ -78,7 +78,7 @@ fun SearchView(
                 bottomSheetContentProvider = bottomSheetContentProvider,
                 onShareStatus = {},
                 onDelete = { statusId -> },
-                onMessageSent = { _, _, _ -> },
+                onMessageSent = {},
                 goToProfile = goToProfile,
                 goToTag = goToTag,
                 goToConversation = goToConversation,
