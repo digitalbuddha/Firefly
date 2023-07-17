@@ -79,9 +79,8 @@ interface StatusDao {
     )
 
     @Query(
-        """UPDATE status
+        """UPDATE OR REPLACE status
             SET
-              type= :type,
               isDirectMessage= :isDirectMessage,
               uri= :uri,
               createdAt= :createdAt,
@@ -113,7 +112,7 @@ interface StatusDao {
               attachments= :attachments,
               card= :card,
               poll= :poll
-        WHERE  (originalId = :statusId OR remoteId = :statusId)"""
+        WHERE  (originalId = :statusId OR remoteId = :statusId) AND type = :type """
     )
     fun updateStatus(
         statusId: String,
