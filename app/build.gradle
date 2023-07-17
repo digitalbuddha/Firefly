@@ -123,10 +123,6 @@ dependencies {
     implementation(libs.androidx.room.paging)
     kapt(libs.androidx.room.compiler)
 
-
-
-
-
     // optional - Paging 3 Integration
     implementation "com.google.accompanist:accompanist-placeholder-material3:0.29.1-alpha"
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha07")

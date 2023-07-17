@@ -45,9 +45,10 @@ class RealAppTokenRepository @Inject constructor(
 data class AppTokenRequest(
     val url: String, val scopes: String, val client_name: String, val redirect_uris: String
 )
+
 @Serializable
 data class AccessTokenRequest(
-    val domain: String?=null,
+    val domain: String? = null,
     val clientId: String,
     val clientSecret: String,
     val redirectUri: String,
