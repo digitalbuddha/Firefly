@@ -115,6 +115,7 @@ fun UserInput(
     goToBottomSheet: suspend (SheetContentState) -> Unit,
     onMessageSent: (PostNewMessageUI) -> Unit,
     resetScroll: () -> Unit = {},
+    isVerticalScrollHandled: Boolean,
     defaultVisiblity: String = "Public",
     participants: String = " ",
     showReplies: Boolean,
@@ -143,11 +144,11 @@ fun UserInput(
         val focusRequester = remember { FocusRequester() }
         val uris = remember { mutableStateListOf<Uri>() }
         val pollOptions = remember { mutableStateListOf<String>() }
-        val multiOptionPoll = rememberSaveable { mutableStateOf(false) }
-        val hideTotalsInPoll = rememberSaveable { mutableStateOf(false) }
+        val multiOptionPoll = remember { mutableStateOf(false) }
+        val hideTotalsInPoll = remember { mutableStateOf(false) }
         val expireInPoll = remember { mutableStateOf((60 * 60 * 24 * 7).fromExpireInToLocalDatetime()) }  // a week
-        val enableAddUris = rememberSaveable { mutableStateOf(true) }
-        val enableAddPoll = rememberSaveable { mutableStateOf(true) }
+        val enableAddUris = remember { mutableStateOf(true) }
+        val enableAddPoll = remember { mutableStateOf(true) }
 
         Column(
             modifier = modifier
@@ -264,15 +265,17 @@ fun UserInput(
                     }
                 }
             }
+            val pollColumnModifier = Modifier
+                .fillMaxWidth()
+                .background(colorScheme.surface)
+                .padding(PaddingSize0_5)
             Column(
                 verticalArrangement = Arrangement.Top,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(colorScheme.surface)
-                    .verticalScroll(rememberScrollState())
-                    .padding(
-                        PaddingSize0_5
-                    )
+                modifier = if (isVerticalScrollHandled) {
+                    pollColumnModifier
+                } else {
+                    pollColumnModifier.verticalScroll(rememberScrollState())
+                }
             ) {
                 if (pollOptions.isNotEmpty()) {
                     PollExpireAt(

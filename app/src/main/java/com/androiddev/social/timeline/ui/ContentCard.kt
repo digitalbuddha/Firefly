@@ -26,7 +26,9 @@ fun ContentCard(
     onOpenURI: (URI, FeedType) -> Unit,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .padding(top = PaddingSize1)
+            .fillMaxWidth(),
         tonalElevation = TonalSurfaceElevation,
         shape = RoundedCornerShape(PaddingSize1),
         onClick = {

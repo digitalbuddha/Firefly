@@ -31,9 +31,13 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -208,7 +212,8 @@ fun TimelineCard(
                             text = text ?: buildAnnotatedString { },
                             onClick = {
                                 clicked = !clicked
-                                if (!clicked && showReply) showReply = false
+                                showReply = false
+                                onReplying(false)
                                 val annotation = text!!
                                     .getStringAnnotations(
                                         tag = "URL", start = it,
@@ -270,6 +275,15 @@ fun TimelineCard(
                             }
                         }
                     }
+
+                    ui?.card?.let { card ->
+                        ContentCard(
+                            card = card,
+                            feedType = ui.type,
+                            onOpenURI = onOpenURI,
+                        )
+                    }
+
                     AnimatedVisibility(visible = showReply) {
                         var mentions =
                             ui?.mentions?.map { mention -> mention.username }
@@ -277,7 +291,22 @@ fun TimelineCard(
 
                         mentions.add(ui?.userName ?: "")
                         mentions = mentions.map { "@${it}" }.toMutableList()
-                        Column(modifier = Modifier.padding(top = PaddingSize2)) {
+                        Column {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(horizontal = PaddingSize1)
+                                    .align(Alignment.End),
+                                onClick = {
+                                    showReply = false
+                                    onReplying(false)
+                                }
+                            ) {
+                                Icon(
+                                    tint = colorScheme.onSurface,
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Close reply"
+                                )
+                            }
                             UserInput(
                                 ui,
                                 account = account,
@@ -293,10 +322,12 @@ fun TimelineCard(
                                         )
                                     }
                                     showReply = false
+                                    onReplying(false)
                                 },
                                 defaultVisiblity = "Public",
                                 participants = mentions.joinToString(" "),
                                 showReplies = true,
+                                isVerticalScrollHandled = true,
                                 goToConversation = goToConversation,
                                 goToProfile = goToProfile,
                                 goToTag = goToTag,
@@ -318,15 +349,6 @@ fun TimelineCard(
                     ),
                 )
             ) {
-
-                ui?.card?.let { card ->
-                    ContentCard(
-                        card = card,
-                        feedType = ui.type,
-                        onOpenURI = onOpenURI,
-                    )
-                }
-
                 val current = LocalAuthComponent.current
                 var justBookmarked by remember { mutableStateOf(false) }
 

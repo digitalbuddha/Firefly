@@ -228,6 +228,7 @@ fun UserInputSheetContent(
         onMessageSent = onMessageSent,
         participants = "",
         showReplies = false,
+        isVerticalScrollHandled = false,
         goToConversation = goToConversation,
         goToProfile = goToProfile,
         goToTag = goToTag
