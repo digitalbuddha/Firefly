@@ -62,10 +62,9 @@ fun getUserComponent(
     val userManager =
         ((LocalContext.current.applicationContext as FireflyApp).component as UserManagerProvider).getUserManager()
     return userManager.userComponentFor(
-        code = code
-    ) ?: run {
-        getUserComponent(accessTokenRequest = accessTokenRequest(navBackStackEntry))
-    }
+        code = code,
+        accessTokenRequest = accessTokenRequest(navBackStackEntry)
+    )
 }
 
 @Composable
