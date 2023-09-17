@@ -19,6 +19,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
@@ -485,39 +486,58 @@ private fun PollCreator(
 ) {
     var option: TextFieldValue by remember { mutableStateOf(TextFieldValue("")) }
 
-    TextField(
-        value = option,
-        onValueChange = {
-            option = it
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(
-                horizontal = PaddingSize1,
-                vertical = PaddingSize2
-            )
-            .focusRequester(focusRequester),
-        label = {
-            Text("Type an option for the poll, then make it done from keyboard.")
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Done,
-            capitalization = KeyboardCapitalization.Sentences
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = option,
+            onValueChange = {
+                option = it
+            },
+            modifier = Modifier
+                .wrapContentHeight()
+                .padding(
+                    horizontal = PaddingSize1,
+                    vertical = PaddingSize2
+                )
+                .focusRequester(focusRequester)
+                .weight(1f),
+            label = {
+                Text("Type an option for the poll")
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done,
+                capitalization = KeyboardCapitalization.Sentences
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (option.text.isNotBlank()) {
+                        pollOptionAdded(option.text)
+                        option = TextFieldValue("")
+                    }
+                }
+            ),
+            maxLines = 1,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
+        )
+        IconButton(
+            onClick = {
                 if (option.text.isNotBlank()) {
                     pollOptionAdded(option.text)
                     option = TextFieldValue("")
                 }
-            }
-        ),
-        maxLines = 1,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
-    )
-
+            },
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "Add",
+                tint = colorScheme.primary,
+            )
+        }
+    }
 }
 
 @Composable
