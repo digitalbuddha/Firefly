@@ -3,6 +3,7 @@ package com.androiddev.social.timeline.ui
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.androiddev.social.auth.data.AccessTokenRequest
@@ -10,7 +11,10 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun SplashScreen(navController: NavHostController) {
+fun SplashScreen(
+    navController: NavHostController,
+    accessTokenRequestState: MutableState<AccessTokenRequest?>,
+) {
     val current: Context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -27,7 +31,16 @@ fun SplashScreen(navController: NavHostController) {
             val redirectUri =
                 URLEncoder.encode(firstAccount.redirectUri, StandardCharsets.UTF_8.toString())
             val code = URLEncoder.encode(firstAccount.code, StandardCharsets.UTF_8.toString())
-            navController.navigate("home/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
+
+            accessTokenRequestState.value = AccessTokenRequest(
+                code = code,
+                clientId = clientId,
+                clientSecret = clientSecret,
+                redirectUri = redirectUri,
+                domain = domain,
+            )
+
+            navController.navigate("home") {
                 popUpTo(0)
             }
         }

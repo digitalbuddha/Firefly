@@ -11,11 +11,7 @@ import javax.inject.Inject
 interface UserManager {
     fun userComponentFor(accessTokenRequest: AccessTokenRequest): UserComponent
 
-    /**
-     * This method will use [code] to retrieve the [UserComponent], but in case that it's null
-     * it'll create it by using [accessTokenRequest].
-     */
-    fun userComponentFor(code: String, accessTokenRequest: AccessTokenRequest): UserComponent
+    fun userComponentFor(code: String): UserComponent
 }
 
 @ContributesTo(AppScope::class)
@@ -40,9 +36,7 @@ class RealUserManager @Inject constructor(val app: FireflyApp) : UserManager {
         }
     }
 
-    override fun userComponentFor(code: String, accessTokenRequest: AccessTokenRequest): UserComponent {
-        return cache.getOrPut(code) {
-            userComponentFor(accessTokenRequest)
-        }
+    override fun userComponentFor(code: String): UserComponent {
+        return cache.getIfPresent(code)!!
     }
 }
