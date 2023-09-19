@@ -59,13 +59,17 @@ fun getUserComponent(accessTokenRequest: AccessTokenRequest): UserComponent {
 @Composable
 fun AuthScoped(
     accessTokenRequestState: MutableState<AccessTokenRequest?>,
+    navBackStackEntry: NavBackStackEntry,
     content: @Composable (
         userComponent: UserComponent,
         component: AuthRequiredInjector,
         accessTokenRequest: AccessTokenRequest,
     ) -> Unit
 ) {
-    val accessTokenRequest = accessTokenRequestState.value!!
+    val accessTokenRequest = accessTokenRequestState.value ?: run {
+        accessTokenRequest(navBackStackEntry)
+            .also { accessTokenRequestState.value = it }
+    }
     val userComponent = getUserComponent(accessTokenRequest)
     CompositionLocalProvider(LocalUserComponent provides userComponent) {
         val component = retain(
@@ -102,7 +106,7 @@ fun Navigator(
             route = "home/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}"
         ) {
             composable("timeline", enterTransition = { fadeIn() }, exitTransition = { fadeOut() }) {
-                AuthScoped(accessTokenRequestState) { userComponent, _, accessTokenRequest ->
+                AuthScoped(accessTokenRequestState, it) { userComponent, _, accessTokenRequest ->
                     val code = accessTokenRequest.code
                     CompositionLocalProvider(LocalUserComponent provides userComponent) {
                         TimelineScreen(
@@ -146,7 +150,7 @@ fun Navigator(
                 route = "mentions/{code}",
             ) {
                 it.arguments?.getString("code")?.let { code ->
-                    AuthScoped(accessTokenRequestState) { userComponent, _, _ ->
+                    AuthScoped(accessTokenRequestState, it) { userComponent, _, _ ->
                         MentionsScreen(
                             navController = navController,
                             code = code,
@@ -168,7 +172,7 @@ fun Navigator(
                 route = "tag/{code}/{tag}",
             ) {
                 it.arguments?.getString("code")?.let { code ->
-                    AuthScoped(accessTokenRequestState) { userComponent, _, _ ->
+                    AuthScoped(accessTokenRequestState, it) { userComponent, _, _ ->
                         TagScreen(
                             navController,
                             code = code,
@@ -195,7 +199,7 @@ fun Navigator(
         ) {
             val accountId = it.arguments?.getString("accountId")!!
             it.arguments?.getString("code")?.let { code ->
-                AuthScoped(accessTokenRequestState) { userComponent, component, _ ->
+                AuthScoped(accessTokenRequestState, it) { userComponent, component, _ ->
                     ProfileScreen(
                         component = component,
                         navController = navController,
@@ -218,7 +222,7 @@ fun Navigator(
         ) {
             val accountId = it.arguments?.getString("accountId")!!
             it.arguments?.getString("code")?.let { code ->
-                AuthScoped(accessTokenRequestState) { _, component, _ ->
+                AuthScoped(accessTokenRequestState, it) { _, component, _ ->
                     val followerPresenter = component.followerPresenter()
 
                     LaunchedEffect(key1 = accountId) {
@@ -242,7 +246,7 @@ fun Navigator(
         ) {
             val accountId = it.arguments?.getString("accountId")!!
             it.arguments?.getString("code")?.let { code ->
-                AuthScoped(accessTokenRequestState) { _, component, _ ->
+                AuthScoped(accessTokenRequestState, it) { _, component, _ ->
                     val followerPresenter = component.followerPresenter()
 
                     LaunchedEffect(key1 = accountId) {
@@ -269,7 +273,7 @@ fun Navigator(
             route = "search/{code}",
         ) {
             it.arguments?.getString("code")?.let { code ->
-                AuthScoped(accessTokenRequestState) { userComponent, component: AuthRequiredInjector, _ ->
+                AuthScoped(accessTokenRequestState, it) { userComponent, component: AuthRequiredInjector, _ ->
                     val searchPresenter = component.searchPresenter()
                     val searchScope = rememberCoroutineScope()
                     LaunchedEffect(key1 = code) {
@@ -313,7 +317,7 @@ fun Navigator(
             it.arguments?.getString("code")?.let { code ->
                 val statusId = it.arguments?.getString("statusId")!!
                 val type = it.arguments?.getString("type")!!
-                AuthScoped(accessTokenRequestState) { userComponent, _, _ ->
+                AuthScoped(accessTokenRequestState, it) { userComponent, _, _ ->
                     ConversationScreen(
                         navController = navController,
                         code = code,
@@ -338,7 +342,7 @@ fun Navigator(
             route = "notifications/{code}",
         ) {
             it.arguments?.getString("code")?.let { code ->
-                AuthScoped(accessTokenRequestState) { userComponent, _, _ ->
+                AuthScoped(accessTokenRequestState, it) { userComponent, _, _ ->
                     NotificationsScreen(
                         navController = navController,
                         code = code,
