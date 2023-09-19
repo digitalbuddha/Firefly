@@ -99,7 +99,7 @@ fun Navigator(
     ) {
         navigation(
             startDestination = "timeline",
-            route = "home"
+            route = "home/{server}/{clientId}/{clientSecret}/{redirectUri}/{code}"
         ) {
             composable("timeline", enterTransition = { fadeIn() }, exitTransition = { fadeOut() }) {
                 AuthScoped(accessTokenRequestState) { userComponent, _, accessTokenRequest ->

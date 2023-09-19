@@ -23,6 +23,8 @@ fun SplashScreen(
         if (firstAccount == null) {
             navController.navigate("selectServer")
         } else {
+            accessTokenRequestState.value = firstAccount
+
             val domain = URLEncoder.encode(firstAccount.domain, StandardCharsets.UTF_8.toString())
             val clientId =
                 URLEncoder.encode(firstAccount.clientId, StandardCharsets.UTF_8.toString())
@@ -32,15 +34,7 @@ fun SplashScreen(
                 URLEncoder.encode(firstAccount.redirectUri, StandardCharsets.UTF_8.toString())
             val code = URLEncoder.encode(firstAccount.code, StandardCharsets.UTF_8.toString())
 
-            accessTokenRequestState.value = AccessTokenRequest(
-                code = code,
-                clientId = clientId,
-                clientSecret = clientSecret,
-                redirectUri = redirectUri,
-                domain = domain,
-            )
-
-            navController.navigate("home") {
+            navController.navigate("home/${domain}/${clientId}/${clientSecret}/${redirectUri}/${code}") {
                 popUpTo(0)
             }
         }
